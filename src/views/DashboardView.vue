@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useArmyStore } from '../stores/army'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const armyStore = useArmyStore()
 
 // Computed properties based on the auth store
 const user = computed(() => authStore.user)
-const isLoading = computed(() => authStore.loading)
+const isLoading = computed(() => authStore.loading || armyStore.loading)
+const hasArmies = computed(() => armyStore.hasArmies)
 
 // Handle logout
 const handleLogout = async () => {
@@ -20,6 +23,23 @@ const handleLogout = async () => {
     console.error('Error logging out:', error)
   }
 }
+
+// Navigate to army detail
+const viewArmy = (id: string) => {
+  router.push(`/army/${id}`)
+}
+
+// Create a new army
+const createArmy = () => {
+  router.push('/army/new')
+}
+
+// Load armies on component mount
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await armyStore.loadArmies()
+  }
+})
 </script>
 
 <template>
@@ -48,43 +68,76 @@ const handleLogout = async () => {
       <!-- Dashboard content when loaded -->
       <v-container v-else class="py-8">
         <v-card class="mx-auto" max-width="800">
-          <v-card-text class="text-center py-8">
-            <v-icon icon="mdi-check-circle" color="success" size="x-large" class="mb-4"></v-icon>
-            <h2 class="text-h4 font-weight-bold mb-2 text-primary">You are logged in!</h2>
-            <p class="text-body-1 mb-6">Welcome to the Trench Crusade Companion app.</p>
+          <v-card-title class="text-h4 font-weight-bold text-primary pt-4 px-4">
+            Dashboard
+          </v-card-title>
 
-            <v-card class="mx-auto" max-width="500" variant="outlined">
-              <v-card-title class="text-primary">Your Account</v-card-title>
-              <v-card-text>
-                <v-list>
-                  <v-list-item>
-                    <template v-slot:prepend>
-                      <v-icon icon="mdi-email"></v-icon>
-                    </template>
-                    <v-list-item-title>Email</v-list-item-title>
-                    <v-list-item-subtitle>{{ user?.email }}</v-list-item-subtitle>
-                  </v-list-item>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12">
+                <v-card variant="outlined" class="mb-4">
+                  <v-card-text class="text-center py-4">
+                    <v-icon icon="mdi-account" color="primary" size="x-large" class="mb-2"></v-icon>
+                    <h3 class="text-h6 font-weight-bold mb-2">Your Account</h3>
+                    <p class="text-body-2 mb-0">{{ user?.email }}</p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
 
-                  <v-list-item>
-                    <template v-slot:prepend>
-                      <v-icon icon="mdi-account"></v-icon>
-                    </template>
-                    <v-list-item-title>User ID</v-list-item-title>
-                    <v-list-item-subtitle>{{ user?.id }}</v-list-item-subtitle>
-                  </v-list-item>
+            <!-- Armies Section -->
+            <v-row>
+              <v-col cols="12">
+                <div class="d-flex align-center mb-4">
+                  <h3 class="text-h5 font-weight-bold mb-0">Your Armies</h3>
+                  <v-spacer></v-spacer>
+                  <v-btn color="primary" prepend-icon="mdi-plus" @click="createArmy" size="small">
+                    New Army
+                  </v-btn>
+                </div>
 
-                  <v-list-item>
+                <!-- No armies message -->
+                <v-card v-if="!hasArmies" variant="outlined" class="text-center pa-4">
+                  <v-icon icon="mdi-sword-cross" size="large" color="grey" class="mb-2"></v-icon>
+                  <p class="text-medium-emphasis mb-2">You don't have any armies yet.</p>
+                  <v-btn color="primary" prepend-icon="mdi-plus" @click="createArmy">
+                    Create Your First Army
+                  </v-btn>
+                </v-card>
+
+                <!-- Army list -->
+                <v-list v-else lines="two">
+                  <v-list-item
+                    v-for="army in armyStore.armies"
+                    :key="army.id"
+                    @click="viewArmy(army.id)"
+                  >
                     <template v-slot:prepend>
-                      <v-icon icon="mdi-clock"></v-icon>
+                      <v-avatar color="primary" class="mr-3">
+                        <v-icon icon="mdi-shield-outline"></v-icon>
+                      </v-avatar>
                     </template>
-                    <v-list-item-title>Last Sign In</v-list-item-title>
+
+                    <v-list-item-title class="text-h6 font-weight-bold">
+                      {{ army.name }}
+                    </v-list-item-title>
+
                     <v-list-item-subtitle>
-                      {{ new Date(user?.last_sign_in_at || '').toLocaleString() }}
+                      {{ army.faction }} | {{ army.points }} pts
                     </v-list-item-subtitle>
+
+                    <template v-slot:append>
+                      <v-chip size="small" color="primary" variant="outlined" class="mr-2">
+                        CP: {{ army.crusadePoints }}
+                      </v-chip>
+                      <v-chip size="small" color="info" variant="outlined">
+                        {{ army.battles }} Battles
+                      </v-chip>
+                    </template>
                   </v-list-item>
                 </v-list>
-              </v-card-text>
-            </v-card>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
       </v-container>
