@@ -1,11 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { createClient } from '@supabase/supabase-js'
+import { auth } from '../services/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 import LoginView from '../views/LoginView.vue'
 
-// Create Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create a promise to resolve the initial auth state
+let authReady = false
+const authReadyPromise = new Promise<void>((resolve) => {
+  // Set up auth state change listener
+  const unsubscribe = onAuthStateChanged(auth, () => {
+    authReady = true
+    unsubscribe()
+    resolve()
+  })
+})
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,6 +42,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/army/new',
+      name: 'army-new',
+      component: () => import('@/views/ArmyFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/army/:id/edit',
+      name: 'army-edit',
+      component: () => import('@/views/ArmyFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue'),
@@ -44,13 +63,17 @@ const router = createRouter({
 
 // Navigation guard to check auth status
 router.beforeEach(async (to, from, next) => {
+  // Wait for the auth state to be ready
+  if (!authReady) {
+    await authReadyPromise
+  }
+
   // Check if the route requires authentication
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const requiresGuest = to.matched.some((record) => record.meta.requiresGuest)
 
   // Get current user
-  const { data } = await supabase.auth.getSession()
-  const isLoggedIn = !!data.session
+  const isLoggedIn = !!auth.currentUser
 
   if (requiresAuth && !isLoggedIn) {
     // If route requires auth and user is not logged in, redirect to login

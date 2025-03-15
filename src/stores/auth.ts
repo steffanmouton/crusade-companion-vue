@@ -1,16 +1,16 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { createClient } from '@supabase/supabase-js'
-import type { User, Session } from '@supabase/supabase-js'
-
-// Create Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  type User,
+} from 'firebase/auth'
+import { auth } from '../services/firebase'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
-  const session = ref<Session | null>(null)
   const loading = ref(true)
 
   // Computed properties
@@ -21,28 +21,14 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
 
     try {
-      // Get initial session
-      const { data: sessionData } = await supabase.auth.getSession()
-      session.value = sessionData.session
-
-      if (sessionData.session) {
-        // If we have a session, get the user
-        const { data } = await supabase.auth.getUser()
-        user.value = data.user
-      } else {
-        user.value = null
-      }
-
       // Set up auth state change listener
-      supabase.auth.onAuthStateChange((event, newSession) => {
-        session.value = newSession
-        user.value = newSession?.user || null
+      onAuthStateChanged(auth, (currentUser) => {
+        user.value = currentUser
+        loading.value = false
       })
     } catch (error) {
       console.error('Failed to initialize auth store:', error)
       user.value = null
-      session.value = null
-    } finally {
       loading.value = false
     }
   }
@@ -50,57 +36,66 @@ export const useAuthStore = defineStore('auth', () => {
   // Sign in with email and password
   async function signIn(email: string, password: string) {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      loading.value = true
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      user.value = userCredential.user
 
-      if (error) throw error
-
-      user.value = data.user
-      session.value = data.session
-
-      return { success: true, data, error: null }
+      return { success: true, data: userCredential.user, error: null }
     } catch (error: any) {
-      return { success: false, data: null, error }
+      return {
+        success: false,
+        data: null,
+        error: {
+          message: error.message || 'Failed to sign in',
+        },
+      }
+    } finally {
+      loading.value = false
     }
   }
 
   // Sign up with email and password
   async function signUp(email: string, password: string) {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      })
+      loading.value = true
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
 
-      if (error) throw error
-
-      return { success: true, data, error: null }
+      return { success: true, data: userCredential.user, error: null }
     } catch (error: any) {
-      return { success: false, data: null, error }
+      return {
+        success: false,
+        data: null,
+        error: {
+          message: error.message || 'Failed to sign up',
+        },
+      }
+    } finally {
+      loading.value = false
     }
   }
 
   // Sign out
   async function signOut() {
     try {
-      const { error } = await supabase.auth.signOut()
-
-      if (error) throw error
-
+      loading.value = true
+      await firebaseSignOut(auth)
       user.value = null
-      session.value = null
 
       return { success: true, error: null }
     } catch (error: any) {
-      return { success: false, error }
+      return {
+        success: false,
+        error: {
+          message: error.message || 'Failed to sign out',
+        },
+      }
+    } finally {
+      loading.value = false
     }
   }
 
   return {
     user,
-    session,
     loading,
     isAuthenticated,
     initialize,
