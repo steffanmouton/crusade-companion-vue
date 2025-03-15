@@ -25,7 +25,7 @@ A Vue.js application for managing Warhammer 40k Crusade campaigns.
 4. Register a web app in your Firebase project
 5. Copy the Firebase configuration values to your `.env` file:
 
-```
+```env
 VITE_FIREBASE_API_KEY=your_firebase_api_key_here
 VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain_here
 VITE_FIREBASE_PROJECT_ID=your_firebase_project_id_here
@@ -36,6 +36,8 @@ VITE_FIREBASE_APP_ID=your_firebase_app_id_here
 
 ### Installation
 
+#### Code Setup
+
 1. Clone the repository
 2. Install dependencies:
 
@@ -43,9 +45,10 @@ VITE_FIREBASE_APP_ID=your_firebase_app_id_here
 npm install
 ```
 
-3. Create a `.env` file based on `.env.example` and add your Firebase configuration
+#### Firebase Config
 
-4. Start the development server:
+1. Create a `.env` file based on `.env.example` and add your Firebase configuration
+2. Start the development server:
 
 ```bash
 npm run dev

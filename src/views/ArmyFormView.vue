@@ -3,15 +3,22 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
+import { FactionNames } from '../models/faction'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const armyStore = useArmyStore()
 
+// Create a list of faction options for the dropdown
+const factionOptions = Object.values(FactionNames).map((value) => ({
+  title: value,
+  value: value,
+}))
+
 // Form state
 const name = ref('')
-const faction = ref('')
+const faction = ref<string>(FactionNames.TRENCH_PILGRIMS) // Default faction
 const points = ref(0)
 const crusadePoints = ref(0)
 const requisitionPoints = ref(0)
@@ -63,7 +70,7 @@ const validateForm = (): boolean => {
     return false
   }
 
-  if (!faction.value.trim()) {
+  if (!faction.value) {
     errorMessage.value = 'Faction is required'
     return false
   }
@@ -224,15 +231,18 @@ const goBack = () => {
               ></v-text-field>
 
               <!-- Faction Field -->
-              <v-text-field
+              <v-select
                 v-model="faction"
                 label="Faction"
-                required
+                :items="factionOptions"
+                item-title="title"
+                item-value="value"
                 variant="outlined"
                 density="comfortable"
                 class="mb-2 tc-field"
                 bg-color="background"
-              ></v-text-field>
+                required
+              ></v-select>
 
               <!-- Points Field -->
               <v-text-field

@@ -47,8 +47,7 @@ onMounted(async () => {
     <!-- App Bar -->
     <v-app-bar color="primary" density="default" class="tc-app-bar" elevation="1">
       <v-app-bar-title class="text-h6 font-weight-medium tc-logo-text">
-        Trench Crusade
-        <span class="text-body-2 ml-1 font-weight-regular">Companion</span>
+        Crusade Companion
       </v-app-bar-title>
       <v-spacer></v-spacer>
       <div v-if="!isLoading && user" class="text-body-2 mr-4">
