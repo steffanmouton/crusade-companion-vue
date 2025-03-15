@@ -1,18 +1,14 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+  <v-app>
     <!-- Loading indicator while auth is initializing -->
-    <div v-if="authStore.loading" class="flex items-center justify-center min-h-screen">
-      <div class="text-center">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"
-        ></div>
-        <p class="mt-4">Loading...</p>
-      </div>
+    <div v-if="authStore.loading" class="d-flex align-center justify-center" style="height: 100vh">
+      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+      <span class="ml-4">Loading...</span>
     </div>
 
     <!-- Main app layout with router view when auth is ready -->
     <router-view v-else />
-  </div>
+  </v-app>
 </template>
 
 <script setup lang="ts">
