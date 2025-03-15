@@ -95,18 +95,18 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <v-container fluid class="fill-height pa-0">
+  <v-container fluid class="fill-height pa-0 bg-background">
     <v-row no-gutters justify="center" align="center" class="fill-height">
       <v-col cols="12" sm="8" md="6" lg="4" xl="3">
-        <v-card class="mx-auto pa-4" elevation="8" max-width="500">
+        <v-card class="mx-auto pa-4 tc-card" elevation="1" max-width="500">
           <!-- Logo/Header -->
           <div class="text-center mb-6">
-            <h1 class="text-h4 font-weight-bold text-primary mb-2">Trench Crusade</h1>
-            <p class="text-subtitle-1 text-medium-emphasis font-italic">Companion App</p>
+            <h1 class="text-h4 font-weight-medium tc-heading mb-2">Crusade Companion</h1>
+            <p class="text-subtitle-1 text-medium-emphasis">Army Builder App</p>
           </div>
 
           <!-- Form Header -->
-          <v-card-title class="text-h5 font-weight-bold text-primary pb-2 pt-0">
+          <v-card-title class="text-h5 font-weight-medium tc-heading pb-2 pt-0">
             {{ formTitle }}
           </v-card-title>
 
@@ -138,7 +138,8 @@ const handleSubmit = async () => {
               density="comfortable"
               autocomplete="email"
               prepend-inner-icon="mdi-email-outline"
-              class="mb-2"
+              class="mb-2 tc-field"
+              bg-color="background"
             ></v-text-field>
 
             <!-- Password Field -->
@@ -153,7 +154,8 @@ const handleSubmit = async () => {
               prepend-inner-icon="mdi-lock-outline"
               :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
               @click:append-inner="showPassword = !showPassword"
-              class="mb-2"
+              class="mb-2 tc-field"
+              bg-color="background"
             ></v-text-field>
 
             <!-- Confirm Password Field (Register only) -->
@@ -169,7 +171,8 @@ const handleSubmit = async () => {
               prepend-inner-icon="mdi-lock-check-outline"
               :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
               @click:append-inner="showConfirmPassword = !showConfirmPassword"
-              class="mb-4"
+              class="mb-4 tc-field"
+              bg-color="background"
             ></v-text-field>
 
             <!-- Submit Button -->
@@ -179,7 +182,9 @@ const handleSubmit = async () => {
               block
               :loading="isLoading"
               :disabled="isLoading"
-              class="mb-4"
+              class="mb-4 tc-btn"
+              elevation="0"
+              variant="flat"
             >
               {{ submitButtonText }}
             </v-btn>
@@ -193,6 +198,7 @@ const handleSubmit = async () => {
                 :disabled="isLoading"
                 density="comfortable"
                 size="small"
+                class="tc-btn"
               >
                 {{ toggleModeText }}
               </v-btn>

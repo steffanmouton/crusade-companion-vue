@@ -46,18 +46,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-app>
+  <v-app class="bg-background">
     <!-- App Bar -->
-    <v-app-bar color="primary" density="default">
-      <v-app-bar-title class="text-h6 font-weight-bold"> Trench Crusade Companion </v-app-bar-title>
+    <v-app-bar color="primary" density="default" class="tc-app-bar" elevation="1">
+      <v-app-bar-title class="text-h6 font-weight-medium tc-logo-text">
+        Crusade Companion
+      </v-app-bar-title>
       <v-spacer></v-spacer>
-      <div v-if="!isLoading && user" class="text-body-2">
+      <div v-if="!isLoading && user" class="text-body-2 mr-4">
         {{ user.email }}
       </div>
     </v-app-bar>
 
     <!-- Main Content -->
-    <v-main>
+    <v-main class="bg-background">
       <!-- Loading state -->
       <v-container v-if="isLoading" class="fill-height" fluid>
         <v-row justify="center" align="center">
@@ -69,7 +71,7 @@ onMounted(async () => {
 
       <!-- Army detail content when loaded -->
       <v-container v-else-if="army" class="py-8">
-        <v-card class="mx-auto" max-width="800">
+        <v-card class="mx-auto tc-card" max-width="800" elevation="1">
           <v-card-text>
             <!-- Back button -->
             <v-btn
@@ -77,7 +79,7 @@ onMounted(async () => {
               color="primary"
               variant="text"
               prepend-icon="mdi-arrow-left"
-              class="mb-4"
+              class="mb-4 tc-btn"
             >
               Back to Dashboard
             </v-btn>
@@ -85,24 +87,27 @@ onMounted(async () => {
             <!-- Army header -->
             <div class="d-flex align-center mb-6">
               <div>
-                <h2 class="text-h4 font-weight-bold text-primary mb-1">{{ army.name }}</h2>
+                <h2 class="text-h4 font-weight-medium tc-heading mb-1">{{ army.name }}</h2>
                 <p class="text-subtitle-1">{{ army.faction }} | {{ army.points }} pts</p>
               </div>
               <v-spacer></v-spacer>
               <div>
                 <v-btn
                   color="primary"
-                  variant="outlined"
+                  variant="flat"
                   prepend-icon="mdi-pencil"
-                  class="mr-2"
+                  class="mr-2 tc-btn"
+                  elevation="0"
                   @click="editArmy"
                 >
                   Edit
                 </v-btn>
                 <v-btn
                   color="error"
-                  variant="outlined"
+                  variant="flat"
                   prepend-icon="mdi-delete"
+                  class="tc-btn"
+                  elevation="0"
                   @click="deleteArmy"
                 >
                   Delete
@@ -110,37 +115,51 @@ onMounted(async () => {
               </div>
             </div>
 
+            <hr class="tc-divider" />
+
             <!-- Army stats -->
             <v-row class="mb-6">
               <v-col cols="12" sm="4">
-                <v-card variant="outlined" class="text-center pa-4">
-                  <v-icon icon="mdi-star" color="warning" size="large" class="mb-2"></v-icon>
-                  <h3 class="text-h6 font-weight-bold mb-1">Crusade Points</h3>
-                  <p class="text-h4 font-weight-bold">{{ army.crusadePoints }}</p>
+                <v-card
+                  variant="outlined"
+                  class="text-center pa-4 tc-card tc-highlight-bg"
+                  elevation="0"
+                >
+                  <v-icon icon="mdi-star" color="accent" size="large" class="mb-2"></v-icon>
+                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Crusade Points</h3>
+                  <p class="text-h4 font-weight-medium">{{ army.crusadePoints }}</p>
                 </v-card>
               </v-col>
               <v-col cols="12" sm="4">
-                <v-card variant="outlined" class="text-center pa-4">
+                <v-card
+                  variant="outlined"
+                  class="text-center pa-4 tc-card tc-highlight-bg"
+                  elevation="0"
+                >
                   <v-icon
                     icon="mdi-currency-usd"
                     color="success"
                     size="large"
                     class="mb-2"
                   ></v-icon>
-                  <h3 class="text-h6 font-weight-bold mb-1">Requisition</h3>
-                  <p class="text-h4 font-weight-bold">{{ army.requisitionPoints }}</p>
+                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Requisition</h3>
+                  <p class="text-h4 font-weight-medium">{{ army.requisitionPoints }}</p>
                 </v-card>
               </v-col>
               <v-col cols="12" sm="4">
-                <v-card variant="outlined" class="text-center pa-4">
+                <v-card
+                  variant="outlined"
+                  class="text-center pa-4 tc-card tc-highlight-bg"
+                  elevation="0"
+                >
                   <v-icon icon="mdi-sword-cross" color="info" size="large" class="mb-2"></v-icon>
-                  <h3 class="text-h6 font-weight-bold mb-1">Battles</h3>
-                  <p class="text-h4 font-weight-bold">{{ army.battles }}</p>
+                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Battles</h3>
+                  <p class="text-h4 font-weight-medium">{{ army.battles }}</p>
                   <div class="d-flex justify-center mt-2">
-                    <v-chip size="small" color="success" variant="outlined" class="mr-2">
+                    <v-chip size="small" color="success" variant="flat" class="mr-2">
                       W: {{ army.wins }}
                     </v-chip>
-                    <v-chip size="small" color="error" variant="outlined">
+                    <v-chip size="small" color="error" variant="flat">
                       L: {{ army.losses }}
                     </v-chip>
                   </div>
@@ -149,18 +168,27 @@ onMounted(async () => {
             </v-row>
 
             <!-- Army description -->
-            <v-card variant="outlined" class="mb-6 pa-4">
-              <h3 class="text-h6 font-weight-bold mb-2">Description</h3>
+            <v-card variant="outlined" class="mb-6 pa-4 tc-card" elevation="0">
+              <h3 class="text-h6 font-weight-medium mb-2 tc-heading">Description</h3>
               <p v-if="army.description" class="text-body-1">{{ army.description }}</p>
               <p v-else class="text-body-1 text-medium-emphasis">No description provided.</p>
             </v-card>
 
             <!-- Units section placeholder -->
-            <v-card variant="outlined" class="pa-4">
+            <v-card variant="outlined" class="pa-4 tc-card" elevation="0">
               <div class="d-flex align-center mb-4">
-                <h3 class="text-h6 font-weight-bold mb-0">Units</h3>
+                <h3 class="text-h6 font-weight-medium mb-0 tc-heading">Units</h3>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" size="small" prepend-icon="mdi-plus"> Add Unit </v-btn>
+                <v-btn
+                  color="primary"
+                  size="small"
+                  prepend-icon="mdi-plus"
+                  class="tc-btn"
+                  elevation="0"
+                  variant="flat"
+                >
+                  Add Unit
+                </v-btn>
               </div>
               <p class="text-medium-emphasis text-center py-4">
                 No units added yet. Click "Add Unit" to add your first unit.
@@ -172,13 +200,20 @@ onMounted(async () => {
 
       <!-- Not found message -->
       <v-container v-else class="py-8">
-        <v-card class="mx-auto text-center pa-6" max-width="500">
+        <v-card class="mx-auto text-center pa-6 tc-card" max-width="500" elevation="1">
           <v-icon icon="mdi-alert" color="warning" size="x-large" class="mb-4"></v-icon>
-          <h2 class="text-h4 font-weight-bold mb-2">Army Not Found</h2>
+          <h2 class="text-h4 font-weight-medium mb-2 tc-heading">Army Not Found</h2>
           <p class="text-body-1 mb-4">
             The army you're looking for doesn't exist or has been deleted.
           </p>
-          <v-btn color="primary" prepend-icon="mdi-arrow-left" @click="goBack">
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-arrow-left"
+            @click="goBack"
+            class="tc-btn"
+            elevation="0"
+            variant="flat"
+          >
             Back to Dashboard
           </v-btn>
         </v-card>
@@ -186,8 +221,8 @@ onMounted(async () => {
     </v-main>
 
     <!-- Footer -->
-    <v-footer app class="bg-surface-variant text-center d-flex justify-center">
-      <span class="text-caption text-medium-emphasis">
+    <v-footer app class="tc-footer text-center d-flex justify-center">
+      <span class="text-caption">
         &copy; {{ new Date().getFullYear() }} Crusade Companion | RocketSheep LLC
       </span>
     </v-footer>

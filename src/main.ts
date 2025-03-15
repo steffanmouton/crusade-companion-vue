@@ -11,24 +11,31 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import '@mdi/font/css/materialdesignicons.css'
 
-// Create Vuetify instance
+import './assets/trench-crusade.css'
+
 const vuetify = createVuetify({
   components,
   directives,
   theme: {
-    defaultTheme: 'dark',
+    defaultTheme: 'trenchCrusade',
     themes: {
-      dark: {
-        dark: true,
+      trenchCrusade: {
+        dark: false,
         colors: {
-          primary: '#4CAF50',
-          secondary: '#03A9F4',
-          accent: '#FF5722',
-          error: '#F44336',
-          warning: '#FFC107',
-          info: '#2196F3',
-          success: '#8BC34A',
-          background: '#121212',
+          primary: '#8B0000', // Dark red for headers and primary elements
+          secondary: '#4A4A4A', // Dark gray for secondary elements
+          accent: '#D4AF37', // Gold accent color
+          error: '#B71C1C', // Dark red for errors
+          warning: '#F57F17', // Amber for warnings
+          info: '#0D47A1', // Dark blue for info
+          success: '#1B5E20', // Dark green for success
+          background: '#F5F5F0', // Off-white background
+          surface: '#FFFFFF', // White surface
+          'on-background': '#121212', // Black text on background
+          'on-surface': '#121212', // Black text on surface
+          'on-primary': '#FFFFFF', // White text on primary
+          'on-secondary': '#FFFFFF', // White text on secondary
+          'on-accent': '#000000', // Black text on accent
         },
       },
     },

@@ -1,9 +1,9 @@
 <template>
-  <v-app>
+  <v-app class="bg-background">
     <!-- Loading indicator while auth is initializing -->
     <div v-if="authStore.loading" class="d-flex align-center justify-center" style="height: 100vh">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-      <span class="ml-4">Loading...</span>
+      <span class="ml-4 text-primary font-weight-medium">Loading...</span>
     </div>
 
     <!-- Main app layout with router view when auth is ready -->

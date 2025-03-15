@@ -1,0 +1,94 @@
+/* Trench Crusade Theme Styles */
+
+/* Apply almost-white background to the app */
+html,
+body {
+  background-color: #fafafa !important; /* Lighter, almost white background */
+  color: #121212;
+}
+
+/* Custom heading styles */
+.tc-heading {
+  color: #8b0000 !important;
+  font-weight: 500 !important; /* Slightly less bold for a more modern look */
+  letter-spacing: 0.25px; /* Reduced letter spacing */
+}
+
+/* Custom card styles */
+.tc-card {
+  border: none !important; /* Remove borders for cleaner look */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important; /* Lighter shadow */
+  border-radius: 8px !important; /* Slightly rounded corners */
+  background-color: #ffffff !important; /* Pure white cards */
+}
+
+/* Custom accent elements */
+.tc-accent {
+  color: #d4af37 !important;
+}
+
+/* Custom border accents */
+.tc-border-accent {
+  border-color: #d4af37 !important;
+}
+
+/* Custom background for highlighted sections */
+.tc-highlight-bg {
+  background-color: rgba(139, 0, 0, 0.03) !important; /* Much lighter highlight */
+}
+
+/* Custom button hover effect */
+.tc-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Custom footer style */
+.tc-footer {
+  background-color: #fafafa !important; /* Match the main background */
+  color: rgba(0, 0, 0, 0.6) !important; /* Subtle text color */
+  border-top: 1px solid rgba(0, 0, 0, 0.08); /* Very subtle top border */
+}
+
+/* Custom app bar style */
+.tc-app-bar {
+  background-color: #8b0000 !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important; /* Lighter shadow */
+}
+
+/* Custom logo text */
+.tc-logo-text {
+  font-family: 'Roboto', sans-serif !important; /* More modern font */
+  font-weight: 500 !important;
+  letter-spacing: 0.5px;
+}
+
+/* Custom section divider */
+.tc-divider {
+  border-color: rgba(0, 0, 0, 0.06) !important; /* Very subtle divider */
+  margin: 16px 0;
+}
+
+/* Custom form field styles */
+.tc-field.v-field {
+  border-color: rgba(0, 0, 0, 0.12) !important; /* Subtle border */
+}
+.tc-field.v-field:focus-within {
+  border-color: #8b0000 !important;
+}
+
+/* Custom table styles */
+.tc-table {
+  border: none !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+}
+.tc-table .v-table__header {
+  background-color: rgba(0, 0, 0, 0.02) !important; /* Very subtle header background */
+}
+
+/* Background utility class */
+.bg-background {
+  background-color: #fafafa !important;
+}

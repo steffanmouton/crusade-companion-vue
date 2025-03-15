@@ -43,19 +43,24 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-app>
+  <v-app class="bg-background">
     <!-- App Bar -->
-    <v-app-bar color="primary" density="default">
-      <v-app-bar-title class="text-h6 font-weight-bold"> Trench Crusade Companion </v-app-bar-title>
+    <v-app-bar color="primary" density="default" class="tc-app-bar" elevation="1">
+      <v-app-bar-title class="text-h6 font-weight-medium tc-logo-text">
+        Trench Crusade
+        <span class="text-body-2 ml-1 font-weight-regular">Companion</span>
+      </v-app-bar-title>
       <v-spacer></v-spacer>
       <div v-if="!isLoading && user" class="text-body-2 mr-4">
         {{ user.email }}
       </div>
-      <v-btn @click="handleLogout" variant="text" prepend-icon="mdi-logout"> Sign Out </v-btn>
+      <v-btn @click="handleLogout" variant="text" prepend-icon="mdi-logout" class="tc-btn">
+        Sign Out
+      </v-btn>
     </v-app-bar>
 
     <!-- Main Content -->
-    <v-main>
+    <v-main class="bg-background">
       <!-- Loading state -->
       <v-container v-if="isLoading" class="fill-height" fluid>
         <v-row justify="center" align="center">
@@ -67,18 +72,18 @@ onMounted(async () => {
 
       <!-- Dashboard content when loaded -->
       <v-container v-else class="py-8">
-        <v-card class="mx-auto" max-width="800">
-          <v-card-title class="text-h4 font-weight-bold text-primary pt-4 px-4">
+        <v-card class="mx-auto tc-card" max-width="800" elevation="1">
+          <v-card-title class="text-h4 font-weight-medium tc-heading pt-4 px-4">
             Dashboard
           </v-card-title>
 
           <v-card-text>
             <v-row>
               <v-col cols="12">
-                <v-card variant="outlined" class="mb-4">
+                <v-card variant="outlined" class="mb-4 tc-card tc-highlight-bg" elevation="0">
                   <v-card-text class="text-center py-4">
                     <v-icon icon="mdi-account" color="primary" size="x-large" class="mb-2"></v-icon>
-                    <h3 class="text-h6 font-weight-bold mb-2">Your Account</h3>
+                    <h3 class="text-h6 font-weight-medium mb-2 tc-heading">Your Account</h3>
                     <p class="text-body-2 mb-0">{{ user?.email }}</p>
                   </v-card-text>
                 </v-card>
@@ -89,36 +94,65 @@ onMounted(async () => {
             <v-row>
               <v-col cols="12">
                 <div class="d-flex align-center mb-4">
-                  <h3 class="text-h5 font-weight-bold mb-0">Your Armies</h3>
+                  <h3 class="text-h5 font-weight-medium mb-0 tc-heading">Your Armies</h3>
                   <v-spacer></v-spacer>
-                  <v-btn color="primary" prepend-icon="mdi-plus" @click="createArmy" size="small">
+                  <v-btn
+                    color="primary"
+                    prepend-icon="mdi-plus"
+                    @click="createArmy"
+                    size="small"
+                    class="tc-btn"
+                    elevation="0"
+                    variant="flat"
+                  >
                     New Army
                   </v-btn>
                 </div>
 
+                <hr class="tc-divider" />
+
                 <!-- No armies message -->
-                <v-card v-if="!hasArmies" variant="outlined" class="text-center pa-4">
-                  <v-icon icon="mdi-sword-cross" size="large" color="grey" class="mb-2"></v-icon>
+                <v-card
+                  v-if="!hasArmies"
+                  variant="outlined"
+                  class="text-center pa-4 tc-card"
+                  elevation="0"
+                >
+                  <v-icon
+                    icon="mdi-sword-cross"
+                    size="large"
+                    color="secondary"
+                    class="mb-2"
+                  ></v-icon>
                   <p class="text-medium-emphasis mb-2">You don't have any armies yet.</p>
-                  <v-btn color="primary" prepend-icon="mdi-plus" @click="createArmy">
+                  <v-btn
+                    color="primary"
+                    prepend-icon="mdi-plus"
+                    @click="createArmy"
+                    class="tc-btn"
+                    elevation="0"
+                    variant="flat"
+                  >
                     Create Your First Army
                   </v-btn>
                 </v-card>
 
                 <!-- Army list -->
-                <v-list v-else lines="two">
+                <v-list v-else lines="two" class="tc-card pa-0" rounded="lg" elevation="0">
                   <v-list-item
                     v-for="army in armyStore.armies"
                     :key="army.id"
                     @click="viewArmy(army.id)"
+                    class="tc-btn"
+                    rounded="0"
                   >
                     <template v-slot:prepend>
-                      <v-avatar color="primary" class="mr-3">
+                      <v-avatar color="primary" class="mr-3" variant="flat">
                         <v-icon icon="mdi-shield-outline"></v-icon>
                       </v-avatar>
                     </template>
 
-                    <v-list-item-title class="text-h6 font-weight-bold">
+                    <v-list-item-title class="text-h6 font-weight-medium tc-heading">
                       {{ army.name }}
                     </v-list-item-title>
 
@@ -127,10 +161,10 @@ onMounted(async () => {
                     </v-list-item-subtitle>
 
                     <template v-slot:append>
-                      <v-chip size="small" color="primary" variant="outlined" class="mr-2">
+                      <v-chip size="small" color="accent" variant="flat" class="mr-2">
                         CP: {{ army.crusadePoints }}
                       </v-chip>
-                      <v-chip size="small" color="info" variant="outlined">
+                      <v-chip size="small" color="info" variant="flat">
                         {{ army.battles }} Battles
                       </v-chip>
                     </template>
@@ -144,8 +178,8 @@ onMounted(async () => {
     </v-main>
 
     <!-- Footer -->
-    <v-footer app class="bg-surface-variant text-center d-flex justify-center">
-      <span class="text-caption text-medium-emphasis">
+    <v-footer app class="tc-footer text-center d-flex justify-center">
+      <span class="text-caption">
         &copy; {{ new Date().getFullYear() }} Crusade Companion | RocketSheep LLC
       </span>
     </v-footer>

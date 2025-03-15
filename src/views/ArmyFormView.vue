@@ -3,7 +3,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
-import type { Army } from '../types/firebase'
 
 const route = useRoute()
 const router = useRouter()
@@ -145,10 +144,12 @@ const goBack = () => {
 </script>
 
 <template>
-  <v-app>
+  <v-app class="bg-background">
     <!-- App Bar -->
-    <v-app-bar color="primary" density="default">
-      <v-app-bar-title class="text-h6 font-weight-bold"> Trench Crusade Companion </v-app-bar-title>
+    <v-app-bar color="primary" density="default" class="tc-app-bar" elevation="1">
+      <v-app-bar-title class="text-h6 font-weight-medium tc-logo-text">
+        Crusade Companion
+      </v-app-bar-title>
       <v-spacer></v-spacer>
       <div v-if="!isLoading && authStore.user" class="text-body-2 mr-4">
         {{ authStore.user.email }}
@@ -156,7 +157,7 @@ const goBack = () => {
     </v-app-bar>
 
     <!-- Main Content -->
-    <v-main>
+    <v-main class="bg-background">
       <!-- Loading state -->
       <v-container v-if="armyStore.loading || isLoading" class="fill-height" fluid>
         <v-row justify="center" align="center">
@@ -168,8 +169,8 @@ const goBack = () => {
 
       <!-- Form content when loaded -->
       <v-container v-else class="py-8">
-        <v-card class="mx-auto" max-width="800">
-          <v-card-title class="text-h4 font-weight-bold text-primary pt-4 px-4">
+        <v-card class="mx-auto tc-card" max-width="800" elevation="1">
+          <v-card-title class="text-h4 font-weight-medium tc-heading pt-4 px-4">
             {{ formTitle }}
           </v-card-title>
 
@@ -180,7 +181,7 @@ const goBack = () => {
               color="primary"
               variant="text"
               prepend-icon="mdi-arrow-left"
-              class="mb-4"
+              class="mb-4 tc-btn"
             >
               Back
             </v-btn>
@@ -207,6 +208,8 @@ const goBack = () => {
               {{ successMessage }}
             </v-alert>
 
+            <hr class="tc-divider" />
+
             <!-- Army Form -->
             <v-form @submit.prevent="handleSubmit">
               <!-- Name Field -->
@@ -216,7 +219,8 @@ const goBack = () => {
                 required
                 variant="outlined"
                 density="comfortable"
-                class="mb-2"
+                class="mb-2 tc-field"
+                bg-color="background"
               ></v-text-field>
 
               <!-- Faction Field -->
@@ -226,7 +230,8 @@ const goBack = () => {
                 required
                 variant="outlined"
                 density="comfortable"
-                class="mb-2"
+                class="mb-2 tc-field"
+                bg-color="background"
               ></v-text-field>
 
               <!-- Points Field -->
@@ -236,7 +241,8 @@ const goBack = () => {
                 type="number"
                 variant="outlined"
                 density="comfortable"
-                class="mb-2"
+                class="mb-2 tc-field"
+                bg-color="background"
               ></v-text-field>
 
               <v-row>
@@ -248,7 +254,8 @@ const goBack = () => {
                     type="number"
                     variant="outlined"
                     density="comfortable"
-                    class="mb-2"
+                    class="mb-2 tc-field"
+                    bg-color="background"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -259,7 +266,8 @@ const goBack = () => {
                     type="number"
                     variant="outlined"
                     density="comfortable"
-                    class="mb-2"
+                    class="mb-2 tc-field"
+                    bg-color="background"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -270,8 +278,9 @@ const goBack = () => {
                 label="Description"
                 variant="outlined"
                 density="comfortable"
-                class="mb-4"
+                class="mb-4 tc-field"
                 rows="4"
+                bg-color="background"
               ></v-textarea>
 
               <!-- Submit Button -->
@@ -281,7 +290,9 @@ const goBack = () => {
                 block
                 :loading="isLoading"
                 :disabled="isLoading"
-                class="mb-4"
+                class="mb-4 tc-btn"
+                elevation="0"
+                variant="flat"
               >
                 {{ submitButtonText }}
               </v-btn>
@@ -292,8 +303,8 @@ const goBack = () => {
     </v-main>
 
     <!-- Footer -->
-    <v-footer app class="bg-surface-variant text-center d-flex justify-center">
-      <span class="text-caption text-medium-emphasis">
+    <v-footer app class="tc-footer text-center d-flex justify-center">
+      <span class="text-caption">
         &copy; {{ new Date().getFullYear() }} Crusade Companion | RocketSheep LLC
       </span>
     </v-footer>
