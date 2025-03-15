@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { createClient } from '@supabase/supabase-js'
-
-// Create Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // Form state
 const isLogin = ref(true)
@@ -70,24 +66,18 @@ const handleSubmit = async () => {
 
   try {
     if (isLogin.value) {
-      // Handle login
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.value,
-        password: password.value,
-      })
+      // Handle login using auth store
+      const { success, error } = await authStore.signIn(email.value, password.value)
 
-      if (error) throw error
+      if (!success) throw error
 
       // Successful login - redirect to dashboard
       router.push('/dashboard')
     } else {
-      // Handle registration
-      const { data, error } = await supabase.auth.signUp({
-        email: email.value,
-        password: password.value,
-      })
+      // Handle registration using auth store
+      const { success, error } = await authStore.signUp(email.value, password.value)
 
-      if (error) throw error
+      if (!success) throw error
 
       successMessage.value = 'Registration successful! Check your email for confirmation.'
       // Optionally switch to login mode after successful registration
@@ -250,7 +240,7 @@ const handleSubmit = async () => {
 
       <!-- Footer -->
       <div class="mt-6 text-center text-xs text-slate-400">
-        <p>&copy; 2025 Trench Crusade Companion | Factory Fortress Inc.</p>
+        <p>&copy; 2025 Crusade Companion | RocketSheep LLC</p>
       </div>
     </div>
   </div>

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { createClient } from '@supabase/supabase-js'
-import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 
 // Create Supabase client
@@ -14,7 +13,8 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('@/views/DashboardView.vue'),
+      meta: { requiresAuth: true },
     },
     {
       path: '/login',
@@ -26,6 +26,12 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/army/:id',
+      name: 'army-detail',
+      component: () => import('@/views/ArmyDetailView.vue'),
       meta: { requiresAuth: true },
     },
     {
