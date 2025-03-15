@@ -23,76 +23,78 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
-    <!-- Header with navigation -->
-    <header class="bg-slate-800 shadow-md">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <div class="flex items-center">
-          <h1 class="text-2xl font-bold text-emerald-400">Trench Crusade Companion</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          <div v-if="!isLoading && user" class="text-sm text-slate-300">
-            {{ user.email }}
-          </div>
-          <button
-            @click="handleLogout"
-            class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-md text-sm font-medium"
-          >
-            Sign Out
-          </button>
-        </div>
+  <v-app>
+    <!-- App Bar -->
+    <v-app-bar color="primary" density="default">
+      <v-app-bar-title class="text-h6 font-weight-bold"> Trench Crusade Companion </v-app-bar-title>
+      <v-spacer></v-spacer>
+      <div v-if="!isLoading && user" class="text-body-2 mr-4">
+        {{ user.email }}
       </div>
-    </header>
+      <v-btn @click="handleLogout" variant="text" prepend-icon="mdi-logout"> Sign Out </v-btn>
+    </v-app-bar>
 
-    <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center h-64">
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"
-      ></div>
-    </div>
+    <!-- Main Content -->
+    <v-main>
+      <!-- Loading state -->
+      <v-container v-if="isLoading" class="fill-height" fluid>
+        <v-row justify="center" align="center">
+          <v-col cols="auto">
+            <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          </v-col>
+        </v-row>
+      </v-container>
 
-    <!-- Dashboard content when loaded -->
-    <main v-else class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="bg-slate-700 rounded-lg shadow-xl p-6 text-center">
-        <div class="flex flex-col items-center justify-center py-12">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-16 w-16 text-emerald-400 mb-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 class="text-2xl font-semibold mb-2 text-emerald-300">You are logged in!</h2>
-          <p class="text-slate-300 mb-6">Welcome to the Trench Crusade Companion app.</p>
+      <!-- Dashboard content when loaded -->
+      <v-container v-else class="py-8">
+        <v-card class="mx-auto" max-width="800">
+          <v-card-text class="text-center py-8">
+            <v-icon icon="mdi-check-circle" color="success" size="x-large" class="mb-4"></v-icon>
+            <h2 class="text-h4 font-weight-bold mb-2 text-primary">You are logged in!</h2>
+            <p class="text-body-1 mb-6">Welcome to the Trench Crusade Companion app.</p>
 
-          <div class="bg-slate-800 rounded-lg p-6 max-w-md w-full">
-            <h3 class="text-lg font-medium text-emerald-300 mb-4">Your Account</h3>
-            <div class="text-left">
-              <p class="mb-2">
-                <span class="text-slate-400">Email:</span>
-                <span class="text-white">{{ user?.email }}</span>
-              </p>
-              <p class="mb-2">
-                <span class="text-slate-400">User ID:</span>
-                <span class="text-white">{{ user?.id }}</span>
-              </p>
-              <p class="mb-2">
-                <span class="text-slate-400">Last Sign In:</span>
-                <span class="text-white">{{
-                  new Date(user?.last_sign_in_at || '').toLocaleString()
-                }}</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+            <v-card class="mx-auto" max-width="500" variant="outlined">
+              <v-card-title class="text-primary">Your Account</v-card-title>
+              <v-card-text>
+                <v-list>
+                  <v-list-item>
+                    <template v-slot:prepend>
+                      <v-icon icon="mdi-email"></v-icon>
+                    </template>
+                    <v-list-item-title>Email</v-list-item-title>
+                    <v-list-item-subtitle>{{ user?.email }}</v-list-item-subtitle>
+                  </v-list-item>
+
+                  <v-list-item>
+                    <template v-slot:prepend>
+                      <v-icon icon="mdi-account"></v-icon>
+                    </template>
+                    <v-list-item-title>User ID</v-list-item-title>
+                    <v-list-item-subtitle>{{ user?.id }}</v-list-item-subtitle>
+                  </v-list-item>
+
+                  <v-list-item>
+                    <template v-slot:prepend>
+                      <v-icon icon="mdi-clock"></v-icon>
+                    </template>
+                    <v-list-item-title>Last Sign In</v-list-item-title>
+                    <v-list-item-subtitle>
+                      {{ new Date(user?.last_sign_in_at || '').toLocaleString() }}
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+            </v-card>
+          </v-card-text>
+        </v-card>
+      </v-container>
+    </v-main>
+
+    <!-- Footer -->
+    <v-footer app class="bg-surface-variant text-center d-flex justify-center">
+      <span class="text-caption text-medium-emphasis">
+        &copy; {{ new Date().getFullYear() }} Crusade Companion | RocketSheep LLC
+      </span>
+    </v-footer>
+  </v-app>
 </template>

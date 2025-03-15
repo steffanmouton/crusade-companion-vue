@@ -21,58 +21,58 @@ const goBack = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
-    <!-- Header with navigation -->
-    <header class="bg-slate-800 shadow-md">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <div class="flex items-center">
-          <h1 class="text-2xl font-bold text-emerald-400">Trench Crusade Companion</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          <div v-if="!isLoading && user" class="text-sm text-slate-300">
-            {{ user.email }}
-          </div>
-        </div>
+  <v-app>
+    <!-- App Bar -->
+    <v-app-bar color="primary" density="default">
+      <v-app-bar-title class="text-h6 font-weight-bold"> Trench Crusade Companion </v-app-bar-title>
+      <v-spacer></v-spacer>
+      <div v-if="!isLoading && user" class="text-body-2">
+        {{ user.email }}
       </div>
-    </header>
+    </v-app-bar>
 
-    <!-- Loading state -->
-    <div v-if="isLoading" class="flex justify-center items-center h-64">
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"
-      ></div>
-    </div>
+    <!-- Main Content -->
+    <v-main>
+      <!-- Loading state -->
+      <v-container v-if="isLoading" class="fill-height" fluid>
+        <v-row justify="center" align="center">
+          <v-col cols="auto">
+            <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          </v-col>
+        </v-row>
+      </v-container>
 
-    <!-- Army detail content when loaded -->
-    <main v-else class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="bg-slate-700 rounded-lg shadow-xl p-6">
-        <!-- Back button -->
-        <button
-          @click="goBack"
-          class="mb-4 flex items-center text-emerald-400 hover:text-emerald-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Back to Dashboard
-        </button>
+      <!-- Army detail content when loaded -->
+      <v-container v-else class="py-8">
+        <v-card class="mx-auto" max-width="800">
+          <v-card-text>
+            <!-- Back button -->
+            <v-btn
+              @click="goBack"
+              color="primary"
+              variant="text"
+              prepend-icon="mdi-arrow-left"
+              class="mb-4"
+            >
+              Back to Dashboard
+            </v-btn>
 
-        <!-- Army placeholder -->
-        <div class="text-center py-12">
-          <h2 class="text-2xl font-semibold mb-4 text-emerald-300">Army Details</h2>
-          <p class="text-slate-300 mb-6">Viewing army with ID: {{ armyId }}</p>
-          <p class="text-slate-400">This is a placeholder for the army detail view.</p>
-        </div>
-      </div>
-    </main>
-  </div>
+            <!-- Army placeholder -->
+            <div class="text-center py-8">
+              <h2 class="text-h4 font-weight-bold mb-4 text-primary">Army Details</h2>
+              <p class="text-body-1 mb-6">Viewing army with ID: {{ armyId }}</p>
+              <p class="text-medium-emphasis">This is a placeholder for the army detail view.</p>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-container>
+    </v-main>
+
+    <!-- Footer -->
+    <v-footer app class="bg-surface-variant text-center d-flex justify-center">
+      <span class="text-caption text-medium-emphasis">
+        &copy; {{ new Date().getFullYear() }} Crusade Companion | RocketSheep LLC
+      </span>
+    </v-footer>
+  </v-app>
 </template>
