@@ -112,7 +112,7 @@ export const useTroopStore = defineStore('troop', {
         allowedEquipment: [],
         abilities: [],
         keywords: ['HERETIC'],
-        countAllowed: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // The rulebook doesn't specify a limit
+        countAllowed: [], // The rulebook doesn't specify a limit
       },
       {
         id: '5',
@@ -137,7 +137,7 @@ export const useTroopStore = defineStore('troop', {
         allowedEquipment: [],
         abilities: [],
         keywords: ['HERETIC'],
-        countAllowed: [0, 1, 2, 3, 4, 5], // Can upgrade up to half of your Heretic Troopers
+        countAllowed: [], // Can upgrade up to half of your Heretic Troopers
       },
       {
         id: '6',
@@ -162,7 +162,7 @@ export const useTroopStore = defineStore('troop', {
         allowedEquipment: [],
         abilities: [],
         keywords: ['HERETIC'],
-        countAllowed: [0, 1, 2, 3, 4, 5], // Can upgrade up to half of your Heretic Troopers
+        countAllowed: [], // Can upgrade up to half of your Heretic Troopers
       },
       {
         id: '7',

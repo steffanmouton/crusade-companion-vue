@@ -11,7 +11,7 @@
     <!-- Main Content -->
     <v-main class="bg-background">
       <v-container class="py-8">
-        <h1 class="text-h4 font-weight-medium tc-heading mb-6">Factions</h1>
+        <h1 class="text-h4 font-weight-medium tc-heading mb-6">Troops</h1>
 
         <v-row>
           <v-col v-for="troop in troops" :key="troop.id" cols="12" md="6" lg="4">
