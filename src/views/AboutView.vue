@@ -5,7 +5,7 @@
         <v-card class="mx-auto text-center pa-6">
           <v-card-title class="text-h4 font-weight-bold">About</v-card-title>
           <v-card-text>
-            <p class="text-body-1">This is an about page for the Trench Crusade Companion app.</p>
+            <p class="text-body-1">This is an about page for the Crusade Companion app.</p>
           </v-card-text>
         </v-card>
       </v-col>

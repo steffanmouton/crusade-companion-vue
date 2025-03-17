@@ -1,7 +1,10 @@
+import type { Equipment } from './equipment'
+
 export interface Unit {
   id: string
   name: string
   troopId: string
-  pointsCost: number
-  cost: number
+  costPoints: number
+  costCurrency: number
+  currentEquipment: Equipment[]
 }
