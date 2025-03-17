@@ -14,6 +14,12 @@ body {
   letter-spacing: 0.25px; /* Reduced letter spacing */
 }
 
+.tc-subheading {
+  color: rgb(101, 101, 101) !important;
+  font-weight: 350 !important; /* Slightly less bold for a more modern look */
+  letter-spacing: 0.25px; /* Reduced letter spacing */
+}
+
 /* Custom card styles */
 .tc-card {
   border: none !important; /* Remove borders for cleaner look */
