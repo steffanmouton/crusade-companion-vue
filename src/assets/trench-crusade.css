@@ -14,12 +14,46 @@ body {
   letter-spacing: 0.25px; /* Reduced letter spacing */
 }
 
+.tc-subheading {
+  color: rgb(101, 101, 101) !important;
+  font-weight: 350 !important; /* Slightly less bold for a more modern look */
+  letter-spacing: 0.25px; /* Reduced letter spacing */
+}
+
 /* Custom card styles */
 .tc-card {
   border: none !important; /* Remove borders for cleaner look */
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important; /* Lighter shadow */
   border-radius: 8px !important; /* Slightly rounded corners */
   background-color: #ffffff !important; /* Pure white cards */
+}
+
+.tc-card-title {
+  color: #8b0000 !important;
+  font-weight: 500 !important; /* Slightly less bold for a more modern look */
+  letter-spacing: 0.25px; /* Reduced letter spacing */
+}
+
+.tc-card-subtitle {
+  color: rgb(101, 101, 101) !important;
+  font-weight: 325 !important; /* Slightly less bold for a more modern look */
+  letter-spacing: 0.25px; /* Reduced letter spacing */
+}
+
+.tc-card-limit {
+  color: rgb(105, 7, 7) !important;
+  font-weight: 325 !important; /* Slightly less bold for a more modern look */
+  letter-spacing: 0.1px; /* Reduced letter spacing */
+  font-size: 16px !important;
+  font-style: italic;
+}
+
+.tc-card-subtitle-small {
+  color: rgb(101, 101, 101) !important;
+  font-weight: 200 !important; /* Slightly less bold for a more modern look */
+  letter-spacing: 0.25px; /* Reduced letter spacing */
+  font-size: 12px !important;
+  font-style: italic;
 }
 
 /* Custom accent elements */

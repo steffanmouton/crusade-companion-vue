@@ -6,22 +6,22 @@ export const useFactionStore = defineStore('faction', {
     factions: [
       {
         id: '1',
-        name: 'Trench Pilgrims',
-        description:
-          'So they come, the mad and the maimed, the Godtouched and the guilt-ridden – all gathering around Prophets and Prophetesses, forming Trench Pilgrim Processions. These disorganised groups arm themselves and follow the prophets of the Lord unto the front lines. They fight with unrivalled zeal, hurling themselves against the Heretics, arming themselves with anything they can get their hands on from the oldest muskets to scourges and Molotov Cocktails.',
-        iconUrl: '@/assets/icons/icon_trench_pilgrims.png',
-        troopTypes: ['Infantry', 'Cavalry', 'Artillery'],
-        specialRules: ['Special Rule 1', 'Special Rule 2'],
-        armory: [],
-      },
-      {
-        id: '2',
         name: 'Heretic Legion',
         description:
           'A shroud of darkness blankets the world. Smoke and brimstone spews from the yawning gates of Inferno, enveloping the lands where people have abandoned God and openly wage war against His Creation. It is a grim reality that a full third of humanity has bent its knee before the idols of Hell. The main military force of Satan on Earth is the Heretic Legions, raised from amongst these citizens of the damned.',
         iconUrl: '@/assets/icons/icon_heretic_legion.png',
         troopTypes: ['Infantry', 'Beasts', 'Cultists'],
         specialRules: ['Heretical Fury', 'Dark Bargains'],
+        armory: [],
+      },
+      {
+        id: '2',
+        name: 'Trench Pilgrims',
+        description:
+          'So they come, the mad and the maimed, the Godtouched and the guilt-ridden – all gathering around Prophets and Prophetesses, forming Trench Pilgrim Processions. These disorganised groups arm themselves and follow the prophets of the Lord unto the front lines. They fight with unrivalled zeal, hurling themselves against the Heretics, arming themselves with anything they can get their hands on from the oldest muskets to scourges and Molotov Cocktails.',
+        iconUrl: '@/assets/icons/icon_trench_pilgrims.png',
+        troopTypes: ['Infantry', 'Cavalry', 'Artillery'],
+        specialRules: ['Special Rule 1', 'Special Rule 2'],
         armory: [],
       },
       {

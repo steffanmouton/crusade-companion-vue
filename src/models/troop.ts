@@ -1,15 +1,22 @@
 import type { Equipment } from './equipment'
-import type { Faction } from './faction'
 
 export interface Troop {
   id: string
   name: string
-  faction: Faction
+  factionId: number
+  factionName: string
+  description: string
   type: string
   costPoints: number
   costCurrency: number
+  armyBuildingRules?: string[]
   stats: TroopStats
+  equipmentDescription: string
   allowedEquipment: Equipment[]
+  specialEquipment?: string[]
+  abilities: string[]
+  keywords: string[]
+  countAllowed: number[]
 }
 
 export interface TroopStats {
@@ -19,6 +26,4 @@ export interface TroopStats {
   melee: number
   armor: number
   baseSize: number
-  abilities: string[]
-  keywords: string[]
 }
