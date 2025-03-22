@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
@@ -42,22 +42,41 @@ const factionId = computed(() => {
   return 1
 })
 
-// For TypeScript, assuming the Army model might not have units property in types
-interface ArmyWithUnits {
-  id: string
-  name: string
-  faction: any // Using any to handle both string and object with id
-  currentPoints: number
-  targetPoints: number
-  currency: number
-  battles: number
-  wins: number
-  losses: number
-  description?: string
-  createdAt: number
-  updatedAt: number
-  units: Unit[]
+// Computed properties for the cost counter
+const currentCost = computed(() => army.value?.currentPoints || 0)
+const targetPoints = computed(() => army.value?.targetPoints || 0)
+const isOverBudget = computed(() => {
+  if (!army.value) return false
+  return army.value.currentPoints > army.value.targetPoints
+})
+const costCounterColor = computed(() => {
+  return isOverBudget.value ? 'rgba(244, 67, 54, 0.08)' : 'rgba(76, 175, 80, 0.08)'
+})
+
+// Track if the counter should be floating
+const isScrolled = ref(false)
+
+// Function to check scroll position
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 100
 }
+
+// Add scroll event listener
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+// Clean up the event listener
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
+// Load army on component mount
+onMounted(async () => {
+  if (armyId.value) {
+    await armyStore.loadArmy(armyId.value)
+  }
+})
 
 // Navigate back to dashboard
 const goBack = () => {
@@ -171,12 +190,22 @@ function handleDeleteUnit(unitId: string) {
   }
 }
 
-// Load army on component mount
-onMounted(async () => {
-  if (armyId.value) {
-    await armyStore.loadArmy(armyId.value)
-  }
-})
+// For TypeScript, assuming the Army model might not have units property in types
+interface ArmyWithUnits {
+  id: string
+  name: string
+  faction: any // Using any to handle both string and object with id
+  currentPoints: number
+  targetPoints: number
+  currency: number
+  battles: number
+  wins: number
+  losses: number
+  description?: string
+  createdAt: number
+  updatedAt: number
+  units: Unit[]
+}
 </script>
 
 <template>
@@ -222,8 +251,10 @@ onMounted(async () => {
             <div class="d-flex align-center mb-6">
               <div>
                 <h2 class="text-h4 font-weight-medium tc-heading mb-1">{{ army.name }}</h2>
-                <p class="text-subtitle-1">
-                  {{ army.faction }} | {{ army.currentPoints }}/{{ army.targetPoints }} pts
+                <p class="text-subtitle-1 mb-1">{{ army.faction }}</p>
+                <p class="text-body-2 text-medium-emphasis">
+                  <v-icon icon="mdi-target" size="small" class="mr-1"></v-icon>
+                  Target Points: {{ targetPoints }}
                 </p>
               </div>
               <v-spacer></v-spacer>
@@ -389,10 +420,94 @@ onMounted(async () => {
         @close="showUnitFormDialog = false"
       />
     </v-dialog>
+
+    <!-- Floating cost counter -->
+    <div
+      class="cost-counter"
+      :class="{ 'cost-counter-floating': isScrolled }"
+      :style="{ 'background-color': costCounterColor }"
+      v-if="army"
+    >
+      <v-icon
+        class="cost-counter-icon mr-2"
+        :icon="isOverBudget ? 'mdi-alert-circle' : 'mdi-check-circle'"
+        :color="isOverBudget ? 'error' : 'success'"
+      ></v-icon>
+      <div class="cost-counter-content">
+        <div class="cost-counter-title">POINTS</div>
+        <div class="cost-counter-value">{{ currentCost }} / {{ targetPoints }}</div>
+        <div class="cost-counter-progress">
+          <div
+            class="cost-counter-progress-bar"
+            :style="{
+              width: `${Math.min(100, (currentCost / targetPoints) * 100)}%`,
+              'background-color': isOverBudget ? '#ff5252' : '#4caf50',
+            }"
+          ></div>
+        </div>
+      </div>
+    </div>
   </v-app>
 </template>
 
 <style scoped>
+.cost-counter {
+  position: fixed;
+  top: 70px; /* Position below the app bar */
+  right: 20px;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  z-index: 99; /* Below app bar z-index but above other content */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    opacity 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  opacity: 1;
+}
+
+.cost-counter:hover {
+  opacity: 1;
+}
+
+.cost-counter-floating {
+  top: 70px; /* Maintain position below app bar when floating */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateY(0) scale(1.02);
+}
+
+.cost-counter-icon {
+  transition: transform 0.3s ease;
+}
+
+.cost-counter:hover .cost-counter-icon {
+  transform: scale(1.1);
+}
+
+.cost-counter-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cost-counter-progress {
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.cost-counter-progress-bar {
+  height: 100%;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
+}
+
 .unit-list {
   display: flex;
   flex-direction: column;
@@ -416,5 +531,55 @@ onMounted(async () => {
 
 .tc-highlight-bg {
   background-color: #f9f9f9;
+}
+
+/* Mobile styles for cost counter */
+@media (max-width: 600px) {
+  .cost-counter {
+    top: 70px; /* Keep at top, consistent with desktop position */
+    bottom: unset;
+    right: 16px;
+    padding: 6px 10px;
+    max-width: 120px;
+    transform: scale(0.9);
+    transform-origin: top right;
+  }
+
+  .cost-counter-floating {
+    top: 70px; /* Maintain position at top when floating */
+    bottom: unset;
+    transform: translateY(0) scale(0.92);
+  }
+
+  .cost-counter-title {
+    font-size: 0.65rem;
+    margin-bottom: 1px;
+  }
+
+  .cost-counter-value {
+    font-size: 1rem;
+    margin-bottom: 1px;
+  }
+
+  .cost-counter-progress {
+    height: 3px;
+    margin-top: 2px;
+  }
+}
+
+.cost-counter-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.cost-counter-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
 }
 </style>
