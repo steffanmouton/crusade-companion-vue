@@ -16,10 +16,10 @@
           <div class="d-flex justify-space-between">
             <div>
               <div class="text-subtitle-1 font-weight-medium">{{ troop.name }}</div>
-              <div class="text-caption">{{ troop.factionName }}</div>
-            </div>
-            <div class="text-subtitle-1 font-weight-medium">
-              {{ formatCost(troop.cost) }}
+              <div class="text-caption font-weight-medium">{{ troop.factionName }}</div>
+              <div class="text-caption">
+                {{ formatCost(troop.cost) }}
+              </div>
             </div>
           </div>
         </div>

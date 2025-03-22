@@ -11,6 +11,7 @@ import type { Unit as ModelUnit } from '../models/unit'
 import type { Troop } from '../models/troop'
 import { useTroopStore } from '../stores/troopStore'
 import { useEquipmentStore } from '../stores/equipmentStore'
+import QuickReferenceView from '../components/QuickReferenceView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,6 +59,7 @@ const units = computed(() => {
 })
 
 const isLoading = computed(() => authStore.loading || armyStore.loading || unitStore.loading)
+const hasAttemptedLoad = ref(false)
 
 // Add state for dialogs and unit operations
 const showTroopSelectionDialog = ref(false)
@@ -65,6 +67,7 @@ const showUnitFormDialog = ref(false)
 const selectedUnit = ref<ModelUnit | null>(null)
 const selectedTroop = ref<Troop | null>(null)
 const refreshingPoints = ref(false)
+const quickReferenceMode = ref(false)
 
 // Add a computed property to get the faction ID
 const factionId = computed(() => {
@@ -113,9 +116,15 @@ onMounted(async () => {
   const equipmentStore = useEquipmentStore()
   await equipmentStore.initializeEquipment()
 
+  // Initialize troops if they're not already loaded
+  if (troopStore.troops.length === 0) {
+    await troopStore.initializeTroops()
+  }
+
   if (armyId.value) {
     await armyStore.loadArmy(armyId.value)
     await unitStore.loadUnitsByArmyId(armyId.value)
+    hasAttemptedLoad.value = true
   }
 })
 
@@ -127,6 +136,17 @@ const goBack = () => {
 // Navigate to edit page
 const editArmy = () => {
   router.push(`/army/${armyId.value}/edit`)
+}
+
+// Reload troops if needed
+const reloadTroops = async () => {
+  try {
+    await troopStore.forceReloadTroops()
+    return true
+  } catch (error) {
+    console.error('Error reloading troops:', error)
+    return false
+  }
 }
 
 // Delete army
@@ -287,6 +307,15 @@ function handleDeleteUnit(unitId: string) {
               <div>
                 <v-btn
                   color="primary"
+                  variant="outlined"
+                  prepend-icon="mdi-book-open-variant"
+                  class="mr-2"
+                  @click="quickReferenceMode = !quickReferenceMode"
+                >
+                  {{ quickReferenceMode ? 'Normal View' : 'Quick Reference Mode' }}
+                </v-btn>
+                <v-btn
+                  color="primary"
                   variant="flat"
                   prepend-icon="mdi-pencil"
                   class="mr-2 tc-btn"
@@ -310,94 +339,100 @@ function handleDeleteUnit(unitId: string) {
 
             <hr class="tc-divider" />
 
-            <!-- Army stats -->
-            <v-row class="mb-6">
-              <v-col cols="12" sm="6">
-                <v-card
-                  variant="outlined"
-                  class="text-center pa-4 tc-card tc-highlight-bg"
-                  elevation="0"
-                >
-                  <v-icon
-                    icon="mdi-currency-usd"
-                    color="success"
-                    size="large"
-                    class="mb-2"
-                  ></v-icon>
-                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Glory Points</h3>
-                  <p class="text-h4 font-weight-medium">{{ army.currency }}</p>
-                </v-card>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-card
-                  variant="outlined"
-                  class="text-center pa-4 tc-card tc-highlight-bg"
-                  elevation="0"
-                >
-                  <v-icon icon="mdi-sword-cross" color="info" size="large" class="mb-2"></v-icon>
-                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Battles</h3>
-                  <p class="text-h4 font-weight-medium">{{ army.battles }}</p>
-                  <div class="d-flex justify-center mt-2">
-                    <v-chip size="small" color="success" variant="flat" class="mr-2">
-                      W: {{ army.wins }}
-                    </v-chip>
-                    <v-chip size="small" color="error" variant="flat">
-                      L: {{ army.losses }}
-                    </v-chip>
-                  </div>
-                </v-card>
-              </v-col>
-            </v-row>
+            <!-- Quick Reference View when enabled -->
+            <QuickReferenceView v-if="quickReferenceMode" :units="units" :army="army" />
 
-            <!-- Army description -->
-            <v-card variant="outlined" class="mb-6 pa-4 tc-card" elevation="0">
-              <h3 class="text-h6 font-weight-medium mb-2 tc-heading">Description</h3>
-              <p v-if="army.description" class="text-body-1">{{ army.description }}</p>
-              <p v-else class="text-body-1 text-medium-emphasis">No description provided.</p>
-            </v-card>
+            <!-- Standard View Content -->
+            <template v-else>
+              <!-- Army stats -->
+              <v-row class="mb-6">
+                <v-col cols="12" sm="6">
+                  <v-card
+                    variant="outlined"
+                    class="text-center pa-4 tc-card tc-highlight-bg"
+                    elevation="0"
+                  >
+                    <v-icon
+                      icon="mdi-currency-usd"
+                      color="success"
+                      size="large"
+                      class="mb-2"
+                    ></v-icon>
+                    <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Glory Points</h3>
+                    <p class="text-h4 font-weight-medium">{{ army.currency }}</p>
+                  </v-card>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-card
+                    variant="outlined"
+                    class="text-center pa-4 tc-card tc-highlight-bg"
+                    elevation="0"
+                  >
+                    <v-icon icon="mdi-sword-cross" color="info" size="large" class="mb-2"></v-icon>
+                    <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Battles</h3>
+                    <p class="text-h4 font-weight-medium">{{ army.battles }}</p>
+                    <div class="d-flex justify-center mt-2">
+                      <v-chip size="small" color="success" variant="flat" class="mr-2">
+                        W: {{ army.wins }}
+                      </v-chip>
+                      <v-chip size="small" color="error" variant="flat">
+                        L: {{ army.losses }}
+                      </v-chip>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
 
-            <!-- Units section -->
-            <v-card variant="outlined" class="pa-4 tc-card" elevation="0">
-              <div class="d-flex align-center mb-4">
-                <h3 class="text-h6 font-weight-medium mb-0 tc-heading">Units</h3>
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="primary"
-                  size="small"
-                  prepend-icon="mdi-plus"
-                  class="tc-btn"
-                  elevation="0"
-                  variant="flat"
-                  @click="openAddUnitDialog"
-                >
-                  Add Unit
-                </v-btn>
-              </div>
+              <!-- Army description -->
+              <v-card variant="outlined" class="mb-6 pa-4 tc-card" elevation="0">
+                <h3 class="text-h6 font-weight-medium mb-2 tc-heading">Description</h3>
+                <p v-if="army.description" class="text-body-1">{{ army.description }}</p>
+                <p v-else class="text-body-1 text-medium-emphasis">No description provided.</p>
+              </v-card>
 
-              <!-- Units list -->
-              <div v-if="units && units.length > 0">
-                <div class="unit-list">
-                  <UnitCard
-                    v-for="unit in units"
-                    :key="unit.id"
-                    :unit="unit"
-                    :armyId="armyId"
-                    @edit-unit="handleEditUnit"
-                    @delete-unit="handleDeleteUnit"
-                    class="mb-4"
-                  />
+              <!-- Units section -->
+              <v-card variant="outlined" class="pa-4 tc-card" elevation="0">
+                <div class="d-flex align-center mb-4">
+                  <h3 class="text-h6 font-weight-medium mb-0 tc-heading">Units</h3>
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    color="primary"
+                    size="small"
+                    prepend-icon="mdi-plus"
+                    class="tc-btn"
+                    elevation="0"
+                    variant="flat"
+                    @click="openAddUnitDialog"
+                  >
+                    Add Unit
+                  </v-btn>
                 </div>
-              </div>
-              <p v-else class="text-medium-emphasis text-center py-4">
-                No units added yet. Click "Add Unit" to add your first unit.
-              </p>
-            </v-card>
+
+                <!-- Units list -->
+                <div v-if="units && units.length > 0">
+                  <div class="unit-list">
+                    <UnitCard
+                      v-for="unit in units"
+                      :key="unit.id"
+                      :unit="unit"
+                      :armyId="armyId"
+                      @edit-unit="handleEditUnit"
+                      @delete-unit="handleDeleteUnit"
+                      class="mb-4"
+                    />
+                  </div>
+                </div>
+                <p v-else class="text-medium-emphasis text-center py-4">
+                  No units added yet. Click "Add Unit" to add your first unit.
+                </p>
+              </v-card>
+            </template>
           </v-card-text>
         </v-card>
       </v-container>
 
-      <!-- Not found message -->
-      <v-container v-else class="py-8">
+      <!-- Not found message - only show after loading attempt has been made -->
+      <v-container v-else-if="hasAttemptedLoad" class="py-8">
         <v-card class="mx-auto text-center pa-6 tc-card" max-width="500" elevation="1">
           <v-icon icon="mdi-alert" color="warning" size="x-large" class="mb-4"></v-icon>
           <h2 class="text-h4 font-weight-medium mb-2 tc-heading">Army Not Found</h2>
@@ -615,5 +650,43 @@ function handleDeleteUnit(unitId: string) {
   font-weight: 600;
   letter-spacing: 0.5px;
   margin-bottom: 2px;
+}
+
+/* Print styles for Quick Reference Mode */
+@media print {
+  /* Hide various UI elements when printing */
+  .v-app-bar,
+  .v-footer,
+  .cost-counter,
+  .v-btn:not(.print-btn) {
+    display: none !important;
+  }
+
+  /* Remove backgrounds and optimize for print */
+  .bg-background,
+  .v-card,
+  .tc-card,
+  body {
+    background-color: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure each unit card starts on a new page if needed */
+  .unit-quick-card {
+    page-break-inside: avoid;
+  }
+
+  /* Optimize fonts for print */
+  * {
+    font-family: 'Times New Roman', Times, serif !important;
+  }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>

@@ -348,22 +348,40 @@ export const useTroopStore = defineStore('troop', () => {
 
   // Initialize the store by loading troops from Firestore
   async function initializeTroops() {
-    if (initialized.value) return
+    if (initialized.value && troops.value.length > 0) {
+      console.log('Troops already initialized with', troops.value.length, 'troops')
+      return
+    }
 
     loading.value = true
     error.value = null
 
     try {
+      console.log('Loading troops from Firestore')
       // Get all troops from Firestore
       const troopsData = await getDocuments<Troop>(COLLECTION_NAME)
+      console.log('Loaded', troopsData.length, 'troops from Firestore')
+
+      if (troopsData.length === 0) {
+        console.warn('No troops found in Firestore collection')
+      }
+
       troops.value = troopsData
       initialized.value = true
     } catch (err: any) {
       console.error('Error initializing troops:', err)
       error.value = err.message || 'Failed to initialize troops'
+      throw err // Re-throw to allow handling by components
     } finally {
       loading.value = false
     }
+  }
+
+  // Force reload all troops even if already initialized
+  async function forceReloadTroops() {
+    initialized.value = false
+    troops.value = []
+    return initializeTroops()
   }
 
   // Get a specific troop by ID
@@ -459,6 +477,7 @@ export const useTroopStore = defineStore('troop', () => {
     troopsByFaction,
     getAllTroops,
     initializeTroops,
+    forceReloadTroops,
     getTroop,
     addTroop,
     updateTroop,

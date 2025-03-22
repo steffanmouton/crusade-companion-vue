@@ -7,6 +7,15 @@
         Unit is missing required properties: {{ JSON.stringify(props.unit) }}
       </div>
     </div>
+    <div v-else-if="troopsLoading" class="pa-4 text-center">
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="32"
+        class="mb-2"
+      ></v-progress-circular>
+      <div class="text-body-1">Loading troop data...</div>
+    </div>
     <div v-else>
       <!-- Responsive container that will change from row to column on mobile -->
       <div class="unit-container">
@@ -143,6 +152,21 @@ const troopStore = useTroopStore()
 const unitStore = useUnitStore()
 const deleting = ref(false)
 const error = ref<string | null>(null)
+const troopsLoading = ref(false)
+
+// Initialize troops if needed
+onMounted(async () => {
+  if (troopStore.troops.length === 0) {
+    troopsLoading.value = true
+    try {
+      await troopStore.initializeTroops()
+    } catch (e) {
+      console.error('Error loading troops:', e)
+    } finally {
+      troopsLoading.value = false
+    }
+  }
+})
 
 // Find the troop that this unit is based on
 const troop = computed<Troop | undefined>(() => {
@@ -182,7 +206,7 @@ function getEquipmentIcon(type: string): string {
     Weapon: 'mdi-sword',
     'Ranged Weapon': 'mdi-pistol',
     'Melee Weapon': 'mdi-sword',
-    Armor: 'mdi-shield',
+    Armour: 'mdi-shield',
     Gear: 'mdi-toolbox',
     Upgrade: 'mdi-arrow-up-bold',
     Consumable: 'mdi-potion',
