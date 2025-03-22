@@ -31,6 +31,7 @@ export const useTroopStore = defineStore('troop', {
         ],
         keywords: ['HERETIC', 'ELITE', 'TOUGH'],
         countAllowed: [1],
+        cardHeaderImageURI: '/troops/CardHeader-HereticPriest.png',
       },
       {
         id: '2',
@@ -60,6 +61,7 @@ export const useTroopStore = defineStore('troop', {
         ],
         keywords: ['HERETIC', 'ELITE', 'INFILTRATOR'],
         countAllowed: [0, 1],
+        cardHeaderImageURI: '/troops/CardHeader-DeathCommando.png',
       },
       {
         id: '3',
@@ -88,6 +90,7 @@ export const useTroopStore = defineStore('troop', {
         ],
         keywords: ['HERETIC', 'ELITE', 'FEAR'],
         countAllowed: [0, 1],
+        cardHeaderImageURI: '/troops/CardHeader-HereticChorister.png',
       },
       {
         id: '4',
@@ -112,7 +115,8 @@ export const useTroopStore = defineStore('troop', {
         allowedEquipment: [],
         abilities: [],
         keywords: ['HERETIC'],
-        countAllowed: [], // The rulebook doesn't specify a limit
+        countAllowed: [],
+        cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
       },
       {
         id: '5',
@@ -138,6 +142,7 @@ export const useTroopStore = defineStore('troop', {
         abilities: [],
         keywords: ['HERETIC'],
         countAllowed: [], // Can upgrade up to half of your Heretic Troopers
+        cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
       },
       {
         id: '6',
@@ -163,6 +168,7 @@ export const useTroopStore = defineStore('troop', {
         abilities: [],
         keywords: ['HERETIC'],
         countAllowed: [], // Can upgrade up to half of your Heretic Troopers
+        cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
       },
       {
         id: '7',
@@ -190,6 +196,7 @@ export const useTroopStore = defineStore('troop', {
         ],
         keywords: ['HERETIC', 'STRONG'],
         countAllowed: [0, 1, 2, 3, 4, 5],
+        cardHeaderImageURI: '/troops/CardHeader-AnointedHeavyInfantry.png',
       },
       {
         id: '8',
@@ -223,6 +230,7 @@ export const useTroopStore = defineStore('troop', {
         ],
         keywords: ['HERETIC', 'FEAR', 'TOUGH', 'ARTIFICIAL'],
         countAllowed: [0, 1],
+        cardHeaderImageURI: '/troops/CardHeader-WarWolfAssaultBeast.png',
       },
       {
         id: '9',
@@ -255,6 +263,7 @@ export const useTroopStore = defineStore('troop', {
         ],
         keywords: ['HERETIC', 'ARTIFICIAL'],
         countAllowed: [0, 1, 2],
+        cardHeaderImageURI: '/troops/CardHeader-ArtilleryWitch.png',
       },
       {
         id: '10',
@@ -285,6 +294,7 @@ export const useTroopStore = defineStore('troop', {
         ],
         keywords: [],
         countAllowed: [], // Any number as long as they are outnumbered by HERETIC models
+        cardHeaderImageURI: '/troops/CardHeader-Wretched.png',
       },
     ] as Troop[],
   }),

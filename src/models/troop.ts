@@ -17,6 +17,7 @@ export interface Troop {
   abilities: string[]
   keywords: string[]
   countAllowed: number[]
+  cardHeaderImageURI?: string
 }
 
 export interface TroopStats {
