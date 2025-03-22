@@ -16,6 +16,7 @@
     "@mdi/font": "^7.4.47",
     "firebase": "^10.10.0",
     "pinia": "^3.0.1",
+    "uuid": "^11.1.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
     "vuetify": "^3.5.9"
@@ -23,6 +24,7 @@
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.13.9",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.5.0",

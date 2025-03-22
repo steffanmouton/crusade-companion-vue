@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Troop } from '../models/troop'
-import { createDucatsCost, createGloryPointsCost, createMixedCost } from '../models/cost'
+import { createDucatsCost } from '../models/cost'
 
 export const useTroopStore = defineStore('troop', {
   state: () => ({
@@ -32,6 +32,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC', 'ELITE', 'TOUGH'],
         countAllowed: [1],
         cardHeaderImageURI: '/troops/CardHeader-HereticPriest.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-HereticPriest.png',
       },
       {
         id: '2',
@@ -41,7 +42,7 @@ export const useTroopStore = defineStore('troop', {
         description:
           'Silent Killers equipped with stealth generators that hide them from the eyes of God. These terrifying infiltrators have been known to kill entire enemy squads alone.',
         type: 'Elite',
-        cost: createMixedCost(70, 2),
+        cost: createDucatsCost(90),
         stats: {
           movement: 6,
           movementType: 'Infantry',
@@ -61,6 +62,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC', 'ELITE', 'INFILTRATOR'],
         countAllowed: [0, 1],
         cardHeaderImageURI: '/troops/CardHeader-DeathCommando.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-HereticDeathCommando.png',
       },
       {
         id: '3',
@@ -70,7 +72,7 @@ export const useTroopStore = defineStore('troop', {
         description:
           'Suicide is a Mortal Sin, and sacrificing yourself to the glory of Hell is a yet greater affront to God. Some Heretics born with a gift of sonorous voice but little prospects of rising through the ranks but possessing a determination to excel may pursue the dark path of becoming a Chorister. Their severed heads sing their agonising hymns, filling the minds of their enemies with visions from the Pits of Hell, weakening both the resolve and strength of those unfortunate enough to hear the dire song.',
         type: 'Elite',
-        cost: createGloryPointsCost(3),
+        cost: createDucatsCost(65),
         stats: {
           movement: 6,
           movementType: 'Infantry',
@@ -89,6 +91,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC', 'ELITE', 'FEAR'],
         countAllowed: [0, 1],
         cardHeaderImageURI: '/troops/CardHeader-HereticChorister.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-HereticChorister.png',
       },
       {
         id: '4',
@@ -114,6 +117,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC'],
         countAllowed: [],
         cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
       },
       {
         id: '5',
@@ -139,6 +143,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC'],
         countAllowed: [],
         cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
       },
       {
         id: '6',
@@ -164,6 +169,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC'],
         countAllowed: [],
         cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
       },
       {
         id: '7',
@@ -191,6 +197,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC', 'STRONG'],
         countAllowed: [0, 1, 2, 3, 4, 5],
         cardHeaderImageURI: '/troops/CardHeader-AnointedHeavyInfantry.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-AnointedHeavyInfantry.png',
       },
       {
         id: '8',
@@ -224,6 +231,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC', 'FEAR', 'TOUGH', 'ARTIFICIAL'],
         countAllowed: [0, 1],
         cardHeaderImageURI: '/troops/CardHeader-WarWolfAssaultBeast.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-WarWolfAssaultBeast.png',
       },
       {
         id: '9',
@@ -256,6 +264,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: ['HERETIC', 'ARTIFICIAL'],
         countAllowed: [0, 1, 2],
         cardHeaderImageURI: '/troops/CardHeader-ArtilleryWitch.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-ArtilleryWitch.png',
       },
       {
         id: '10',
@@ -286,6 +295,7 @@ export const useTroopStore = defineStore('troop', {
         keywords: [],
         countAllowed: [],
         cardHeaderImageURI: '/troops/CardHeader-Wretched.png',
+        cardHeroSideImageURI: '/troops/CardHeroSide-Wretched.png',
       },
     ] as Troop[],
   }),

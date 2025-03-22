@@ -18,6 +18,7 @@ export interface Troop {
   keywords: string[]
   countAllowed: number[]
   cardHeaderImageURI?: string
+  cardHeroSideImageURI?: string
 }
 
 export interface TroopStats {
