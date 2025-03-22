@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
+import { getFirestore, getDoc, doc } from 'firebase/firestore'
+import { auth } from '../services/firebase'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const armyStore = useArmyStore()
+
+// Admin state
+const isAdmin = ref(false)
+const checkingAdmin = ref(false)
 
 // Computed properties based on the auth store
 const user = computed(() => authStore.user)
@@ -34,10 +40,33 @@ const createArmy = () => {
   router.push('/army/new')
 }
 
+// Navigate to admin dashboard
+const goToAdmin = () => {
+  router.push('/admin')
+}
+
+// Check if user is admin
+const checkAdminStatus = async () => {
+  if (!authStore.isAuthenticated || !auth.currentUser) return
+
+  checkingAdmin.value = true
+  try {
+    const db = getFirestore()
+    const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid))
+    isAdmin.value = userDoc.exists() && userDoc.data()?.admin === true
+  } catch (error) {
+    console.error('Error checking admin status:', error)
+    isAdmin.value = false
+  } finally {
+    checkingAdmin.value = false
+  }
+}
+
 // Load armies on component mount
 onMounted(async () => {
   if (authStore.isAuthenticated) {
     await armyStore.loadArmies()
+    await checkAdminStatus()
   }
 })
 </script>
@@ -84,6 +113,19 @@ onMounted(async () => {
                     <v-icon icon="mdi-account" color="primary" size="x-large" class="mb-2"></v-icon>
                     <h3 class="text-h6 font-weight-medium mb-2 tc-heading">Your Account</h3>
                     <p class="text-body-2 mb-0">{{ user?.email }}</p>
+
+                    <!-- Admin Button -->
+                    <v-btn
+                      v-if="isAdmin"
+                      color="error"
+                      prepend-icon="mdi-shield-crown"
+                      @click="goToAdmin"
+                      class="mt-3"
+                      size="small"
+                      variant="flat"
+                    >
+                      Admin Panel
+                    </v-btn>
                   </v-card-text>
                 </v-card>
               </v-col>

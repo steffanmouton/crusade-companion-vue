@@ -10,7 +10,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "create-admin": "node --experimental-json-modules src/scripts/createAdminUser.js"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
@@ -29,6 +30,7 @@
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/tsconfig": "^0.7.0",
+    "dotenv": "^16.4.7",
     "eslint": "^9.21.0",
     "eslint-plugin-vue": "~10.0.0",
     "jiti": "^2.4.2",

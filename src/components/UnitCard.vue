@@ -1,104 +1,122 @@
 <template>
   <v-card class="unit-card ma-2">
-    <!-- Responsive container that will change from row to column on mobile -->
-    <div class="unit-container">
-      <!-- Image container with conditional source -->
-      <div class="unit-image-container">
-        <v-img :src="isDesktop ? unitSideImage : unitImage" height="100%" contain>
-          <template v-slot:placeholder>
-            <div class="d-flex align-center justify-center fill-height">
-              <v-progress-circular indeterminate color="grey-lighten-4"></v-progress-circular>
-            </div>
-          </template>
-        </v-img>
+    <div v-if="!hasRequiredProperties" class="pa-4 text-center">
+      <v-icon icon="mdi-alert" color="warning" class="mb-2"></v-icon>
+      <div class="text-body-1">Invalid unit data structure</div>
+      <div class="text-caption text-medium-emphasis">
+        Unit is missing required properties: {{ JSON.stringify(props.unit) }}
       </div>
+    </div>
+    <div v-else>
+      <!-- Responsive container that will change from row to column on mobile -->
+      <div class="unit-container">
+        <!-- Image container with conditional source -->
+        <div class="unit-image-container">
+          <v-img :src="isDesktop ? unitSideImage : unitImage" height="100%" contain>
+            <template v-slot:placeholder>
+              <div class="d-flex align-center justify-center fill-height">
+                <v-progress-circular indeterminate color="grey-lighten-4"></v-progress-circular>
+              </div>
+            </template>
+          </v-img>
+        </div>
 
-      <!-- Right side (desktop) / Bottom (mobile) with unit details -->
-      <div class="unit-details-container">
-        <v-card-title class="d-flex justify-space-between pa-3">
-          <div>
-            <div class="text-h6">{{ unit.name }}</div>
-            <div class="text-caption">{{ troopName }}</div>
-          </div>
-          <div class="text-subtitle-1 font-weight-medium">
-            {{
-              formatCost({ currencies: [{ type: CurrencyType.DUCATS, amount: unit.costPoints }] })
-            }}
-          </div>
-        </v-card-title>
+        <!-- Right side (desktop) / Bottom (mobile) with unit details -->
+        <div class="unit-details-container">
+          <v-card-title class="d-flex justify-space-between pa-3">
+            <div>
+              <div class="text-h6">{{ unit.name }}</div>
+              <div class="text-caption">{{ troopName }}</div>
+            </div>
+            <div class="text-subtitle-1 font-weight-medium">
+              {{
+                formatCost({ currencies: [{ type: CurrencyType.DUCATS, amount: unit.costPoints }] })
+              }}
+            </div>
+          </v-card-title>
 
-        <v-divider></v-divider>
+          <v-divider></v-divider>
 
-        <v-card-text class="pa-3">
-          <!-- Stats table -->
-          <TroopStatsTable
-            v-if="troop"
-            :movement="troop.stats.movement"
-            :ranged="troop.stats.ranged"
-            :melee="troop.stats.melee"
-            :armor="troop.stats.armor"
-          />
+          <v-card-text class="pa-3">
+            <!-- Stats table -->
+            <TroopStatsTable
+              v-if="troop"
+              :movement="troop.stats.movement"
+              :ranged="troop.stats.ranged"
+              :melee="troop.stats.melee"
+              :armor="troop.stats.armor"
+            />
 
-          <!-- Equipment list -->
-          <h3 class="text-subtitle-2 font-weight-medium mt-3 mb-1">Equipment</h3>
-          <v-list dense class="equipment-list">
-            <v-list-item
-              v-for="(item, index) in unit.currentEquipment"
-              :key="index"
-              class="pa-0 mb-2"
-            >
-              <v-list-item-title>
-                <div class="d-flex align-center px-0 py-1">
-                  <v-icon size="small" class="mr-2">
-                    {{ getEquipmentIcon(item.type) }}
-                  </v-icon>
-                  <span class="text-body-2 font-weight-medium">{{ item.name }}</span>
-                  <v-spacer></v-spacer>
-                </div>
-              </v-list-item-title>
-
-              <!-- Display modifiers if available -->
-              <v-list-item-subtitle
-                v-if="item.modifiers && item.modifiers.length > 0"
-                class="mt-1 ml-8"
+            <!-- Equipment list -->
+            <h3 class="text-subtitle-2 font-weight-medium mt-3 mb-1">Equipment</h3>
+            <v-list dense class="equipment-list">
+              <v-list-item
+                v-for="(item, index) in unit.currentEquipment"
+                :key="index"
+                class="pa-0 mb-2"
               >
-                <div class="text-caption font-italic">
-                  {{ item.modifiers.join(', ') }}
-                </div>
-              </v-list-item-subtitle>
+                <v-list-item-title>
+                  <div class="d-flex align-center px-0 py-1">
+                    <v-icon size="small" class="mr-2">
+                      {{ getEquipmentIcon(item.type) }}
+                    </v-icon>
+                    <span class="text-body-2 font-weight-medium">{{ item.name }}</span>
+                    <v-spacer></v-spacer>
+                  </div>
+                </v-list-item-title>
 
-              <!-- Display equipment rules -->
-              <v-list-item-subtitle
-                v-if="item.rules && item.rules.length > 0"
-                class="equipment-rules mt-1"
-              >
-                <div
-                  v-for="(rule, ruleIndex) in item.rules"
-                  :key="ruleIndex"
-                  class="ml-8 text-caption"
+                <!-- Display modifiers if available -->
+                <v-list-item-subtitle
+                  v-if="item.modifiers && item.modifiers.length > 0"
+                  class="mt-1 ml-8"
                 >
-                  {{ rule }}
-                </div>
-              </v-list-item-subtitle>
-            </v-list-item>
+                  <div class="text-caption font-italic">
+                    {{ item.modifiers.join(', ') }}
+                  </div>
+                </v-list-item-subtitle>
 
-            <v-list-item v-if="unit.currentEquipment.length === 0" class="px-0 py-1">
-              <v-list-item-title class="text-body-2 text-grey">No equipment</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-card-text>
+                <!-- Display equipment rules -->
+                <v-list-item-subtitle
+                  v-if="item.rules && item.rules.length > 0"
+                  class="equipment-rules mt-1"
+                >
+                  <div
+                    v-for="(rule, ruleIndex) in item.rules"
+                    :key="ruleIndex"
+                    class="ml-8 text-caption"
+                  >
+                    {{ rule }}
+                  </div>
+                </v-list-item-subtitle>
+              </v-list-item>
 
-        <v-divider></v-divider>
+              <v-list-item v-if="unit.currentEquipment.length === 0" class="px-0 py-1">
+                <v-list-item-title class="text-body-2 text-grey">No equipment</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
 
-        <v-card-actions class="pa-3">
-          <v-btn variant="text" color="primary" size="small" @click="$emit('edit-unit', unit)">
-            Edit
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" color="error" size="small" @click="$emit('delete-unit', unit.id)">
-            Remove
-          </v-btn>
-        </v-card-actions>
+          <v-divider></v-divider>
+
+          <v-card-actions class="pa-3">
+            <v-btn variant="text" color="primary" size="small" @click="$emit('edit-unit', unit)">
+              Edit
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn
+              variant="text"
+              color="error"
+              size="small"
+              @click="deleteUnit"
+              :loading="deleting"
+            >
+              Remove
+            </v-btn>
+          </v-card-actions>
+        </div>
+      </div>
+      <div v-if="deleting || error" class="px-3 pb-3">
+        <LoadingIndicator :loading="deleting" :error="error || ''" text="Deleting unit..." />
       </div>
     </div>
   </v-card>
@@ -111,14 +129,20 @@ import type { Troop } from '../models/troop'
 import { formatCost, CurrencyType } from '../models/cost'
 import TroopStatsTable from './TroopStatsTable.vue'
 import { useTroopStore } from '../stores/troopStore'
+import { useUnitStore } from '../stores/unitStore'
+import LoadingIndicator from './LoadingIndicator.vue'
 
 const props = defineProps<{
   unit: Unit
+  armyId?: string
 }>()
 
-defineEmits(['edit-unit', 'delete-unit'])
+const emit = defineEmits(['edit-unit', 'delete-unit'])
 
 const troopStore = useTroopStore()
+const unitStore = useUnitStore()
+const deleting = ref(false)
+const error = ref<string | null>(null)
 
 // Find the troop that this unit is based on
 const troop = computed<Troop | undefined>(() => {
@@ -187,6 +211,44 @@ onUnmounted(() => {
 // Determine if the current device is a desktop (above 600px width)
 const isDesktop = computed(() => {
   return windowWidth.value > 600
+})
+
+// Function to handle deleting the unit from Firestore
+async function deleteUnit() {
+  if (!confirm('Are you sure you want to delete this unit?')) {
+    return
+  }
+
+  deleting.value = true
+  error.value = null
+
+  try {
+    // Delete the unit using unitStore
+    const success = await unitStore.deleteUnit(props.unit.id, props.armyId)
+
+    if (success) {
+      // Emit the event
+      emit('delete-unit', props.unit.id)
+    } else {
+      throw new Error('Failed to delete unit')
+    }
+  } catch (err: any) {
+    console.error('Error deleting unit:', err)
+    error.value = err.message || 'Failed to delete unit'
+  } finally {
+    deleting.value = false
+  }
+}
+
+// Add a computed property to ensure we can detect any issues with the unit data
+const hasRequiredProperties = computed(() => {
+  return (
+    props.unit &&
+    props.unit.id &&
+    props.unit.name &&
+    props.unit.troopId !== undefined &&
+    props.unit.costPoints !== undefined
+  )
 })
 </script>
 

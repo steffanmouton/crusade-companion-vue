@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '../services/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
+import { getFirestore, getDoc, doc } from 'firebase/firestore'
 import LoginView from '../views/LoginView.vue'
 
 // Create a promise to resolve the initial auth state
@@ -70,6 +71,12 @@ const router = createRouter({
       name: 'about',
       component: () => import('../views/AboutView.vue'),
     },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/views/AdminView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
   ],
 })
 
@@ -80,9 +87,10 @@ router.beforeEach(async (to, from, next) => {
     await authReadyPromise
   }
 
-  // Check if the route requires authentication
+  // Check if the route requires authentication or admin privileges
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const requiresGuest = to.matched.some((record) => record.meta.requiresGuest)
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
 
   // Get current user
   const isLoggedIn = !!auth.currentUser
@@ -93,6 +101,27 @@ router.beforeEach(async (to, from, next) => {
   } else if (requiresGuest && isLoggedIn) {
     // If route requires guest and user is logged in, redirect to dashboard
     next('/dashboard')
+  } else if (requiresAdmin) {
+    // For admin routes, check if the user has admin privileges
+    if (!isLoggedIn || !auth.currentUser) {
+      next('/login')
+    } else {
+      try {
+        // Check for admin status in Firestore
+        const db = getFirestore()
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid))
+        const isAdmin = userDoc.exists() && userDoc.data()?.admin === true
+
+        if (isAdmin) {
+          next() // Allow access to admin route
+        } else {
+          next('/dashboard') // Redirect non-admin users
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error)
+        next('/dashboard') // Redirect on error
+      }
+    }
   } else {
     // Otherwise, proceed as normal
     next()

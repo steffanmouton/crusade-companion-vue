@@ -154,6 +154,11 @@
           </v-btn>
           <v-btn color="primary" type="submit" :loading="saving"> Save Unit </v-btn>
         </div>
+
+        <!-- At the end of the form after buttons, add the loading indicator -->
+        <div class="mt-4">
+          <LoadingIndicator :loading="saving" :error="error || ''" text="Saving unit..." />
+        </div>
       </v-form>
     </v-card-text>
   </v-card>
@@ -167,11 +172,14 @@ import type { Unit } from '../models/unit'
 import { formatCost, CurrencyType, getCostForCurrency } from '../models/cost'
 import { v4 as uuidv4 } from 'uuid'
 import { useEquipmentStore } from '../stores/equipmentStore'
+import { useUnitStore } from '../stores/unitStore'
+import LoadingIndicator from './LoadingIndicator.vue'
 
 // Props
 const props = defineProps<{
   troop: Troop
   unit?: Unit
+  armyId: string
 }>()
 
 // Emits
@@ -183,6 +191,8 @@ const saving = ref(false)
 const selectedEquipment = ref<Equipment | null>(null)
 const availableEquipment = ref<Equipment[]>([])
 const equipmentStore = useEquipmentStore()
+const unitStore = useUnitStore()
+const error = ref<string | null>(null)
 
 // Computed
 const isEditing = computed(() => !!props.unit)
@@ -277,31 +287,72 @@ function removeEquipment(index: number) {
 
 async function saveUnit() {
   saving.value = true
+  error.value = null
 
-  // Update cost values from calculated totals
-  unitData.costPoints = getCostForCurrency(totalCost.value, CurrencyType.DUCATS)
-  unitData.costCurrency = getCostForCurrency(totalCost.value, CurrencyType.GLORY_POINTS)
+  try {
+    // Update cost values from calculated totals
+    const ducatsCost = getCostForCurrency(totalCost.value, CurrencyType.DUCATS)
+    const gloryCost = getCostForCurrency(totalCost.value, CurrencyType.GLORY_POINTS)
 
-  // Create a new unit object to emit
-  const savedUnit: Unit = {
-    id: unitData.id,
-    name: unitData.name || props.troop.name, // Default to troop name if empty
-    troopId: props.troop.id,
-    costPoints: unitData.costPoints,
-    costCurrency: unitData.costCurrency,
-    currentEquipment: [...unitData.currentEquipment],
-    purchasedAbilities: [...unitData.purchasedAbilities],
+    console.log('Cost calculation:', {
+      totalCost: totalCost.value,
+      ducatsCost,
+      gloryCost,
+      baseCost: props.troop.cost ? getCostForCurrency(props.troop.cost, CurrencyType.DUCATS) : 0,
+      equipmentCost: getCostForCurrency(equipmentCost.value, CurrencyType.DUCATS),
+    })
+
+    unitData.costPoints = ducatsCost
+    unitData.costCurrency = gloryCost
+
+    // Create a new unit object to save to Firestore
+    const unitToSave = {
+      name: unitData.name || props.troop.name, // Default to troop name if empty
+      troopId: props.troop.id,
+      troopName: props.troop.name,
+      armyId: props.armyId,
+      costPoints: unitData.costPoints,
+      costCurrency: unitData.costCurrency,
+      currentEquipment: [...unitData.currentEquipment],
+      purchasedAbilities: [...unitData.purchasedAbilities],
+      type: props.troop.type,
+      power: 0, // Initialize to 0, can be updated later
+      points: 0,
+      experience: 0,
+      rank: 'Recruit', // Default rank
+      battles: 0,
+      kills: 0,
+      notes: '',
+    }
+
+    let result: any
+
+    // If this is an edit, update the existing document
+    if (props.unit?.id) {
+      await unitStore.updateUnit(props.unit.id, unitToSave)
+      result = {
+        id: props.unit.id,
+        ...unitToSave,
+      }
+    } else {
+      // This is a new unit, create a new document
+      result = await unitStore.addUnit(unitToSave)
+    }
+
+    // Emit the save event with the unit data
+    emit('save', result)
+  } catch (err: any) {
+    console.error('Error saving unit:', err)
+    error.value = err.message || 'Failed to save unit'
+  } finally {
+    saving.value = false
   }
-
-  // Emit the save event with the unit data
-  emit('save', savedUnit)
-  saving.value = false
 }
 
 // Load equipment and default equipment on mount
-onMounted(() => {
+onMounted(async () => {
   // Load available equipment from the equipment store
-  loadAvailableEquipment()
+  await loadAvailableEquipment()
 
   // If editing existing unit, don't add default equipment
   if (isEditing.value) {
@@ -315,7 +366,12 @@ onMounted(() => {
 })
 
 // Load available equipment for this troop
-function loadAvailableEquipment() {
+async function loadAvailableEquipment() {
+  // Ensure equipment is loaded first
+  if (equipmentStore.equipment.length === 0) {
+    await equipmentStore.initializeEquipment()
+  }
+
   if (props.troop.keywords) {
     // Get equipment that's available for this troop based on its ID and keywords
     availableEquipment.value = equipmentStore.getEquipmentForTroop(

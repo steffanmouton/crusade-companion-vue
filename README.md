@@ -90,3 +90,39 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 ```sh
 npm run lint
 ```
+
+## Admin Setup and Data Seeding
+
+The application includes an admin interface for seeding initial data into the Firestore database. This is helpful for setting up the game's initial data like troops, equipment, and factions.
+
+### Setting Up an Admin User
+
+1. First, register a regular user through the application's sign-up page
+2. Run the following command to promote the user to admin status:
+
+```bash
+npm run create-admin
+```
+
+3. When prompted, enter the email and password of the user you want to make an admin
+4. The script will update the user's record in Firestore with admin privileges
+
+### Accessing the Admin Panel
+
+Once a user has admin privileges, they can access the admin panel from the dashboard. Look for the "Admin Panel" button in the account card.
+
+### Seeding Game Data
+
+The admin panel allows you to seed the following data collections:
+
+- **Troops** - Character types that can be added to armies
+- **Equipment** - Weapons, armor, and other items that can be equipped by troops
+- **Factions** - The different factions that armies can belong to
+
+Each collection will only be seeded if it's currently empty. The seeding process adds timestamps to each record for tracking when they were created.
+
+## Development
+
+```bash
+npm run dev
+```

@@ -1,6 +1,17 @@
 import { defineStore } from 'pinia'
 import type { Equipment } from '../models/equipment'
 import { createDucatsCost, createGloryPointsCost, createMixedCost } from '../models/cost'
+import {
+  getDocument,
+  addDocument,
+  updateDocument,
+  deleteDocument,
+  getDocuments,
+  getTimestamp,
+} from '../services/firestore'
+import { ref, computed } from 'vue'
+
+const COLLECTION_NAME = 'equipment'
 
 // Define reusable data sets
 const meleeWeapons: Equipment[] = [
@@ -339,87 +350,214 @@ const equipmentItems: Equipment[] = [
   },
 ]
 
-// Equipment store definition
-export const useEquipmentStore = defineStore('equipment', {
-  state: () => ({
-    equipment: [...meleeWeapons, ...rangedWeapons, ...armorItems, ...equipmentItems] as Equipment[],
-  }),
+// Initial equipment data that will be used to populate Firestore if needed
+const initialEquipment: Equipment[] = [
+  ...meleeWeapons,
+  ...rangedWeapons,
+  ...armorItems,
+  ...equipmentItems,
+]
 
-  getters: {
-    getEquipmentByType: (state) => (type: string) => {
-      return state.equipment.filter((item) => item.type === type)
-    },
-    getEquipmentById: (state) => (id: string) => {
-      return state.equipment.find((item) => item.id === id)
-    },
-    getRangedWeapons: (state) => {
-      return state.equipment.filter((item) => item.type === 'Ranged Weapon')
-    },
-    getMeleeWeapons: (state) => {
-      return state.equipment.filter((item) => item.type === 'Melee Weapon')
-    },
-    getArmour: (state) => {
-      return state.equipment.filter((item) => item.type === 'Armour')
-    },
-    getGeneralEquipment: (state) => {
-      return state.equipment.filter((item) => item.type === 'Equipment')
-    },
-    getEquipmentByFaction: (state) => (faction: string) => {
-      return state.equipment.filter(
-        (item) => !item.onlyFor || item.onlyFor.faction === faction || item.onlyFor.faction === '',
-      )
-    },
-    getEquipmentForTroop: (state) => (troopId: string, keywords: string[]) => {
-      return state.equipment.filter((item) => {
-        // If no restrictions, return true
-        if (!item.onlyFor) return true
+export const useEquipmentStore = defineStore('equipment', () => {
+  const equipment = ref<Equipment[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  const initialized = ref(false)
 
-        // Check if this equipment is available to everyone or specifically to this troop
-        const factionMatch = !item.onlyFor.faction || item.onlyFor.faction === ''
-        const troopMatch =
-          !item.onlyFor.troopIds ||
-          item.onlyFor.troopIds.length === 0 ||
-          item.onlyFor.troopIds.includes(troopId)
-
-        // Check keywords - if equipment requires keywords, troop must have them
-        const keywordMatch =
-          !item.onlyFor.keywords ||
-          item.onlyFor.keywords.length === 0 ||
-          item.onlyFor.keywords.every((keyword) => {
-            // Handle negated keywords (prefixed with !)
-            if (keyword.startsWith('!')) {
-              return !keywords.includes(keyword.substring(1))
-            }
-            // Regular keyword matching
-            return keywords.includes(keyword)
-          })
-
-        return factionMatch && troopMatch && keywordMatch
-      })
-    },
-    getEquipmentByKeywords: (state) => (keywords: string[]) => {
-      return state.equipment.filter((item) => {
-        // Return equipment that matches any of the provided keywords
-        return item.keywords?.some((keyword) => keywords.includes(keyword)) || false
-      })
-    },
-    getFactionSpecificEquipment: (state) => (faction: string) => {
-      return state.equipment.filter((item) => item.onlyFor?.faction === faction)
-    },
-  },
-
-  actions: {
-    addEquipment(equipment: Equipment) {
-      this.equipment.push(equipment)
-    },
-    updateEquipment(updatedEquipment: Equipment) {
-      const index = this.equipment.findIndex((item) => item.id === updatedEquipment.id)
-      if (index !== -1) {
-        this.equipment[index] = updatedEquipment
+  // Computed properties
+  const equipmentByType = computed(() => {
+    const result: Record<string, Equipment[]> = {}
+    equipment.value.forEach((item) => {
+      const type = item.type
+      if (!result[type]) {
+        result[type] = []
       }
-    },
-    removeEquipment(id: string) {
-      this.equipment = this.equipment.filter((item) => item.id !== id)
-    },
-  },
+      result[type].push(item)
+    })
+    return result
+  })
+
+  const getEquipmentForTroop = computed(() => (troopId: string, keywords: string[]) => {
+    return equipment.value.filter((item) => {
+      // If no restrictions, return true
+      if (!item.onlyFor) return true
+
+      // Check if this equipment is available to everyone or specifically to this troop
+      const factionMatch = !item.onlyFor.faction || item.onlyFor.faction === ''
+      const troopMatch =
+        !item.onlyFor.troopIds ||
+        item.onlyFor.troopIds.length === 0 ||
+        item.onlyFor.troopIds.includes(troopId)
+
+      // Check keywords - if equipment requires keywords, troop must have them
+      const keywordMatch =
+        !item.onlyFor.keywords ||
+        item.onlyFor.keywords.length === 0 ||
+        item.onlyFor.keywords.every((keyword) => {
+          // Handle negated keywords (prefixed with !)
+          if (keyword.startsWith('!')) {
+            return !keywords.includes(keyword.substring(1))
+          }
+          // Regular keyword matching
+          return keywords.includes(keyword)
+        })
+
+      return factionMatch && troopMatch && keywordMatch
+    })
+  })
+
+  // Get all equipment (admin function)
+  async function getAllEquipment() {
+    loading.value = true
+    error.value = null
+
+    try {
+      const equipmentData = await getDocuments<Equipment>(COLLECTION_NAME)
+      equipment.value = equipmentData
+    } catch (err: any) {
+      console.error('Error loading equipment:', err)
+      error.value = err.message || 'Failed to load equipment'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Initialize the store with predefined equipment
+  async function initializeEquipment() {
+    if (initialized.value) return
+
+    loading.value = true
+    error.value = null
+
+    try {
+      // First, get all equipment from Firestore
+      const equipmentData = await getDocuments<Equipment>(COLLECTION_NAME)
+
+      // If no equipment exists, add the initial equipment
+      if (equipmentData.length === 0 && initialEquipment.length > 0) {
+        const promises = initialEquipment.map(async (item) => {
+          const { id, ...itemData } = item
+          const timestamp = getTimestamp()
+          const newItem = {
+            ...itemData,
+            ...timestamp,
+          }
+          const newId = await addDocument(COLLECTION_NAME, newItem)
+          return { id: newId, ...newItem } as Equipment
+        })
+
+        const createdItems = await Promise.all(promises)
+        equipment.value = createdItems
+      } else {
+        equipment.value = equipmentData
+      }
+
+      initialized.value = true
+    } catch (err: any) {
+      console.error('Error initializing equipment:', err)
+      error.value = err.message || 'Failed to initialize equipment'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Get a specific equipment item by ID
+  async function getEquipmentItem(id: string) {
+    try {
+      return await getDocument<Equipment>(COLLECTION_NAME, id)
+    } catch (err: any) {
+      console.error(`Error getting equipment ${id}:`, err)
+      error.value = err.message || 'Failed to get equipment'
+      return null
+    }
+  }
+
+  // Add a new equipment item
+  async function addEquipmentItem(itemData: Omit<Equipment, 'id' | 'createdAt' | 'updatedAt'>) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const timestamp = getTimestamp()
+      const newItem = {
+        ...itemData,
+        ...timestamp,
+      }
+
+      const id = await addDocument(COLLECTION_NAME, newItem)
+      const createdItem: Equipment = {
+        id,
+        ...newItem,
+      }
+
+      equipment.value.push(createdItem)
+      return createdItem
+    } catch (err: any) {
+      console.error('Error adding equipment:', err)
+      error.value = err.message || 'Failed to add equipment'
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Update an equipment item
+  async function updateEquipmentItem(id: string, itemData: Partial<Equipment>) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const data = {
+        ...itemData,
+        updatedAt: Date.now(),
+      }
+
+      await updateDocument(COLLECTION_NAME, id, data)
+
+      const index = equipment.value.findIndex((item) => item.id === id)
+      if (index !== -1) {
+        equipment.value[index] = { ...equipment.value[index], ...data }
+      }
+
+      return true
+    } catch (err: any) {
+      console.error(`Error updating equipment ${id}:`, err)
+      error.value = err.message || 'Failed to update equipment'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Delete an equipment item
+  async function deleteEquipmentItem(id: string) {
+    loading.value = true
+    error.value = null
+
+    try {
+      await deleteDocument(COLLECTION_NAME, id)
+      equipment.value = equipment.value.filter((item) => item.id !== id)
+      return true
+    } catch (err: any) {
+      console.error(`Error deleting equipment ${id}:`, err)
+      error.value = err.message || 'Failed to delete equipment'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    equipment,
+    loading,
+    error,
+    equipmentByType,
+    getEquipmentForTroop,
+    getAllEquipment,
+    initializeEquipment,
+    getEquipmentItem,
+    addEquipmentItem,
+    updateEquipmentItem,
+    deleteEquipmentItem,
+  }
 })

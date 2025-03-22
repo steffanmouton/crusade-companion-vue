@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
+import { useArmyStore } from './stores/army'
 
 // Import Vuetify
 import 'vuetify/styles'
@@ -60,6 +61,17 @@ const init = async () => {
   // Initialize auth store
   const authStore = useAuthStore()
   await authStore.initialize()
+
+  // Initialize data stores after auth is initialized
+  // This ensures we have user information if needed
+  if (authStore.isAuthenticated) {
+    // We no longer automatically initialize troops or equipment
+    // That should only happen via the admin panel
+
+    // Just load the user's armies
+    const armyStore = useArmyStore()
+    await armyStore.loadArmies()
+  }
 
   // Mount the app
   app.mount('#app')

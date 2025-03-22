@@ -33,7 +33,8 @@
             ></v-icon>
             <h3 class="text-h6 mb-1">No troops found</h3>
             <p class="text-body-2 text-medium-emphasis">
-              No troops match your search criteria or are available for this faction.
+              No troops are available in the database. Please contact an administrator to initialize
+              the game data.
             </p>
           </div>
 
@@ -68,6 +69,7 @@
       <UnitForm
         v-if="selectedTroop"
         :troop="selectedTroop"
+        :armyId="props.armyId"
         @save="saveUnit"
         @close="unitFormDialog = false"
       />
@@ -78,6 +80,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useTroopStore } from '../stores/troopStore'
+import { useEquipmentStore } from '../stores/equipmentStore'
 import CondensedTroopCard from './CondensedTroopCard.vue'
 import TroopCard from './TroopCard.vue'
 import UnitForm from './UnitForm.vue'
@@ -87,6 +90,7 @@ import type { Unit } from '../models/unit'
 const props = defineProps<{
   modelValue: boolean
   factionId: number
+  armyId: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'unit-added'])
@@ -99,6 +103,7 @@ const loading = ref(true)
 const searchQuery = ref('')
 const selectedTroop = ref<Troop | null>(null)
 const troopStore = useTroopStore()
+const equipmentStore = useEquipmentStore()
 
 // Watch for changes to modelValue prop
 watch(
@@ -139,9 +144,14 @@ const filteredTroops = computed(() => {
 // Methods
 async function loadTroops() {
   loading.value = true
-  // For now, we're using the static troops defined in the store
-  // In a real app, you might fetch troops from an API
-  loading.value = false
+  try {
+    // Initialize both troops and equipment
+    await Promise.all([troopStore.initializeTroops(), equipmentStore.initializeEquipment()])
+  } catch (error) {
+    console.error('Error loading data:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 function closeDialog() {
@@ -167,6 +177,8 @@ function addSelectedTroop() {
 
 function saveUnit(unit: Unit) {
   unitFormDialog.value = false
+  // We only emit the event with the unit but don't save it again
+  // The unit has already been saved to Firestore by the UnitForm component
   emit('unit-added', unit)
   dialog.value = false
 }

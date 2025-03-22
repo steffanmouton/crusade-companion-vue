@@ -3,17 +3,20 @@ import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
+import { useUnitStore } from '../stores/unitStore'
 import TroopSelectionDialog from '../components/TroopSelectionDialog.vue'
 import UnitCard from '../components/UnitCard.vue'
 import UnitForm from '../components/UnitForm.vue'
-import type { Unit } from '../models/unit'
+import type { Unit as ModelUnit } from '../models/unit'
 import type { Troop } from '../models/troop'
 import { useTroopStore } from '../stores/troopStore'
+import { useEquipmentStore } from '../stores/equipmentStore'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const armyStore = useArmyStore()
+const unitStore = useUnitStore()
 const troopStore = useTroopStore()
 
 // Get the army ID from the route params
@@ -22,13 +25,46 @@ const armyId = computed(() => route.params.id as string)
 // Computed properties
 const user = computed(() => authStore.user)
 const army = computed(() => armyStore.currentArmy)
-const isLoading = computed(() => authStore.loading || armyStore.loading)
+const unitsFromStore = computed(() => unitStore.units)
+
+// Convert units from Firestore format to the format expected by components
+const units = computed(() => {
+  console.log('Units from unitStore:', unitsFromStore.value)
+  const convertedUnits = unitsFromStore.value.map((firestoreUnit) => {
+    // First, create an object with optional properties expected by the UI
+    const uiUnit: ModelUnit = {
+      id: firestoreUnit.id,
+      name: firestoreUnit.name,
+      troopId: '',
+      costPoints: firestoreUnit.costPoints,
+      costCurrency: 0,
+      currentEquipment: [],
+      purchasedAbilities: [],
+    }
+
+    // Add any properties that exist in the Firestore unit
+    if ('troopId' in firestoreUnit) uiUnit.troopId = firestoreUnit.troopId as string
+    if ('troopName' in firestoreUnit) (uiUnit as any).troopName = firestoreUnit.troopName
+    if ('costCurrency' in firestoreUnit) uiUnit.costCurrency = firestoreUnit.costCurrency as number
+    if ('currentEquipment' in firestoreUnit)
+      uiUnit.currentEquipment = firestoreUnit.currentEquipment as any[]
+    if ('purchasedAbilities' in firestoreUnit)
+      uiUnit.purchasedAbilities = firestoreUnit.purchasedAbilities as string[]
+
+    return uiUnit
+  })
+  console.log('Converted units for UI:', convertedUnits)
+  return convertedUnits
+})
+
+const isLoading = computed(() => authStore.loading || armyStore.loading || unitStore.loading)
 
 // Add state for dialogs and unit operations
 const showTroopSelectionDialog = ref(false)
 const showUnitFormDialog = ref(false)
-const selectedUnit = ref<Unit | null>(null)
+const selectedUnit = ref<ModelUnit | null>(null)
 const selectedTroop = ref<Troop | null>(null)
+const refreshingPoints = ref(false)
 
 // Add a computed property to get the faction ID
 const factionId = computed(() => {
@@ -73,8 +109,13 @@ onUnmounted(() => {
 
 // Load army on component mount
 onMounted(async () => {
+  // Initialize the equipment store first to ensure equipment data is available for the UnitForm
+  const equipmentStore = useEquipmentStore()
+  await equipmentStore.initializeEquipment()
+
   if (armyId.value) {
     await armyStore.loadArmy(armyId.value)
+    await unitStore.loadUnitsByArmyId(armyId.value)
   }
 })
 
@@ -103,30 +144,62 @@ function openAddUnitDialog() {
   showTroopSelectionDialog.value = true
 }
 
+// Add a function to recalculate all points
+async function recalculatePoints() {
+  if (!armyId.value) return
+
+  refreshingPoints.value = true
+  try {
+    await unitStore.refreshArmyPoints(armyId.value)
+    // Reload the army to get the updated point total
+    await armyStore.loadArmy(armyId.value)
+  } catch (error) {
+    console.error('Error recalculating points:', error)
+  } finally {
+    refreshingPoints.value = false
+  }
+}
+
+// Create a UnitData type for internal use
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type UnitData = {
+  id: string
+  name: string
+  troopId: string
+  troopName: string
+  armyId: string
+  costPoints: number
+  costCurrency: number
+  currentEquipment: any[]
+  purchasedAbilities: string[]
+  type: string
+  power: number
+  points: number
+  experience: number
+  rank: string
+  battles: number
+  kills: number
+  notes?: string
+}
+
 // Function to handle adding a new unit
-function handleAddUnit(unit: Unit) {
+function handleAddUnit(unit: any) {
   if (!army.value) return
 
-  // Clone the current army units to avoid reference issues
-  const currentArmy = army.value as unknown as ArmyWithUnits
-  const updatedUnits = [...(currentArmy.units || []), unit]
+  // The unit has already been saved to Firestore by the UnitForm component
+  // We don't need to call unitStore.addUnit again
+  console.log('Unit added:', unit)
 
-  // Calculate new total points
-  const newTotalPoints = updatedUnits.reduce(
-    (total: number, unit: Unit) => total + unit.costPoints,
-    0,
-  )
-
-  // Update the army - using type assertion for TypeScript
-  armyStore.updateArmy(armyId.value, {
-    // @ts-expect-error - units property might not be in the type but exists in the implementation
-    units: updatedUnits,
-    currentPoints: newTotalPoints,
-  })
+  // Manually refresh the units if needed
+  // This should not be necessary because the loadUnitsByArmyId should be called
+  // when the unit is added to Firestore, but we keep it as a safety measure
+  if (unit && unit.id && !unitsFromStore.value.some((u) => u.id === unit.id)) {
+    unitStore.loadUnitsByArmyId(armyId.value)
+  }
 }
 
 // Function to handle editing a unit
-function handleEditUnit(unit: Unit) {
+function handleEditUnit(unit: ModelUnit) {
   selectedUnit.value = unit
 
   // Find the troop that this unit is based on
@@ -138,27 +211,11 @@ function handleEditUnit(unit: Unit) {
 }
 
 // Function to save changes to an edited unit
-function handleSaveEditedUnit(updatedUnit: Unit) {
+function handleSaveEditedUnit(updatedUnit: ModelUnit) {
   if (!army.value) return
 
-  // Update the unit in the army
-  const currentArmy = army.value as unknown as ArmyWithUnits
-  const updatedUnits = currentArmy.units.map((unit: Unit) =>
-    unit.id === updatedUnit.id ? updatedUnit : unit,
-  )
-
-  // Calculate new total points
-  const newTotalPoints = updatedUnits.reduce(
-    (total: number, unit: Unit) => total + unit.costPoints,
-    0,
-  )
-
-  // Update the army
-  armyStore.updateArmy(armyId.value, {
-    // @ts-expect-error - units property might not be in the type but exists in the implementation
-    units: updatedUnits,
-    currentPoints: newTotalPoints,
-  })
+  // Update the unit using unitStore
+  unitStore.updateUnit(updatedUnit.id, updatedUnit)
 
   // Reset selection
   selectedUnit.value = null
@@ -171,40 +228,9 @@ function handleDeleteUnit(unitId: string) {
   if (!army.value) return
 
   if (confirm('Are you sure you want to remove this unit from your army?')) {
-    // Remove the unit from the army
-    const currentArmy = army.value as unknown as ArmyWithUnits
-    const updatedUnits = currentArmy.units.filter((unit: Unit) => unit.id !== unitId)
-
-    // Calculate new total points
-    const newTotalPoints = updatedUnits.reduce(
-      (total: number, unit: Unit) => total + unit.costPoints,
-      0,
-    )
-
-    // Update the army
-    armyStore.updateArmy(armyId.value, {
-      // @ts-expect-error - units property might not be in the type but exists in the implementation
-      units: updatedUnits,
-      currentPoints: newTotalPoints,
-    })
+    // Delete the unit using unitStore
+    unitStore.deleteUnit(unitId, armyId.value)
   }
-}
-
-// For TypeScript, assuming the Army model might not have units property in types
-interface ArmyWithUnits {
-  id: string
-  name: string
-  faction: any // Using any to handle both string and object with id
-  currentPoints: number
-  targetPoints: number
-  currency: number
-  battles: number
-  wins: number
-  losses: number
-  description?: string
-  createdAt: number
-  updatedAt: number
-  units: Unit[]
 }
 </script>
 
@@ -349,17 +375,13 @@ interface ArmyWithUnits {
               </div>
 
               <!-- Units list -->
-              <div
-                v-if="
-                  (army as unknown as ArmyWithUnits).units &&
-                  (army as unknown as ArmyWithUnits).units.length > 0
-                "
-              >
+              <div v-if="units && units.length > 0">
                 <div class="unit-list">
                   <UnitCard
-                    v-for="unit in (army as unknown as ArmyWithUnits).units"
+                    v-for="unit in units"
                     :key="unit.id"
                     :unit="unit"
+                    :armyId="armyId"
                     @edit-unit="handleEditUnit"
                     @delete-unit="handleDeleteUnit"
                     class="mb-4"
@@ -407,6 +429,7 @@ interface ArmyWithUnits {
     <TroopSelectionDialog
       v-model="showTroopSelectionDialog"
       :faction-id="factionId"
+      :army-id="armyId"
       @unit-added="handleAddUnit"
     />
 
@@ -416,6 +439,7 @@ interface ArmyWithUnits {
         v-if="selectedTroop && selectedUnit"
         :troop="selectedTroop"
         :unit="selectedUnit"
+        :armyId="armyId"
         @save="handleSaveEditedUnit"
         @close="showUnitFormDialog = false"
       />
@@ -446,6 +470,16 @@ interface ArmyWithUnits {
           ></div>
         </div>
       </div>
+      <v-btn
+        icon="mdi-refresh"
+        size="small"
+        variant="text"
+        color="primary"
+        class="ml-2"
+        :loading="refreshingPoints"
+        @click="recalculatePoints"
+        title="Recalculate points"
+      ></v-btn>
     </div>
   </v-app>
 </template>
