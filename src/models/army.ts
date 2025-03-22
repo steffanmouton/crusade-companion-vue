@@ -5,7 +5,8 @@ export interface Army {
   id: string
   name: string
   faction: Faction
-  points: number
-  currency: number
+  currentPoints: number
+  targetPoints: number
+  currency: number // for Trench Crusade, this is Glory Points
   units: Unit[]
 }

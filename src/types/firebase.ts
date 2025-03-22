@@ -14,9 +14,9 @@ export interface Army {
   userId: string
   name: string
   faction: string
-  points: number
-  crusadePoints: number
-  requisitionPoints: number
+  currentPoints: number
+  targetPoints: number
+  currency: number
   battles: number
   wins: number
   losses: number
@@ -56,4 +56,20 @@ export interface Battle {
   notes?: string
   createdAt: number
   updatedAt: number
+}
+
+// Equipment type
+export interface Equipment {
+  id: string
+  name: string
+  description: string
+  type: string
+  costPoints: number
+  costCurrency: number
+  modifiers: string[]
+  keywords: string[]
+  equipmentIndicator: object
+  rules: string[]
+  limit: number
+  onlyFor: object
 }

@@ -19,9 +19,8 @@ const factionOptions = Object.values(FactionNames).map((value) => ({
 // Form state
 const name = ref('')
 const faction = ref<string>(FactionNames.TRENCH_PILGRIMS) // Default faction
-const points = ref(0)
-const crusadePoints = ref(0)
-const requisitionPoints = ref(0)
+const targetPoints = ref(0)
+const currency = ref(0) // For Starting Glory Points
 const description = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
@@ -45,9 +44,8 @@ onMounted(async () => {
         // Populate form with army data
         name.value = army.name
         faction.value = army.faction
-        points.value = army.points
-        crusadePoints.value = army.crusadePoints
-        requisitionPoints.value = army.requisitionPoints
+        targetPoints.value = army.targetPoints
+        currency.value = army.currency || 0
         description.value = army.description || ''
       } else {
         errorMessage.value = 'Army not found'
@@ -75,12 +73,23 @@ const validateForm = (): boolean => {
     return false
   }
 
-  if (points.value < 0) {
-    errorMessage.value = 'Points cannot be negative'
+  if (targetPoints.value < 0) {
+    errorMessage.value = 'Target Points cannot be negative'
     return false
   }
 
   return true
+}
+
+// Set preset game type values
+const setCampaignPreset = () => {
+  targetPoints.value = 700
+  currency.value = 0
+}
+
+const setSkirmishPreset = () => {
+  targetPoints.value = 900
+  currency.value = 8
 }
 
 // Handle form submission
@@ -97,9 +106,8 @@ const handleSubmit = async () => {
       const success = await armyStore.updateArmy(armyId.value, {
         name: name.value,
         faction: faction.value,
-        points: points.value,
-        crusadePoints: crusadePoints.value,
-        requisitionPoints: requisitionPoints.value,
+        targetPoints: targetPoints.value,
+        currency: currency.value,
         description: description.value,
       })
 
@@ -115,9 +123,9 @@ const handleSubmit = async () => {
       const army = await armyStore.createArmy({
         name: name.value,
         faction: faction.value,
-        points: points.value,
-        crusadePoints: crusadePoints.value,
-        requisitionPoints: requisitionPoints.value,
+        currentPoints: 0, // Set to 0 by default, will be calculated from units
+        targetPoints: targetPoints.value,
+        currency: currency.value,
         description: description.value,
         battles: 0,
         wins: 0,
@@ -127,7 +135,7 @@ const handleSubmit = async () => {
       if (army) {
         successMessage.value = 'Army created successfully'
         // Navigate to the new army detail after a short delay
-        setTimeout(() => router.push(`/army/${army.id}`), 1500)
+        setTimeout(() => router.push(`/army/${army.id}`), 750)
       } else {
         throw new Error('Failed to create army')
       }
@@ -244,10 +252,33 @@ const goBack = () => {
                 required
               ></v-select>
 
-              <!-- Points Field -->
+              <!-- Game Type Presets -->
+              <div class="mb-4">
+                <h3 class="text-subtitle-1 font-weight-medium mb-2">Game Type Presets</h3>
+                <div class="d-flex ga-2">
+                  <v-btn
+                    @click="setCampaignPreset"
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    prepend-icon="mdi-castle"
+                  >
+                    Campaign
+                  </v-btn>
+                  <v-btn
+                    @click="setSkirmishPreset"
+                    color="secondary"
+                    variant="outlined"
+                    size="small"
+                    prepend-icon="mdi-sword-cross"
+                  >
+                    Skirmish
+                  </v-btn>
+                </div>
+              </div>
               <v-text-field
-                v-model.number="points"
-                label="Points"
+                v-model.number="targetPoints"
+                label="Target Points (Ducats)"
                 type="number"
                 variant="outlined"
                 density="comfortable"
@@ -255,32 +286,16 @@ const goBack = () => {
                 bg-color="background"
               ></v-text-field>
 
-              <v-row>
-                <v-col cols="12" md="6">
-                  <!-- Crusade Points Field -->
-                  <v-text-field
-                    v-model.number="crusadePoints"
-                    label="Crusade Points"
-                    type="number"
-                    variant="outlined"
-                    density="comfortable"
-                    class="mb-2 tc-field"
-                    bg-color="background"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <!-- Requisition Points Field -->
-                  <v-text-field
-                    v-model.number="requisitionPoints"
-                    label="Requisition Points"
-                    type="number"
-                    variant="outlined"
-                    density="comfortable"
-                    class="mb-2 tc-field"
-                    bg-color="background"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
+              <!-- Currency Field -->
+              <v-text-field
+                v-model.number="currency"
+                label="Starting Glory Points"
+                type="number"
+                variant="outlined"
+                density="comfortable"
+                class="mb-2 tc-field"
+                bg-color="background"
+              ></v-text-field>
 
               <!-- Description Field -->
               <v-textarea

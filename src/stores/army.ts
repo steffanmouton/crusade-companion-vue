@@ -68,6 +68,7 @@ export const useArmyStore = defineStore('army', () => {
       // Create army with default values
       const newArmy = {
         ...armyData,
+        currentPoints: armyData.currentPoints ?? 0,
         battles: 0,
         wins: 0,
         losses: 0,

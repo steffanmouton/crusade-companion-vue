@@ -21,7 +21,7 @@
         :melee="troop.stats.melee"
         :armor="troop.stats.armor"
       />
-      <span class="tc-card-subtitle-small">Cost: {{ troop.costCurrency }} Ducats</span>
+      <span class="tc-card-subtitle-small">Cost: {{ formatCost(troop.cost) }}</span>
       <p class="text-body-3">{{ troop.description }}</p>
     </v-card-text>
 
@@ -43,8 +43,8 @@
 
           <p class="text-body-3">{{ troop.equipmentDescription }}</p>
 
-          <p v-for="item in troop.specialEquipment" :key="item">
-            {{ item }}
+          <p v-for="item in troop.specialEquipment" :key="item.id">
+            {{ item.name }}: {{ item.description }}
           </p>
         </v-card-text>
       </div>
@@ -95,6 +95,7 @@
 import type { Troop } from '../models/troop'
 import TroopStatsTable from './TroopStatsTable.vue'
 import { ref, computed } from 'vue'
+import { formatCost } from '../models/cost'
 
 const props = defineProps<{
   troop: Troop

@@ -156,12 +156,12 @@ onMounted(async () => {
                     </v-list-item-title>
 
                     <v-list-item-subtitle>
-                      {{ army.faction }} | {{ army.points }} pts
+                      {{ army.faction }} | {{ army.currentPoints }}/{{ army.targetPoints }} pts
                     </v-list-item-subtitle>
 
                     <template v-slot:append>
-                      <v-chip size="small" color="accent" variant="flat" class="mr-2">
-                        CP: {{ army.crusadePoints }}
+                      <v-chip size="small" color="success" variant="flat" class="mr-2">
+                        Glory: {{ army.currency }}
                       </v-chip>
                       <v-chip size="small" color="info" variant="flat">
                         {{ army.battles }} Battles

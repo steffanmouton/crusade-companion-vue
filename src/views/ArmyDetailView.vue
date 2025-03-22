@@ -88,7 +88,9 @@ onMounted(async () => {
             <div class="d-flex align-center mb-6">
               <div>
                 <h2 class="text-h4 font-weight-medium tc-heading mb-1">{{ army.name }}</h2>
-                <p class="text-subtitle-1">{{ army.faction }} | {{ army.points }} pts</p>
+                <p class="text-subtitle-1">
+                  {{ army.faction }} | {{ army.currentPoints }}/{{ army.targetPoints }} pts
+                </p>
               </div>
               <v-spacer></v-spacer>
               <div>
@@ -119,18 +121,7 @@ onMounted(async () => {
 
             <!-- Army stats -->
             <v-row class="mb-6">
-              <v-col cols="12" sm="4">
-                <v-card
-                  variant="outlined"
-                  class="text-center pa-4 tc-card tc-highlight-bg"
-                  elevation="0"
-                >
-                  <v-icon icon="mdi-star" color="accent" size="large" class="mb-2"></v-icon>
-                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Crusade Points</h3>
-                  <p class="text-h4 font-weight-medium">{{ army.crusadePoints }}</p>
-                </v-card>
-              </v-col>
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-card
                   variant="outlined"
                   class="text-center pa-4 tc-card tc-highlight-bg"
@@ -142,11 +133,11 @@ onMounted(async () => {
                     size="large"
                     class="mb-2"
                   ></v-icon>
-                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Requisition</h3>
-                  <p class="text-h4 font-weight-medium">{{ army.requisitionPoints }}</p>
+                  <h3 class="text-h6 font-weight-medium mb-1 tc-heading">Glory Points</h3>
+                  <p class="text-h4 font-weight-medium">{{ army.currency }}</p>
                 </v-card>
               </v-col>
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-card
                   variant="outlined"
                   class="text-center pa-4 tc-card tc-highlight-bg"

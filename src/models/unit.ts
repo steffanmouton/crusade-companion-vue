@@ -7,4 +7,5 @@ export interface Unit {
   costPoints: number
   costCurrency: number
   currentEquipment: Equipment[]
+  purchasedAbilities: string[]
 }

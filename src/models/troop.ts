@@ -1,4 +1,5 @@
 import type { Equipment } from './equipment'
+import type { Cost } from './cost'
 
 export interface Troop {
   id: string
@@ -7,13 +8,12 @@ export interface Troop {
   factionName: string
   description: string
   type: string
-  costPoints: number
-  costCurrency: number
+  cost: Cost
   armyBuildingRules?: string[]
   stats: TroopStats
   equipmentDescription: string
-  allowedEquipment: Equipment[]
-  specialEquipment?: string[]
+  defaultEquipment?: Equipment[]
+  specialEquipment?: Equipment[]
   abilities: string[]
   keywords: string[]
   countAllowed: number[]
