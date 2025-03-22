@@ -138,17 +138,6 @@ const editArmy = () => {
   router.push(`/army/${armyId.value}/edit`)
 }
 
-// Reload troops if needed
-const reloadTroops = async () => {
-  try {
-    await troopStore.forceReloadTroops()
-    return true
-  } catch (error) {
-    console.error('Error reloading troops:', error)
-    return false
-  }
-}
-
 // Delete army
 const deleteArmy = async () => {
   if (confirm('Are you sure you want to delete this army? This action cannot be undone.')) {

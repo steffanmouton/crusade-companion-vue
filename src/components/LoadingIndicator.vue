@@ -9,13 +9,15 @@
         indeterminate
       ></v-progress-circular>
       <div v-if="text && loading" class="mt-3 text-body-1">{{ text }}</div>
-      <v-alert v-if="error" type="error" class="mt-3" :text="error"></v-alert>
+      <v-alert v-if="error" type="error" class="mt-3" :text="errorMessage"></v-alert>
     </div>
   </v-container>
 </template>
 
 <script setup lang="ts">
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   loading: {
     type: Boolean,
     default: false,
@@ -36,6 +38,14 @@ defineProps({
     type: Number,
     default: 5,
   },
+})
+
+// Convert error object to string if needed
+const errorMessage = computed(() => {
+  if (!props.error) return ''
+  if (typeof props.error === 'string') return props.error
+  if (props.error.message) return props.error.message
+  return JSON.stringify(props.error)
 })
 </script>
 
