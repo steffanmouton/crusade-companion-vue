@@ -2,6 +2,7 @@ import type { Cost } from './cost'
 
 export interface Equipment {
   id: string
+  originalId?: string
   name: string
   description: string
   type: string

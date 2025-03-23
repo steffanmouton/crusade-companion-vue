@@ -71,6 +71,20 @@
                     </v-icon>
                     <span class="text-body-2 font-weight-medium">{{ item.name }}</span>
                     <v-spacer></v-spacer>
+                    <!-- Show FREE badge for default equipment -->
+                    <v-chip
+                      v-if="
+                        troop?.defaultEquipment?.some(
+                          (name) => name.toLowerCase() === item.name.toLowerCase(),
+                        )
+                      "
+                      size="x-small"
+                      color="success"
+                      label
+                      class="ml-1"
+                    >
+                      FREE
+                    </v-chip>
                   </div>
                 </v-list-item-title>
 

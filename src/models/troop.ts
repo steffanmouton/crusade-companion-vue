@@ -12,7 +12,7 @@ export interface Troop {
   armyBuildingRules?: string[]
   stats: TroopStats
   equipmentDescription: string
-  defaultEquipment?: Equipment[]
+  defaultEquipment?: string[]
   specialEquipment?: Equipment[]
   abilities: string[]
   keywords: string[]

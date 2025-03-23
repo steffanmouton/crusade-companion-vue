@@ -58,6 +58,20 @@
               <div class="equipment-name">
                 <v-icon size="small" class="mr-1">{{ getEquipmentIcon(item.type) }}</v-icon>
                 {{ item.name }}
+                <!-- Show FREE badge for default equipment -->
+                <v-chip
+                  v-if="
+                    getTroop(unit.troopId)?.defaultEquipment?.some(
+                      (name) => name.toLowerCase() === item.name.toLowerCase(),
+                    )
+                  "
+                  size="x-small"
+                  color="success"
+                  label
+                  class="ml-1"
+                >
+                  FREE
+                </v-chip>
               </div>
 
               <div v-if="item.modifiers && item.modifiers.length > 0" class="equipment-modifiers">

@@ -189,7 +189,7 @@ export const troopSeed = [
     },
     equipmentDescription:
       'Anointed are always equipped with a suit of Reinforced Armour and Infernal brand mark which are included in the cost. This armour can never be removed. Otherwise they can be equipped with any weapon, armour or equipment from the Heretic Legion Armoury and may purchase a Trench Shield.',
-    defaultEquipment: [],
+    defaultEquipment: ['Reinforced Armour', 'Infernal Brand Mark'],
     abilities: [
       'Strong: The Heretic Heavy Infantry ignores the effect of the Keyword HEAVY on any weapon they wield.',
     ],

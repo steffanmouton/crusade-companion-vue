@@ -184,7 +184,7 @@ const equipmentItems: Equipment[] = [
     id: 'combat-helmet',
     name: 'Combat Helmet',
     type: 'Equipment',
-    description: 'A helmet protecting the wearer from overhead dangers',
+    description: 'The simple combat helmet has proven its value on the battlefield time and again.',
     cost: createDucatsCost(3),
     modifiers: [],
     keywords: [],
@@ -192,10 +192,25 @@ const equipmentItems: Equipment[] = [
     rules: ['Ignores additional BLOOD MARKERS caused by the Keyword SHRAPNEL.'],
   },
   {
+    id: 'iron-capirote',
+    name: 'Iron Capirote',
+    type: 'Equipment',
+    description:
+      'A conical helmet blessed by the Church and often containing a fragment of a relic. Iron Capirotes shield their wearers from the psychological horror of war and allow them to face creatures from the pits of Hell unflinchingly.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Negates the additional BLOOD MARKERS from weapons with SHRAPNEL Keyword. Makes the model immune to the effects of FEAR.',
+    ],
+  },
+  {
     id: 'medi-kit',
     name: 'Medi-kit',
     type: 'Equipment',
-    description: 'Field medical supplies for treating injuries',
+    description:
+      'Battlefield first aid has brought many soldiers back from the brink of death. Blessed ointments can seal fatal wounds completely, while the black blood of demons used by twisted heretic medics allows mangled troops to return to the fray.',
     cost: createDucatsCost(5),
     modifiers: [],
     keywords: [],
@@ -208,7 +223,8 @@ const equipmentItems: Equipment[] = [
     id: 'gas-mask',
     name: 'Gas Mask',
     type: 'Equipment',
-    description: 'Protects against poisonous gases used in warfare',
+    description:
+      'Mustard Gas, phosgene, chlorine as well as noxious fumes from the bolgias of Hell plague the battlefield. The Gas Mask allows soldiers to withstand such attacks.',
     cost: createDucatsCost(4),
     modifiers: [],
     keywords: [],
@@ -221,7 +237,8 @@ const equipmentItems: Equipment[] = [
     id: 'holy-relic',
     name: 'Holy Relic',
     type: 'Equipment',
-    description: 'A blessed item that provides divine protection',
+    description:
+      'Due to the threat to all Creation, the churches, cathedrals and basilicas have emptied their reliquaries and distributed their relics to the frontline troops to aid them in their battle against the damned.',
     cost: createGloryPointsCost(1),
     modifiers: [],
     keywords: [],
@@ -229,10 +246,66 @@ const equipmentItems: Equipment[] = [
     rules: ['This model starts each game with +1 BLESSING MARKER.'],
   },
   {
+    id: 'armour-piercing-bullets',
+    name: 'Armour-Piercing Bullets',
+    type: 'Equipment',
+    description:
+      'Advanced armour technology has forced the armouries of the Great War to forge new types of bullets. Expensive and labour-intensive to produce, these hardened tungsten rounds are more effective against battlefield armour.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: ['CONSUMABLE'],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Before the battle begins, a model may use this item to grant a rifle or pistol weapon that they are equipped with the following ability: Reduce the injury penalty from Armour and Shields by 1 until the end of the battle. Keyword: CONSUMABLE.',
+    ],
+  },
+  {
+    id: 'dum-dum-bullets',
+    name: 'Dum-Dum Bullets',
+    type: 'Equipment',
+    description:
+      'These hollow-point bullets are far more likely to cause fatal wounds than standard ammunition.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: ['CONSUMABLE', 'CRITICAL'],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Before the battle begins, a model may use this item to grant a rifle or pistol weapon that they are equipped with the CRITICAL keyword until the end of the battle. Keywords: CONSUMABLE, CRITICAL.',
+    ],
+  },
+  {
+    id: 'incendiary-ammunition',
+    name: 'Incendiary Ammunition',
+    type: 'Equipment',
+    description:
+      'Developed by Aym, the Great Duke of Hell, these bullets set any target they hit on fire.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: ['FIRE', 'CONSUMABLE'],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Before the battle begins, a model may use this item to grant a rifle or pistol weapon that they are equipped with the FIRE keyword until the end of the battle. Keywords: FIRE, CONSUMABLE.',
+    ],
+  },
+  {
+    id: 'tracer-bullets',
+    name: 'Tracer Bullets',
+    type: 'Equipment',
+    description: 'Tracer bullets allow soldiers to adjust their aim efficiently.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: ['CONSUMABLE'],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Before the battle begins, a model may use this item to grant a rifle or pistol weapon that they are equipped with +1D to hit with ranged attacks until the end of the battle. Keywords: CONSUMABLE.',
+    ],
+  },
+  {
     id: 'sniper-scope',
     name: 'Sniper Scope',
     type: 'Equipment',
-    description: 'An optical sight that increases accuracy at range',
+    description:
+      'These optical aiming devices are favoured by Snipers to aid in their aiming at long distances.',
     cost: createDucatsCost(7),
     modifiers: [],
     keywords: [],
@@ -245,7 +318,8 @@ const equipmentItems: Equipment[] = [
     id: 'shovel',
     name: 'Shovel',
     type: 'Equipment',
-    description: 'A trench tool that can provide cover and be used as a weapon',
+    description:
+      'Battlefield shovel allows troops to dig in and fight from cover in virtually any battlefield.',
     cost: createDucatsCost(2),
     modifiers: [],
     keywords: [],
@@ -253,6 +327,155 @@ const equipmentItems: Equipment[] = [
     rules: [
       'A model equipped with a shovel always starts the game in cover if deployed on ground level, even if placed in open terrain. As soon as the model moves, it is no longer in cover. A model that is covered in this way retains the benefit of Cover even if the attacking model has an unobstructed view of it. If a model equipped with a shovel has two hands free, it can use it in Melee Combat as if it were a Trench Club.',
     ],
+  },
+  {
+    id: 'troop-flag',
+    name: 'Troop Flag',
+    type: 'Equipment',
+    description:
+      'Most warbands and units carry banners, flags, standards, pennants or other symbols to rally the troops.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Grants +1 DICE for all Morale tests as long as the model with the flag is not Down or Out of Action. Requires one hand to use.',
+    ],
+  },
+  {
+    id: 'martyrdom-pills',
+    name: 'Martyrdom Pills',
+    type: 'Equipment',
+    description:
+      'Martyrdom pills are a potent mixture of mind-altering drugs and chemicals that inure a soldier against all pain and injury. However, it takes a tremendous toll on the body.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: ['CONSUMABLE'],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Before the battle begins, a model may use this item. If it does, injuries rolled against it suffer -1 DICE until the end of the battle and the model is not affected by FEAR. Keywords: CONSUMABLE.',
+    ],
+  },
+  {
+    id: 'unholy-trinket',
+    name: 'Unholy Trinket',
+    type: 'Equipment',
+    description: 'A small token infused with unholy power.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: ['CONSUMABLE'],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'When a model equipped with an Unholy Trinket fails a RISKY ACTION, that model may use this item. If it does, its Activation is not ended. Keyword: CONSUMABLE.',
+    ],
+  },
+  {
+    id: 'unholy-relic',
+    name: 'Unholy Relic',
+    type: 'Equipment',
+    description:
+      'An artefact bestowed with unholy power. Examples include Nephilim heads, desecrated splinters of the True Cross or mummified body parts of fallen saints and bishops.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'A model equipped with an Unholy relic radiates a truly malignant aura and causes FEAR.',
+    ],
+  },
+  {
+    id: 'blessed-icon',
+    name: 'Blessed Icon',
+    type: 'Equipment',
+    description:
+      "Small icons of saints, great angels and holy warriors are a common sight amongst the Trench Pilgrims. They are hung on rosaries, belts, or attached to portable shrines carried on the Pilgrims' backs.",
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'When a model equipped with a Blessed Icon fails a RISKY ACTION, that model may use this item. If it does, its Activation is not ended. Can be used once per battle.',
+    ],
+  },
+  {
+    id: 'infernal-brand-mark',
+    name: 'Infernal Brand Mark',
+    type: 'Equipment',
+    description:
+      'A Heretic who has made a Holy Pilgrimage into Hell itself is branded by their patron devil with an ever-burning mark. Mortal fire no longer has the power to harm them.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Negates the extra BLOOD MARKER from attacks with the keyword FIRE. Any such attacks suffer -1 DICE penalty to all injury rolls.',
+    ],
+  },
+  {
+    id: 'field-shrine',
+    name: 'Field Shrine',
+    type: 'Equipment',
+    description:
+      'Holy reliquaries, blessed artefacts and sacred crosses are often carried to the battlefield to encourage the troops, while the Heretics bring idols of the Golden Calf, tortured captives or other wicked totems to bear.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Can be placed on the battlefield in your deployment zone. Acts as three models for Morale Tests. It has a base size of 40mm. Can be destroyed if any type of attack hits it.',
+    ],
+  },
+  {
+    id: 'hellbound-soul-contract',
+    name: 'Hellbound Soul Contract',
+    type: 'Equipment',
+    description:
+      'An infernal contract signed by a Heretic and the devil who will come to collect the damned soul when death is close. The mortal signatory bursts into infernal flames when seriously wounded.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'When this model is taken Out of Action, any model in melee combat with them immediately suffers +1 BLOOD MARKER unless the model ignores damage from sources with the Keyword FIRE.',
+    ],
+  },
+  {
+    id: 'binoculars',
+    name: 'Binoculars',
+    type: 'Equipment',
+    description:
+      'It is quite common for officers to carry finely-crafted battlefield binoculars with them on the battlefield to survey the land ahead, spot hidden enemy troops and observe any sign of movement.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: ['Any enemy Infiltrator cannot be placed closer than 16" of this model.'],
+  },
+  {
+    id: 'musical-instrument',
+    name: 'Musical Instrument',
+    type: 'Equipment',
+    description:
+      'Horns, drums, trumpets, whistles, bagpipes and many other types of instruments are used extensively in the battles of the Great War. They can bolster the hearts of those facing the horrors of Hell – or they can recite terrifying hymns praising the lords of the Inferno!',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'Any friendly models within 4" of the musician who is not Down can add +1 DICE to their Dash ACTIONS. Musical Instruments take one hand to use at all times as if it were a weapon.',
+    ],
+  },
+  {
+    id: 'mountaineer-kit',
+    name: 'Mountaineer Kit',
+    type: 'Equipment',
+    description:
+      'This kit includes ropes, carabiners, slings, mountaineering harness and pitons to aid a soldier in overcoming almost any vertical obstacle.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: ['A model with this kit adds +1 DICE to any Climbing ACTION rolls.'],
   },
 ]
 

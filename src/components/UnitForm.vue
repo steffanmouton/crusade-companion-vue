@@ -51,7 +51,23 @@
             <tr v-for="(equipment, index) in unitData.currentEquipment" :key="index">
               <td>{{ equipment.name }}</td>
               <td class="text-caption">{{ equipment.type }}</td>
-              <td class="text-right">{{ equipment.cost ? formatCost(equipment.cost) : '-' }}</td>
+              <td class="text-right">
+                <template
+                  v-if="
+                    props.troop.defaultEquipment?.some(
+                      (name) => name.toLowerCase() === equipment.name.toLowerCase(),
+                    )
+                  "
+                >
+                  <span class="free-label">FREE</span>
+                  <span v-if="equipment.cost" class="original-cost">
+                    {{ formatCost(equipment.cost) }}
+                  </span>
+                </template>
+                <template v-else>
+                  {{ equipment.cost ? formatCost(equipment.cost) : '-' }}
+                </template>
+              </td>
               <td class="text-center">
                 <v-btn
                   icon="mdi-delete"
@@ -59,6 +75,11 @@
                   variant="text"
                   color="error"
                   @click="removeEquipment(index)"
+                  :disabled="
+                    props.troop.defaultEquipment?.some(
+                      (name) => name.toLowerCase() === equipment.name.toLowerCase(),
+                    )
+                  "
                   density="comfortable"
                 ></v-btn>
               </td>
@@ -220,6 +241,15 @@ const unitData = reactive<{
 const equipmentCost = computed(() => {
   return unitData.currentEquipment.reduce(
     (total, equipment) => {
+      // Skip cost calculation for default equipment items by name
+      if (
+        props.troop.defaultEquipment?.some(
+          (name) => name.toLowerCase() === equipment.name.toLowerCase(),
+        )
+      ) {
+        return total
+      }
+
       if (equipment.cost) {
         return {
           currencies: [
@@ -361,7 +391,36 @@ onMounted(async () => {
 
   // Add default equipment for new units
   if (props.troop.defaultEquipment && props.troop.defaultEquipment.length > 0) {
-    unitData.currentEquipment = [...props.troop.defaultEquipment]
+    console.log('Adding default equipment:', props.troop.defaultEquipment)
+
+    // Ensure equipment store is loaded
+    if (equipmentStore.equipment.length === 0) {
+      console.log('Equipment store not loaded, initializing...')
+      await equipmentStore.initializeEquipment()
+    }
+
+    // Find the equipment objects that match the names in defaultEquipment
+    const defaultEquipmentItems = []
+
+    for (const equipName of props.troop.defaultEquipment) {
+      // Find equipment by name (case-insensitive comparison)
+      const item = equipmentStore.equipment.find(
+        (item) => item.name.toLowerCase() === equipName.toLowerCase(),
+      )
+
+      if (item) {
+        console.log(`Found equipment item for "${equipName}":`, item)
+        defaultEquipmentItems.push(item)
+      } else {
+        console.warn(`Default equipment item with name "${equipName}" not found in equipment store`)
+      }
+    }
+
+    console.log('Found default equipment items:', defaultEquipmentItems)
+
+    if (defaultEquipmentItems.length > 0) {
+      unitData.currentEquipment = [...defaultEquipmentItems]
+    }
   }
 })
 
@@ -369,8 +428,11 @@ onMounted(async () => {
 async function loadAvailableEquipment() {
   // Ensure equipment is loaded first
   if (equipmentStore.equipment.length === 0) {
+    console.log('Initializing equipment store in loadAvailableEquipment')
     await equipmentStore.initializeEquipment()
   }
+
+  console.log('Equipment store items:', equipmentStore.equipment.length)
 
   if (props.troop.keywords) {
     // Get equipment that's available for this troop based on its ID and keywords
@@ -414,5 +476,17 @@ watch(() => props.troop, loadAvailableEquipment)
 :deep(.v-table > .v-table__wrapper > table > thead > tr > th) {
   background-color: rgba(0, 0, 0, 0.02);
   font-weight: 600;
+}
+
+.original-cost {
+  text-decoration: line-through;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.8em;
+  margin-left: 4px;
+}
+
+.free-label {
+  color: #2e7d32;
+  font-weight: 500;
 }
 </style>

@@ -74,8 +74,20 @@
                     :loading="seeding.troops"
                     :disabled="seeding.troops || counts.troops > 0"
                     @click="seedTroops"
+                    class="mb-2"
                   >
                     Seed Troops
+                  </v-btn>
+                  <v-btn
+                    v-if="counts.troops > 0"
+                    block
+                    color="warning"
+                    variant="outlined"
+                    :loading="seeding.troops"
+                    :disabled="seeding.troops"
+                    @click="reseedTroops"
+                  >
+                    Re-Seed Troops
                   </v-btn>
                 </v-card>
 
@@ -99,8 +111,20 @@
                     :loading="seeding.equipment"
                     :disabled="seeding.equipment || counts.equipment > 0"
                     @click="seedEquipment"
+                    class="mb-2"
                   >
                     Seed Equipment
+                  </v-btn>
+                  <v-btn
+                    v-if="counts.equipment > 0"
+                    block
+                    color="warning"
+                    variant="outlined"
+                    :loading="seeding.equipment"
+                    :disabled="seeding.equipment"
+                    @click="reseedEquipment"
+                  >
+                    Re-Seed Equipment
                   </v-btn>
                 </v-card>
 
@@ -124,8 +148,20 @@
                     :loading="seeding.factions"
                     :disabled="seeding.factions || counts.factions > 0"
                     @click="seedFactions"
+                    class="mb-2"
                   >
                     Seed Factions
+                  </v-btn>
+                  <v-btn
+                    v-if="counts.factions > 0"
+                    block
+                    color="warning"
+                    variant="outlined"
+                    :loading="seeding.factions"
+                    :disabled="seeding.factions"
+                    @click="reseedFactions"
+                  >
+                    Re-Seed Factions
                   </v-btn>
                 </v-card>
 
@@ -141,6 +177,19 @@
                   @click="seedAll"
                 >
                   Seed All Data
+                </v-btn>
+
+                <v-btn
+                  v-if="counts.troops > 0 || counts.equipment > 0 || counts.factions > 0"
+                  block
+                  color="warning"
+                  variant="flat"
+                  class="mt-4"
+                  :loading="seedingAll"
+                  :disabled="seedingAll"
+                  @click="reseedAll"
+                >
+                  Re-Seed All Data
                 </v-btn>
               </v-card-text>
             </v-card>
@@ -250,6 +299,7 @@ import {
   orderBy,
   limit,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore'
 import { auth } from '../services/firebase'
 
@@ -367,8 +417,9 @@ async function seedTroops() {
     // Add each troop to Firestore
     for (const troop of troopSeed) {
       // Extract all properties except id
-      const { id, ...troopDataWithoutId } = troop
+      const { id: _troopId, ...troopDataWithoutId } = troop
       await addDoc(troopsCollection, {
+        originalId: _troopId, // Store the original ID as a field
         ...troopDataWithoutId,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -401,8 +452,9 @@ async function seedEquipment() {
     // Add each equipment item to Firestore
     for (const item of equipmentSeed) {
       // Extract all properties except id using destructuring and rest
-      const { id, ...itemDataWithoutId } = item
+      const { id: _itemId, ...itemDataWithoutId } = item
       await addDoc(equipmentCollection, {
+        originalId: _itemId, // Store the original ID as a field
         ...itemDataWithoutId,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -435,8 +487,9 @@ async function seedFactions() {
     // Add each faction to Firestore
     for (const faction of factionSeed) {
       // Extract all properties except id using destructuring and rest
-      const { id, ...factionDataWithoutId } = faction
+      const { id: _factionId, ...factionDataWithoutId } = faction
       await addDoc(factionsCollection, {
+        originalId: _factionId, // Store the original ID as a field
         ...factionDataWithoutId,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -492,6 +545,196 @@ async function addLog(message: string) {
   } catch (error) {
     console.error('Error saving log to Firestore:', error)
   }
+}
+
+// Clear troops collection
+async function clearTroopsCollection() {
+  try {
+    const db = getFirestore()
+    const troopsCollection = collection(db, 'troops')
+    const troopsSnapshot = await getDocs(troopsCollection)
+
+    // Use batched writes for better performance
+    const batch = writeBatch(db)
+
+    troopsSnapshot.forEach((doc) => {
+      batch.delete(doc.ref)
+    })
+
+    await batch.commit()
+    addLog(`Cleared ${troopsSnapshot.size} troops from the database`)
+    return true
+  } catch (error) {
+    console.error('Error clearing troops collection:', error)
+    addLog(`Error clearing troops collection: ${error}`)
+    return false
+  }
+}
+
+// Clear equipment collection
+async function clearEquipmentCollection() {
+  try {
+    const db = getFirestore()
+    const equipmentCollection = collection(db, 'equipment')
+    const equipmentSnapshot = await getDocs(equipmentCollection)
+
+    // Use batched writes for better performance
+    const batch = writeBatch(db)
+
+    equipmentSnapshot.forEach((doc) => {
+      batch.delete(doc.ref)
+    })
+
+    await batch.commit()
+    addLog(`Cleared ${equipmentSnapshot.size} equipment items from the database`)
+    return true
+  } catch (error) {
+    console.error('Error clearing equipment collection:', error)
+    addLog(`Error clearing equipment collection: ${error}`)
+    return false
+  }
+}
+
+// Clear factions collection
+async function clearFactionsCollection() {
+  try {
+    const db = getFirestore()
+    const factionsCollection = collection(db, 'factions')
+    const factionsSnapshot = await getDocs(factionsCollection)
+
+    // Use batched writes for better performance
+    const batch = writeBatch(db)
+
+    factionsSnapshot.forEach((doc) => {
+      batch.delete(doc.ref)
+    })
+
+    await batch.commit()
+    addLog(`Cleared ${factionsSnapshot.size} factions from the database`)
+    return true
+  } catch (error) {
+    console.error('Error clearing factions collection:', error)
+    addLog(`Error clearing factions collection: ${error}`)
+    return false
+  }
+}
+
+// Re-seed troops
+async function reseedTroops() {
+  if (!confirm('This will delete all existing troop data and re-seed the collection. Continue?')) {
+    return
+  }
+
+  seeding.value.troops = true
+  try {
+    addLog('Starting troops re-seeding process...')
+    // First clear the collection
+    const cleared = await clearTroopsCollection()
+    if (!cleared) {
+      throw new Error('Failed to clear troops collection')
+    }
+
+    // Reset the count
+    counts.value.troops = 0
+
+    // Then seed with fresh data
+    await seedTroops()
+
+    addLog('Troops re-seeding completed successfully')
+  } catch (error) {
+    console.error('Error re-seeding troops:', error)
+    addLog(`Error re-seeding troops: ${error}`)
+  } finally {
+    seeding.value.troops = false
+    await refreshCounts()
+  }
+}
+
+// Re-seed equipment
+async function reseedEquipment() {
+  if (
+    !confirm('This will delete all existing equipment data and re-seed the collection. Continue?')
+  ) {
+    return
+  }
+
+  seeding.value.equipment = true
+  try {
+    addLog('Starting equipment re-seeding process...')
+    // First clear the collection
+    const cleared = await clearEquipmentCollection()
+    if (!cleared) {
+      throw new Error('Failed to clear equipment collection')
+    }
+
+    // Reset the count
+    counts.value.equipment = 0
+
+    // Then seed with fresh data
+    await seedEquipment()
+
+    addLog('Equipment re-seeding completed successfully')
+  } catch (error) {
+    console.error('Error re-seeding equipment:', error)
+    addLog(`Error re-seeding equipment: ${error}`)
+  } finally {
+    seeding.value.equipment = false
+    await refreshCounts()
+  }
+}
+
+// Re-seed factions
+async function reseedFactions() {
+  if (
+    !confirm('This will delete all existing faction data and re-seed the collection. Continue?')
+  ) {
+    return
+  }
+
+  seeding.value.factions = true
+  try {
+    addLog('Starting factions re-seeding process...')
+    // First clear the collection
+    const cleared = await clearFactionsCollection()
+    if (!cleared) {
+      throw new Error('Failed to clear factions collection')
+    }
+
+    // Reset the count
+    counts.value.factions = 0
+
+    // Then seed with fresh data
+    await seedFactions()
+
+    addLog('Factions re-seeding completed successfully')
+  } catch (error) {
+    console.error('Error re-seeding factions:', error)
+    addLog(`Error re-seeding factions: ${error}`)
+  } finally {
+    seeding.value.factions = false
+    await refreshCounts()
+  }
+}
+
+// Re-seed all data
+async function reseedAll() {
+  if (
+    !confirm(
+      'This will delete ALL existing game data (troops, equipment, factions) and re-seed all collections. This cannot be undone. Continue?',
+    )
+  ) {
+    return
+  }
+
+  addLog('Starting re-seeding of all game data...')
+
+  // Re-seed each collection
+  await reseedTroops()
+  await reseedEquipment()
+  await reseedFactions()
+
+  addLog('Completed re-seeding of all game data')
+  await refreshCounts()
 }
 
 // Initialize
