@@ -300,6 +300,7 @@ import {
   limit,
   serverTimestamp,
   writeBatch,
+  setDoc,
 } from 'firebase/firestore'
 import { auth } from '../services/firebase'
 
@@ -416,11 +417,9 @@ async function seedTroops() {
 
     // Add each troop to Firestore
     for (const troop of troopSeed) {
-      // Extract all properties except id
-      const { id: _troopId, ...troopDataWithoutId } = troop
-      await addDoc(troopsCollection, {
-        originalId: _troopId, // Store the original ID as a field
-        ...troopDataWithoutId,
+      // Use setDoc with the custom ID
+      await setDoc(doc(troopsCollection, troop.id), {
+        ...troop,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       })

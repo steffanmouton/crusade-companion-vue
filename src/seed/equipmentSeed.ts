@@ -4,7 +4,7 @@ import type { Equipment } from '../models/equipment'
 // Define melee weapons
 const meleeWeapons: Equipment[] = [
   {
-    id: 'unarmed',
+    id: 'tc-eq-un',
     name: 'Unarmed',
     type: 'Special',
     description: 'Fighting without weapons',
@@ -18,7 +18,7 @@ const meleeWeapons: Equipment[] = [
     ],
   },
   {
-    id: 'knife-dagger',
+    id: 'tc-eq-kd',
     name: 'Knife/Dagger',
     type: 'Melee Weapon',
     description: 'A small blade for close combat',
@@ -30,7 +30,7 @@ const meleeWeapons: Equipment[] = [
     rules: ['Add -1 DICE every time you use a knife to see if the attack hits.'],
   },
   {
-    id: 'trench-club',
+    id: 'tc-eq-tc',
     name: 'Trench Club',
     type: 'Melee Weapon',
     description: 'A crude bludgeon often made from scavenged materials',
@@ -42,7 +42,7 @@ const meleeWeapons: Equipment[] = [
     rules: [],
   },
   {
-    id: 'sword-axe',
+    id: 'tc-eq-sa',
     name: 'Sword/Axe',
     type: 'Melee Weapon',
     description: 'A larger bladed weapon for close combat',
@@ -54,7 +54,7 @@ const meleeWeapons: Equipment[] = [
     rules: [],
   },
   {
-    id: 'bayonet',
+    id: 'tc-eq-ba',
     name: 'Bayonet',
     type: 'Melee Weapon',
     description: 'A blade that attaches to the end of a rifle',
@@ -68,7 +68,7 @@ const meleeWeapons: Equipment[] = [
     ],
   },
   {
-    id: 'sacrificial-knife',
+    id: 'tc-eq-sk',
     name: 'Sacrificial Knife',
     type: 'Melee Weapon',
     description: 'A ornate ritual blade imbued with dark powers',
@@ -82,7 +82,7 @@ const meleeWeapons: Equipment[] = [
     ],
   },
   {
-    id: 'blasphemous-staff',
+    id: 'tc-eq-bs',
     name: 'Blasphemous Staff',
     type: 'Melee Weapon',
     description: 'A staff inscribed with heretical sigils',
@@ -98,7 +98,7 @@ const meleeWeapons: Equipment[] = [
 // Define ranged weapons
 const rangedWeapons: Equipment[] = [
   {
-    id: 'pistol-revolver',
+    id: 'tc-eq-pr',
     name: 'Pistol/revolver',
     type: 'Ranged Weapon',
     description: 'A basic sidearm with moderate range',
@@ -112,7 +112,7 @@ const rangedWeapons: Equipment[] = [
     ],
   },
   {
-    id: 'automatic-pistol',
+    id: 'tc-eq-ap',
     name: 'Automatic Pistol',
     type: 'Ranged Weapon',
     description: 'A rapid-firing sidearm with automatic capability',
@@ -126,7 +126,7 @@ const rangedWeapons: Equipment[] = [
     ],
   },
   {
-    id: 'bolt-action-rifle',
+    id: 'tc-eq-br',
     name: 'Bolt Action Rifle',
     type: 'Ranged Weapon',
     description: 'The workhorse of the Great War. Sturdy, highly reliable and reasonably accurate.',
@@ -142,7 +142,7 @@ const rangedWeapons: Equipment[] = [
 // Define armor items
 const armorItems: Equipment[] = [
   {
-    id: 'trench-shield',
+    id: 'tc-eq-ts',
     name: 'Trench Shield',
     type: 'Armour',
     description: 'A portable shield providing protection in combat',
@@ -155,18 +155,18 @@ const armorItems: Equipment[] = [
     ],
   },
   {
-    id: 'standard-armour',
+    id: 'tc-eq-sa',
     name: 'Standard Armour',
     type: 'Armour',
     description: 'Basic protective armor offering moderate protection',
     cost: createDucatsCost(7),
-    modifiers: ['-1 to all Injury Chart rolls'],
+    modifiers: [],
     keywords: [],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['-1 to all Injury Chart rolls against the model. Can be combined with any shield.'],
   },
   {
-    id: 'reinforced-armour',
+    id: 'tc-eq-ra',
     name: 'Reinforced Armour',
     type: 'Armour',
     description: 'Heavy armor offering substantial protection',
@@ -181,7 +181,7 @@ const armorItems: Equipment[] = [
 // Define general equipment
 const equipmentItems: Equipment[] = [
   {
-    id: 'combat-helmet',
+    id: 'tc-eq-ch',
     name: 'Combat Helmet',
     type: 'Equipment',
     description: 'The simple combat helmet has proven its value on the battlefield time and again.',
@@ -192,7 +192,7 @@ const equipmentItems: Equipment[] = [
     rules: ['Ignores additional BLOOD MARKERS caused by the Keyword SHRAPNEL.'],
   },
   {
-    id: 'iron-capirote',
+    id: 'tc-eq-ic',
     name: 'Iron Capirote',
     type: 'Equipment',
     description:
@@ -206,7 +206,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'medi-kit',
+    id: 'tc-eq-mk',
     name: 'Medi-kit',
     type: 'Equipment',
     description:
@@ -220,7 +220,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'gas-mask',
+    id: 'tc-eq-gm',
     name: 'Gas Mask',
     type: 'Equipment',
     description:
@@ -234,7 +234,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'holy-relic',
+    id: 'tc-eq-hr',
     name: 'Holy Relic',
     type: 'Equipment',
     description:
@@ -246,7 +246,7 @@ const equipmentItems: Equipment[] = [
     rules: ['This model starts each game with +1 BLESSING MARKER.'],
   },
   {
-    id: 'armour-piercing-bullets',
+    id: 'tc-eq-apb',
     name: 'Armour-Piercing Bullets',
     type: 'Equipment',
     description:
@@ -260,7 +260,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'dum-dum-bullets',
+    id: 'tc-eq-ddb',
     name: 'Dum-Dum Bullets',
     type: 'Equipment',
     description:
@@ -274,7 +274,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'incendiary-ammunition',
+    id: 'tc-eq-ia',
     name: 'Incendiary Ammunition',
     type: 'Equipment',
     description:
@@ -288,7 +288,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'tracer-bullets',
+    id: 'tc-eq-tb',
     name: 'Tracer Bullets',
     type: 'Equipment',
     description: 'Tracer bullets allow soldiers to adjust their aim efficiently.',
@@ -301,7 +301,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'sniper-scope',
+    id: 'tc-eq-ss',
     name: 'Sniper Scope',
     type: 'Equipment',
     description:
@@ -315,7 +315,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'shovel',
+    id: 'tc-eq-sh',
     name: 'Shovel',
     type: 'Equipment',
     description:
@@ -329,7 +329,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'troop-flag',
+    id: 'tc-eq-tf',
     name: 'Troop Flag',
     type: 'Equipment',
     description:
@@ -343,7 +343,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'martyrdom-pills',
+    id: 'tc-eq-mp',
     name: 'Martyrdom Pills',
     type: 'Equipment',
     description:
@@ -357,7 +357,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'unholy-trinket',
+    id: 'tc-eq-ut',
     name: 'Unholy Trinket',
     type: 'Equipment',
     description: 'A small token infused with unholy power.',
@@ -370,7 +370,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'unholy-relic',
+    id: 'tc-eq-ur',
     name: 'Unholy Relic',
     type: 'Equipment',
     description:
@@ -384,7 +384,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'blessed-icon',
+    id: 'tc-eq-bi',
     name: 'Blessed Icon',
     type: 'Equipment',
     description:
@@ -398,7 +398,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'infernal-brand-mark',
+    id: 'tc-eq-ibm',
     name: 'Infernal Brand Mark',
     type: 'Equipment',
     description:
@@ -412,7 +412,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'field-shrine',
+    id: 'tc-eq-fs',
     name: 'Field Shrine',
     type: 'Equipment',
     description:
@@ -426,7 +426,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'hellbound-soul-contract',
+    id: 'tc-eq-hsc',
     name: 'Hellbound Soul Contract',
     type: 'Equipment',
     description:
@@ -440,7 +440,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'binoculars',
+    id: 'tc-eq-bn',
     name: 'Binoculars',
     type: 'Equipment',
     description:
@@ -452,7 +452,7 @@ const equipmentItems: Equipment[] = [
     rules: ['Any enemy Infiltrator cannot be placed closer than 16" of this model.'],
   },
   {
-    id: 'musical-instrument',
+    id: 'tc-eq-mi',
     name: 'Musical Instrument',
     type: 'Equipment',
     description:
@@ -466,7 +466,7 @@ const equipmentItems: Equipment[] = [
     ],
   },
   {
-    id: 'mountaineer-kit',
+    id: 'tc-eq-mk',
     name: 'Mountaineer Kit',
     type: 'Equipment',
     description:
@@ -479,6 +479,39 @@ const equipmentItems: Equipment[] = [
   },
 ]
 
+const uniqueTroopEquipment: Equipment[] = [
+  {
+    id: 'tc-eq-cm',
+    name: 'Chainmaw',
+    type: 'Equipment',
+    description:
+      'The War Wolf treats its Chainsaw Mouth as a melee weapon with the Keyword RISKY that grants a +1 DICE bonus to hit (for total of +3D). Additionally, the attack ignores any armour worn by the target and has a +1 DICE bonus to injure. The Chainsaw Mouth does not take any hands to wield.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'The War Wolf treats its Chainsaw Mouth as a melee weapon with the Keyword RISKY that grants a +1 DICE bonus to hit (for total of +3D). Additionally, the attack ignores any armour worn by the target and has a +1 DICE bonus to injure. The Chainsaw Mouth does not take any hands to wield.',
+    ],
+    onlyFor: { troops: ['War Wolf Assault Beast'] },
+  },
+  {
+    id: 'tc-eq-sc',
+    name: 'Shredding Claws',
+    type: 'Equipment',
+    description:
+      'The War Wolf treats its Shredding Claws as a two-handed melee weapon with the Keywords RISKY and CUMBERSOME. The Shredding Claws have a +1 DICE bonus to injure. Because the Shredding Claws are wielded alongside the Chainsaw Mouth, they are treated as an Off-Hand Weapon and suffer penalties accordingly.',
+    cost: createDucatsCost(0),
+    modifiers: [],
+    keywords: [],
+    equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
+    rules: [
+      'The War Wolf treats its Shredding Claws as a two-handed melee weapon with the Keywords RISKY and CUMBERSOME. The Shredding Claws have a +1 DICE bonus to injure. Because the Shredding Claws are wielded alongside the Chainsaw Mouth, they are treated as an Off-Hand Weapon and suffer penalties accordingly.',
+    ],
+    onlyFor: { troops: ['War Wolf Assault Beast'] },
+  },
+]
+
 /**
  * Combined equipment data for seeding the Firestore database
  */
@@ -487,4 +520,5 @@ export const equipmentSeed: Equipment[] = [
   ...rangedWeapons,
   ...armorItems,
   ...equipmentItems,
+  ...uniqueTroopEquipment,
 ]

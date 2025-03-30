@@ -21,10 +21,20 @@
       <div class="unit-container">
         <!-- Image container with conditional source -->
         <div class="unit-image-container">
-          <v-img :src="isDesktop ? unitSideImage : unitImage" height="100%" contain>
+          <v-img
+            :src="isDesktop ? unitSideImage : unitImage"
+            height="100%"
+            contain
+            @error="handleImageError"
+          >
             <template v-slot:placeholder>
               <div class="d-flex align-center justify-center fill-height">
                 <v-progress-circular indeterminate color="grey-lighten-4"></v-progress-circular>
+              </div>
+            </template>
+            <template v-slot:error>
+              <div class="d-flex align-center justify-center fill-height">
+                <v-icon icon="mdi-image-off" size="48" color="grey-lighten-1"></v-icon>
               </div>
             </template>
           </v-img>
@@ -71,7 +81,7 @@
                     </v-icon>
                     <span class="text-body-2 font-weight-medium">{{ item.name }}</span>
                     <v-spacer></v-spacer>
-                    <!-- Show FREE badge for default equipment -->
+                    <!-- Show DEFAULT badge for default equipment -->
                     <v-chip
                       v-if="
                         troop?.defaultEquipment?.some(
@@ -83,7 +93,7 @@
                       label
                       class="ml-1"
                     >
-                      FREE
+                      DEFAULT
                     </v-chip>
                   </div>
                 </v-list-item-title>
@@ -195,7 +205,9 @@ const troopName = computed(() => {
 // Get the image for mobile view (will also be fallback for desktop if side image fails)
 const unitImage = computed(() => {
   if (troop.value?.cardHeaderImageURI) {
-    return troop.value.cardHeaderImageURI
+    // Remove any leading slash and ensure we're using the correct path
+    const path = troop.value.cardHeaderImageURI.replace(/^\/+/, '')
+    return `/${path}`
   }
   // Default placeholder image
   return '/img/placeholder-unit.jpg'
@@ -204,11 +216,12 @@ const unitImage = computed(() => {
 // Get the side image for desktop view
 const unitSideImage = computed(() => {
   if (troop.value?.cardHeroSideImageURI) {
-    // Check if the file exists by trying to load it (browsers will handle the fallback if it fails)
-    return troop.value.cardHeroSideImageURI
+    // Remove any leading slash and ensure we're using the correct path
+    const path = troop.value.cardHeroSideImageURI.replace(/^\/+/, '')
+    return `/${path}`
   } else if (troop.value?.cardHeaderImageURI) {
     // Fall back to header image if no side image
-    return troop.value.cardHeaderImageURI
+    return unitImage.value
   }
   // Default placeholder image
   return '/img/placeholder-unit.jpg'
@@ -288,6 +301,18 @@ const hasRequiredProperties = computed(() => {
     props.unit.costPoints !== undefined
   )
 })
+
+// Function to handle image loading errors
+function handleImageError(value: string | undefined) {
+  if (value) {
+    console.error('Failed to load image:', value)
+    // Try to load the placeholder image
+    const img = document.querySelector(`img[src="${value}"]`) as HTMLImageElement
+    if (img) {
+      img.src = '/img/placeholder-unit.jpg'
+    }
+  }
+}
 </script>
 
 <style scoped>
