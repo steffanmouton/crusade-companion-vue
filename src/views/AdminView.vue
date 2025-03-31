@@ -165,6 +165,43 @@
                   </v-btn>
                 </v-card>
 
+                <v-card variant="outlined" class="mb-4 pa-3">
+                  <div class="d-flex align-center mb-2">
+                    <v-icon icon="mdi-flag-variant" color="primary" class="mr-2"></v-icon>
+                    <div class="text-subtitle-1 font-weight-medium">Warband Variants</div>
+                    <v-spacer></v-spacer>
+                    <v-chip v-if="counts.warbandVariants > 0" color="success" size="small">
+                      {{ counts.warbandVariants }} variants
+                    </v-chip>
+                    <v-chip v-else color="error" size="small"> Empty </v-chip>
+                  </div>
+                  <p class="text-caption mb-3">
+                    Seed warband variant data for special army configurations.
+                  </p>
+                  <v-btn
+                    block
+                    color="primary"
+                    variant="flat"
+                    :loading="seeding.warbandVariants"
+                    :disabled="seeding.warbandVariants || counts.warbandVariants > 0"
+                    @click="seedWarbandVariants"
+                    class="mb-2"
+                  >
+                    Seed Warband Variants
+                  </v-btn>
+                  <v-btn
+                    v-if="counts.warbandVariants > 0"
+                    block
+                    color="warning"
+                    variant="outlined"
+                    :loading="seeding.warbandVariants"
+                    :disabled="seeding.warbandVariants"
+                    @click="reseedWarbandVariants"
+                  >
+                    Re-Seed Warband Variants
+                  </v-btn>
+                </v-card>
+
                 <v-btn
                   block
                   color="success"
@@ -172,7 +209,11 @@
                   class="mt-4"
                   :loading="seedingAll"
                   :disabled="
-                    seedingAll || counts.troops > 0 || counts.equipment > 0 || counts.factions > 0
+                    seedingAll ||
+                    counts.troops > 0 ||
+                    counts.equipment > 0 ||
+                    counts.factions > 0 ||
+                    counts.warbandVariants > 0
                   "
                   @click="seedAll"
                 >
@@ -180,7 +221,12 @@
                 </v-btn>
 
                 <v-btn
-                  v-if="counts.troops > 0 || counts.equipment > 0 || counts.factions > 0"
+                  v-if="
+                    counts.troops > 0 ||
+                    counts.equipment > 0 ||
+                    counts.factions > 0 ||
+                    counts.warbandVariants > 0
+                  "
                   block
                   color="warning"
                   variant="flat"
@@ -286,6 +332,7 @@ import { useAuthStore } from '../stores/auth'
 import { troopSeed } from '../seed/troopSeed'
 import { equipmentSeed } from '../seed/equipmentSeed'
 import { factionSeed } from '../seed/factionSeed'
+import { seedWarbandVariants as warbandVariantsSeed } from '../seed/warbandVariants'
 
 import {
   collection,
@@ -315,20 +362,40 @@ const user = computed(() => authStore.user)
 const isAdmin = ref(false)
 
 // Seeding state
-const seeding = ref({
+interface SeedingState {
+  troops: boolean
+  equipment: boolean
+  factions: boolean
+  warbandVariants: boolean
+}
+
+interface CountsState {
+  troops: number
+  equipment: number
+  factions: number
+  warbandVariants: number
+}
+
+const seeding = ref<SeedingState>({
   troops: false,
   equipment: false,
   factions: false,
+  warbandVariants: false,
 })
+
 const seedingAll = computed(
-  () => seeding.value.troops || seeding.value.equipment || seeding.value.factions,
+  () =>
+    seeding.value.troops ||
+    seeding.value.equipment ||
+    seeding.value.factions ||
+    seeding.value.warbandVariants,
 )
 
-// Data counts
-const counts = ref({
+const counts = ref<CountsState>({
   troops: 0,
   equipment: 0,
   factions: 0,
+  warbandVariants: 0,
 })
 
 // Activity logs
@@ -392,8 +459,12 @@ async function refreshCounts() {
     const factionsSnapshot = await getDocs(collection(db, 'factions'))
     counts.value.factions = factionsSnapshot.size
 
+    // Get warband variants count
+    const warbandVariantsSnapshot = await getDocs(collection(db, 'warbandVariants'))
+    counts.value.warbandVariants = warbandVariantsSnapshot.size
+
     addLog(
-      `Refreshed counts: Troops: ${counts.value.troops}, Equipment: ${counts.value.equipment}, Factions: ${counts.value.factions}`,
+      `Refreshed counts: Troops: ${counts.value.troops}, Equipment: ${counts.value.equipment}, Factions: ${counts.value.factions}, Warband Variants: ${counts.value.warbandVariants}`,
     )
   } catch (error) {
     console.error('Error refreshing counts:', error)
@@ -512,6 +583,7 @@ async function seedAll() {
   await seedTroops()
   await seedEquipment()
   await seedFactions()
+  await seedWarbandVariants()
   addLog('Completed seeding all data')
 }
 
@@ -719,7 +791,7 @@ async function reseedFactions() {
 async function reseedAll() {
   if (
     !confirm(
-      'This will delete ALL existing game data (troops, equipment, factions) and re-seed all collections. This cannot be undone. Continue?',
+      'This will delete ALL existing game data (troops, equipment, factions, warband variants) and re-seed all collections. This cannot be undone. Continue?',
     )
   ) {
     return
@@ -731,9 +803,89 @@ async function reseedAll() {
   await reseedTroops()
   await reseedEquipment()
   await reseedFactions()
+  await reseedWarbandVariants()
 
   addLog('Completed re-seeding of all game data')
   await refreshCounts()
+}
+
+// Seed warband variants
+async function seedWarbandVariants() {
+  if (counts.value.warbandVariants > 0) {
+    addLog('Warband variants collection is not empty. Seeding skipped.')
+    return
+  }
+
+  seeding.value.warbandVariants = true
+  try {
+    await warbandVariantsSeed()
+    counts.value.warbandVariants = 1 // Since we're only seeding one variant for now
+    addLog('Successfully seeded warband variants')
+  } catch (error) {
+    console.error('Error seeding warband variants:', error)
+    addLog(`Error seeding warband variants: ${error}`)
+  } finally {
+    seeding.value.warbandVariants = false
+  }
+}
+
+// Clear warband variants collection
+async function clearWarbandVariantsCollection() {
+  try {
+    const db = getFirestore()
+    const warbandVariantsCollection = collection(db, 'warbandVariants')
+    const warbandVariantsSnapshot = await getDocs(warbandVariantsCollection)
+
+    // Use batched writes for better performance
+    const batch = writeBatch(db)
+
+    warbandVariantsSnapshot.forEach((doc) => {
+      batch.delete(doc.ref)
+    })
+
+    await batch.commit()
+    addLog(`Cleared ${warbandVariantsSnapshot.size} warband variants from the database`)
+    return true
+  } catch (error) {
+    console.error('Error clearing warband variants collection:', error)
+    addLog(`Error clearing warband variants collection: ${error}`)
+    return false
+  }
+}
+
+// Re-seed warband variants
+async function reseedWarbandVariants() {
+  if (
+    !confirm(
+      'This will delete all existing warband variant data and re-seed the collection. Continue?',
+    )
+  ) {
+    return
+  }
+
+  seeding.value.warbandVariants = true
+  try {
+    addLog('Starting warband variants re-seeding process...')
+    // First clear the collection
+    const cleared = await clearWarbandVariantsCollection()
+    if (!cleared) {
+      throw new Error('Failed to clear warband variants collection')
+    }
+
+    // Reset the count
+    counts.value.warbandVariants = 0
+
+    // Then seed with fresh data
+    await seedWarbandVariants()
+
+    addLog('Warband variants re-seeding completed successfully')
+  } catch (error) {
+    console.error('Error re-seeding warband variants:', error)
+    addLog(`Error re-seeding warband variants: ${error}`)
+  } finally {
+    seeding.value.warbandVariants = false
+    await refreshCounts()
+  }
 }
 
 // Initialize

@@ -23,6 +23,7 @@ export interface EquipmentIndicator {
 
 export interface EquipmentOnlyFor {
   faction?: string
+  warbandVariant?: string
   troops?: string[]
   keywords?: string[]
 }

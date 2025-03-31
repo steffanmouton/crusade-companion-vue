@@ -21,6 +21,11 @@ export interface Army {
   wins: number
   losses: number
   description?: string
+  warbandVariant?: {
+    name: string
+    description: string
+    rules: string[]
+  }
   createdAt: number
   updatedAt: number
 }

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
 import { useUnitStore } from '../stores/unitStore'
+import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import TroopSelectionDialog from '../components/TroopSelectionDialog.vue'
 import UnitCard from '../components/UnitCard.vue'
 import UnitForm from '../components/UnitForm.vue'
@@ -19,6 +20,7 @@ const authStore = useAuthStore()
 const armyStore = useArmyStore()
 const unitStore = useUnitStore()
 const troopStore = useTroopStore()
+const warbandVariantStore = useWarbandVariantStore()
 
 // Get the army ID from the route params
 const armyId = computed(() => route.params.id as string)
@@ -66,7 +68,6 @@ const showTroopSelectionDialog = ref(false)
 const showUnitFormDialog = ref(false)
 const selectedUnit = ref<ModelUnit | null>(null)
 const selectedTroop = ref<Troop | null>(null)
-const refreshingPoints = ref(false)
 const quickReferenceMode = ref(false)
 
 // Add a computed property to get the faction ID
@@ -121,6 +122,9 @@ onMounted(async () => {
     await troopStore.initializeTroops()
   }
 
+  // Load warband variants
+  await warbandVariantStore.fetchWarbandVariants()
+
   if (armyId.value) {
     await armyStore.loadArmy(armyId.value)
     await unitStore.loadUnitsByArmyId(armyId.value)
@@ -151,22 +155,6 @@ const deleteArmy = async () => {
 // Function to open the troop selection dialog
 function openAddUnitDialog() {
   showTroopSelectionDialog.value = true
-}
-
-// Add a function to recalculate all points
-async function recalculatePoints() {
-  if (!armyId.value) return
-
-  refreshingPoints.value = true
-  try {
-    await unitStore.refreshArmyPoints(armyId.value)
-    // Reload the army to get the updated point total
-    await armyStore.loadArmy(armyId.value)
-  } catch (error) {
-    console.error('Error recalculating points:', error)
-  } finally {
-    refreshingPoints.value = false
-  }
 }
 
 // Create a UnitData type for internal use
@@ -241,6 +229,14 @@ function handleDeleteUnit(unitId: string) {
     unitStore.deleteUnit(unitId, armyId.value)
   }
 }
+
+// Computed property for warband variant
+const warbandVariant = computed(() => {
+  if (!army.value?.warbandVariant?.name) return null
+  return warbandVariantStore.warbandVariants.find(
+    (v) => v.name === army.value?.warbandVariant?.name,
+  )
+})
 </script>
 
 <template>
@@ -287,6 +283,9 @@ function handleDeleteUnit(unitId: string) {
               <div>
                 <h2 class="text-h4 font-weight-medium tc-heading mb-1">{{ army.name }}</h2>
                 <p class="text-subtitle-1 mb-1">{{ army.faction }}</p>
+                <p v-if="warbandVariant" class="text-subtitle-2 mb-1 text-primary">
+                  {{ warbandVariant.name }}
+                </p>
                 <p class="text-body-2 text-medium-emphasis">
                   <v-icon icon="mdi-target" size="small" class="mr-1"></v-icon>
                   Target Points: {{ targetPoints }}
@@ -327,6 +326,31 @@ function handleDeleteUnit(unitId: string) {
             </div>
 
             <hr class="tc-divider" />
+
+            <!-- Warband Variant Section -->
+            <v-card
+              v-if="warbandVariant"
+              variant="outlined"
+              class="mb-6 pa-4 tc-card"
+              elevation="0"
+            >
+              <h3 class="text-h6 font-weight-medium mb-2 tc-heading">Warband Variant</h3>
+              <p class="text-body-1 mb-4">{{ warbandVariant.description }}</p>
+              <div class="rules-list">
+                <h4 class="text-subtitle-1 font-weight-medium mb-2">Special Rules:</h4>
+                <ul class="list-unstyled">
+                  <li v-for="(rule, index) in warbandVariant.rules" :key="index" class="mb-2">
+                    <v-icon
+                      icon="mdi-check-circle"
+                      color="primary"
+                      size="small"
+                      class="mr-2"
+                    ></v-icon>
+                    {{ rule }}
+                  </li>
+                </ul>
+              </div>
+            </v-card>
 
             <!-- Quick Reference View when enabled -->
             <QuickReferenceView v-if="quickReferenceMode" :units="units" :army="army" />
@@ -494,16 +518,6 @@ function handleDeleteUnit(unitId: string) {
           ></div>
         </div>
       </div>
-      <v-btn
-        icon="mdi-refresh"
-        size="small"
-        variant="text"
-        color="primary"
-        class="ml-2"
-        :loading="refreshingPoints"
-        @click="recalculatePoints"
-        title="Recalculate points"
-      ></v-btn>
     </div>
   </v-app>
 </template>
@@ -677,5 +691,9 @@ function handleDeleteUnit(unitId: string) {
   ::-webkit-scrollbar {
     display: none;
   }
+}
+
+.rules-list ul {
+  padding-left: 1rem;
 }
 </style>

@@ -3,12 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
+import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import { FactionNames } from '../models/faction'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const armyStore = useArmyStore()
+const warbandVariantStore = useWarbandVariantStore()
 
 // Create a list of faction options for the dropdown
 const factionOptions = Object.values(FactionNames).map((value) => ({
@@ -22,6 +24,7 @@ const faction = ref<string>(FactionNames.TRENCH_PILGRIMS) // Default faction
 const targetPoints = ref(0)
 const currency = ref(0) // For Starting Glory Points
 const description = ref('')
+const warbandVariant = ref<any>(null)
 const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
@@ -32,8 +35,15 @@ const armyId = computed(() => route.params.id as string)
 const formTitle = computed(() => (isEditMode.value ? 'Edit Army' : 'Create New Army'))
 const submitButtonText = computed(() => (isEditMode.value ? 'Update Army' : 'Create Army'))
 
-// Load army data if in edit mode
+// Computed property for available warband variants
+const availableWarbandVariants = computed(() => {
+  return warbandVariantStore.warbandVariants.filter((variant) => variant.faction === faction.value)
+})
+
+// Load warband variants on mount
 onMounted(async () => {
+  await warbandVariantStore.fetchWarbandVariants()
+
   if (isEditMode.value && armyId.value) {
     isLoading.value = true
 
@@ -47,6 +57,7 @@ onMounted(async () => {
         targetPoints.value = army.targetPoints
         currency.value = army.currency || 0
         description.value = army.description || ''
+        warbandVariant.value = army.warbandVariant || null
       } else {
         errorMessage.value = 'Army not found'
         router.push('/dashboard')
@@ -109,6 +120,7 @@ const handleSubmit = async () => {
         targetPoints: targetPoints.value,
         currency: currency.value,
         description: description.value,
+        warbandVariant: warbandVariant.value,
       })
 
       if (success) {
@@ -127,6 +139,7 @@ const handleSubmit = async () => {
         targetPoints: targetPoints.value,
         currency: currency.value,
         description: description.value,
+        warbandVariant: warbandVariant.value,
         battles: 0,
         wins: 0,
         losses: 0,
@@ -296,6 +309,32 @@ const goBack = () => {
                 class="mb-2 tc-field"
                 bg-color="background"
               ></v-text-field>
+
+              <!-- Warband Variant Field -->
+              <v-select
+                v-if="availableWarbandVariants.length > 0"
+                v-model="warbandVariant"
+                label="Warband Variant"
+                :items="availableWarbandVariants"
+                item-title="name"
+                item-value="name"
+                variant="outlined"
+                density="comfortable"
+                class="mb-2 tc-field"
+                bg-color="background"
+                :hint="
+                  warbandVariant
+                    ? availableWarbandVariants.find((v) => v.name === warbandVariant)?.description
+                    : ''
+                "
+                persistent-hint
+              >
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props">
+                    <div class="text-truncate text-caption">{{ item.raw.description }}</div>
+                  </v-list-item>
+                </template>
+              </v-select>
 
               <!-- Description Field -->
               <v-textarea

@@ -4,6 +4,9 @@
       <h2 class="army-name">
         {{ army.name }} - {{ typeof army.faction === 'string' ? army.faction : army.faction.name }}
       </h2>
+      <p v-if="warbandVariant" class="warband-variant text-primary">
+        {{ warbandVariant.name }}
+      </p>
 
       <v-btn
         color="primary"
@@ -15,6 +18,16 @@
       >
         Print to PDF
       </v-btn>
+    </div>
+
+    <!-- Warband Variant Section -->
+    <div v-if="warbandVariant" class="warband-variant-section">
+      <h3>Warband Variant Rules</h3>
+      <ul>
+        <li v-for="(rule, index) in warbandVariant.rules" :key="index">
+          {{ rule }}
+        </li>
+      </ul>
     </div>
 
     <div class="unit-list">
@@ -164,13 +177,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import type { Unit } from '../models/unit'
 import type { Faction } from '../models/faction'
 import { useTroopStore } from '../stores/troopStore'
+import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import TroopStatsTable from './TroopStatsTable.vue'
 
-defineProps<{
+const props = defineProps<{
   units: Unit[]
   army: {
     id: string
@@ -183,14 +197,16 @@ defineProps<{
     wins?: number
     losses?: number
     description?: string
+    warbandVariant?: { name: string; rules: string[] }
   }
 }>()
 
 const troopStore = useTroopStore()
+const warbandVariantStore = useWarbandVariantStore()
 const troopsLoading = ref(false)
 const reloading = ref(false)
 
-// Initialize troops if needed on component mount
+// Initialize troops and warband variants if needed on component mount
 onMounted(async () => {
   if (troopStore.troops.length === 0) {
     troopsLoading.value = true
@@ -202,6 +218,9 @@ onMounted(async () => {
       troopsLoading.value = false
     }
   }
+
+  // Load warband variants
+  await warbandVariantStore.fetchWarbandVariants()
 })
 
 // Get troop by ID
@@ -246,6 +265,12 @@ async function reloadTroops() {
     reloading.value = false
   }
 }
+
+// Computed property for warband variant
+const warbandVariant = computed(() => {
+  if (!props.army?.warbandVariant) return null
+  return warbandVariantStore.getVariantByName(props.army.warbandVariant.name)
+})
 </script>
 
 <style scoped>
@@ -450,5 +475,41 @@ async function reloadTroops() {
     page-break-inside: avoid;
     margin-bottom: 15px;
   }
+}
+
+.warband-variant {
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+}
+
+.warband-variant-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.warband-variant-section h3 {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.warband-variant-section ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.warband-variant-section li {
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.warband-variant-section li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--v-primary-base);
 }
 </style>
