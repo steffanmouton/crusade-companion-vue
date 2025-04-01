@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { WarbandVariant } from '../models/warbandVariants'
+import type { WarbandVariant } from '../models/warbandVariant'
 import {
   getDocument,
   addDocument,

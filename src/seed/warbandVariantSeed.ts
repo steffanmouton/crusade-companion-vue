@@ -1,12 +1,8 @@
-export interface WarbandVariant {
-  name: string
-  description: string
-  rules: string[]
-  faction: string
-}
+import type { WarbandVariant } from '@/models/warbandVariant'
 
-export const warbandVariants: WarbandVariant[] = [
+export const warbandVariantsSeed: WarbandVariant[] = [
   {
+    id: 'tc-wb-knights-of-avarice',
     name: 'Knights of Avarice',
     faction: 'Heretic Legion',
     description:
@@ -15,13 +11,14 @@ export const warbandVariants: WarbandVariant[] = [
       'Worship Mammon: In a campaign, the patron of the warband will always be Mammon. Instead of the Puppet Master ability, the Heretic Priest of the Knights of Avarice may select the Price of Greed ability if they wish.',
       "Mammon's Chosen: Knights of Avarice allow only the wealthiest and the best-equipped candidates to join their ranks. Your force may have no models that cost less than 80 ducats (including their equipment).",
       'Corrupt Merchants: Many merchants, traders and moneylenders within the Faithful nations are followers of Mammon and secretly supply the Knights of Avarice with their wares.',
-      'Preserve the Loot: Knights of Avarice greatly dislike using weapons that could damage the amount of wealth that can be extracted from the fallen.',
+      'Preserve the Loot: Knights of Avarice greatly dislike using weapons that could damage the amount of wealth that can be extracted from the fallen. No weapon with the Keyword FIRE or SHRAPNEL can be used by any model in this warband.',
       'Infernal Rivalry: Mammon is a rival of Beruth, the great devil of wrath and murder, who is the Patron of Death Commandos. Knights of Avarice may include no Death Commandos.',
       'Goetic Warlocks: Goetic Warlocks are creations of Mammon. This warband may include one for the price of 110 ducats.',
       "Debtors to Mammon: Wretched of the warband are not tied by Mammon's Chosen rule.",
     ],
   },
   {
+    id: 'tc-wb-heretic-naval-raiding-party',
     name: 'Heretic Naval Raiding Party',
     faction: 'Heretic Legion',
     description:
@@ -35,6 +32,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-trench-ghosts',
     name: 'Trench Ghosts',
     faction: 'Heretic Legion',
     description:
@@ -54,6 +52,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-dirge-of-the-great-hegemon',
     name: 'Dirge of the Great Hegemon',
     faction: 'Black Grail',
     description:
@@ -70,10 +69,11 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-procession-of-the-sacred-affliction',
     name: 'Procession of the Sacred Affliction',
     faction: 'Trench Pilgrims',
     description:
-      'Trench Pilgrims of the Procession of the Sacred Affliction are known for their zeal in close quarter combat, their armour decorated with icons and shields adorned with the depictions of the Saints, which despite appearances can withstand machine gun bullets. The millstones they carry upon their backs are used to tie about the necks of sinners before drowning them in the mud and blood of No Man\s Land.',
+      "Trench Pilgrims of the Procession of the Sacred Affliction are known for their zeal in close quarter combat, their armour decorated with icons and shields adorned with the depictions of the Saints, which despite appearances can withstand machine gun bullets. The millstones they carry upon their backs are used to tie about the necks of sinners before drowning them in the mud and blood of No Man's Land.",
     rules: [
       'Face thy Fears: No model in the Procession of the Sacred Affliction can wear Iron Capirotes. Those troops with Capirotes in their base profile will not have them, though their cost remains the same.',
       'Reliquary Armoury: All models of this warband (save for the Anchorite) can buy Holy Icon Shields for 20 ducats, not just ELITE models. In addition, warband models with the ELITE Keyword may acquire Holy Icon Armour.',
@@ -85,6 +85,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-cavalcade-of-the-tenth-plague',
     name: 'Cavalcade of the Tenth Plague',
     faction: 'Trench Pilgrims',
     description:
@@ -99,6 +100,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-war-pilgrimage-of-saint-methodius',
     name: 'War Pilgrimage of Saint Methodius',
     faction: 'Trench Pilgrims',
     description:
@@ -115,10 +117,11 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-fidai-of-alamut',
     name: "Fida'i of Alamut",
     faction: 'Iron Sultanate',
     description:
-      'The pact between the Iron Sultanate and the Assassin fortress of Alamut ensures that the Sultan is served by the exquisitely skilled killers of the Old Man of the Mountain in exchange for independence of the Assassin\s domain. In deepest secrecy Rashid al-Din Sinan dispatches his hand-picked disciples on Missions of his own, communicating their orders with no spoken words, signs nor written messages, but talking directly to them in their dreams.',
+      "The pact between the Iron Sultanate and the Assassin fortress of Alamut ensures that the Sultan is served by the exquisitely skilled killers of the Old Man of the Mountain in exchange for independence of the Assassin's domain. In deepest secrecy Rashid al-Din Sinan dispatches his hand-picked disciples on Missions of his own, communicating their orders with no spoken words, signs nor written messages, but talking directly to them in their dreams.",
     rules: [
       "Flock of Assassins: The Fida'i of Alamut can have up to three Assassins. The warband must include a Master Assassin that counts as one of the three.",
       'Master Assassin: A Master Assassin has the Keyword TOUGH. The Master Assassin costs 95 ducats.',
@@ -129,6 +132,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-house-of-wisdom',
     name: 'House of Wisdom',
     faction: 'Iron Sultanate',
     description:
@@ -143,6 +147,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-papal-states-intervention-force',
     name: 'Papal States Intervention Force',
     faction: 'New Antioch',
     description:
@@ -157,6 +162,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-eire-rangers',
     name: 'Eire Rangers',
     faction: 'New Antioch',
     description:
@@ -173,6 +179,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-stoßtruppen-of-the-free-state-of-prussia',
     name: 'Stoßtruppen of the Free State of Prussia',
     faction: 'New Antioch',
     description:
@@ -189,6 +196,7 @@ export const warbandVariants: WarbandVariant[] = [
     ],
   },
   {
+    id: 'tc-wb-kingdom-of-alba-assault-detachment',
     name: 'Kingdom of Alba Assault Detachment',
     faction: 'New Antioch',
     description:
@@ -202,10 +210,11 @@ export const warbandVariants: WarbandVariant[] = [
       'Bagpipes: Your warband can purchase special bagpipes instead of a generic musical instrument. These bagpipes are identical to a musical instrument (including their equipment restrictions and LIMIT), but friendly models within 4" of the model carrying them are immune to FEAR.',
       'Brave: The warband adds +1 DICE to all Morale Tests.',
       'Claymore Smiths: An Alba Warband can buy Great Swords for 7 ducats instead of usual 12 ducats.',
-      'Lightly-armoured: Apart from mechanized heavy infantry and the lieutenant, no model in the warband can be equipped with reinforced or machine armour.',
+      'Lightly-armoured: Apart from mechanised heavy infantry and the lieutenant, no model in the warband can be equipped with reinforced or machine armour.',
     ],
   },
   {
+    id: 'tc-wb-expeditionary-forces-of-abyssinia',
     name: 'Expeditionary Forces of Abyssinia',
     faction: 'New Antioch',
     description:

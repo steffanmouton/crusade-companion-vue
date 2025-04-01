@@ -332,7 +332,7 @@ import { useAuthStore } from '../stores/auth'
 import { troopSeed } from '../seed/troopSeed'
 import { equipmentSeed } from '../seed/equipmentSeed'
 import { factionSeed } from '../seed/factionSeed'
-import { seedWarbandVariants as warbandVariantsSeed } from '../seed/warbandVariants'
+import { warbandVariantsSeed } from '../seed/warbandVariantSeed'
 
 import {
   collection,
@@ -812,15 +812,28 @@ async function reseedAll() {
 // Seed warband variants
 async function seedWarbandVariants() {
   if (counts.value.warbandVariants > 0) {
-    addLog('Warband variants collection is not empty. Seeding skipped.')
+    addLog('Warband Variants collection is not empty. Seeding skipped.')
     return
   }
 
   seeding.value.warbandVariants = true
   try {
-    await warbandVariantsSeed()
-    counts.value.warbandVariants = 1 // Since we're only seeding one variant for now
-    addLog('Successfully seeded warband variants')
+    const db = getFirestore()
+    const warbandVariantsCollection = collection(db, 'warbandVariants')
+
+    // Add each warband variant to Firestore
+    for (const variant of warbandVariantsSeed) {
+      // Use setDoc with the custom ID
+      await setDoc(doc(warbandVariantsCollection, variant.id), {
+        ...variant,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      })
+    }
+
+    // Update count
+    counts.value.warbandVariants = warbandVariantsSeed.length
+    addLog(`Seeded ${warbandVariantsSeed.length} warband variants`)
   } catch (error) {
     console.error('Error seeding warband variants:', error)
     addLog(`Error seeding warband variants: ${error}`)
@@ -829,62 +842,39 @@ async function seedWarbandVariants() {
   }
 }
 
-// Clear warband variants collection
-async function clearWarbandVariantsCollection() {
+// Re-seed warband variants
+async function reseedWarbandVariants() {
+  seeding.value.warbandVariants = true
   try {
     const db = getFirestore()
     const warbandVariantsCollection = collection(db, 'warbandVariants')
-    const warbandVariantsSnapshot = await getDocs(warbandVariantsCollection)
 
-    // Use batched writes for better performance
+    // Clear existing data
+    const snapshot = await getDocs(warbandVariantsCollection)
     const batch = writeBatch(db)
-
-    warbandVariantsSnapshot.forEach((doc) => {
+    snapshot.docs.forEach((doc) => {
       batch.delete(doc.ref)
     })
-
     await batch.commit()
-    addLog(`Cleared ${warbandVariantsSnapshot.size} warband variants from the database`)
-    return true
-  } catch (error) {
-    console.error('Error clearing warband variants collection:', error)
-    addLog(`Error clearing warband variants collection: ${error}`)
-    return false
-  }
-}
 
-// Re-seed warband variants
-async function reseedWarbandVariants() {
-  if (
-    !confirm(
-      'This will delete all existing warband variant data and re-seed the collection. Continue?',
-    )
-  ) {
-    return
-  }
-
-  seeding.value.warbandVariants = true
-  try {
-    addLog('Starting warband variants re-seeding process...')
-    // First clear the collection
-    const cleared = await clearWarbandVariantsCollection()
-    if (!cleared) {
-      throw new Error('Failed to clear warband variants collection')
+    // Add each warband variant to Firestore
+    for (const variant of warbandVariantsSeed) {
+      // Use setDoc with the custom ID
+      await setDoc(doc(warbandVariantsCollection, variant.id), {
+        ...variant,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      })
     }
 
-    // Reset the count
-    counts.value.warbandVariants = 0
-
-    // Then seed with fresh data
-    await seedWarbandVariants()
-
-    addLog('Warband variants re-seeding completed successfully')
+    // Update count
+    counts.value.warbandVariants = warbandVariantsSeed.length
+    addLog(`Re-seeded ${warbandVariantsSeed.length} warband variants`)
   } catch (error) {
     console.error('Error re-seeding warband variants:', error)
     addLog(`Error re-seeding warband variants: ${error}`)
   } finally {
     seeding.value.warbandVariants = false
-    await refreshCounts()
   }
 }
 

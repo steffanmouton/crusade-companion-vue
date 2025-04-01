@@ -9,4 +9,5 @@ export interface Army {
   targetPoints: number
   currency: number // for Trench Crusade, this is Glory Points
   units: Unit[]
+  warbandVariantId?: string // Reference to warband variant instead of embedding
 }

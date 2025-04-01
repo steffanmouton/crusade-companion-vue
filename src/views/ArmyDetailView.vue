@@ -231,12 +231,7 @@ function handleDeleteUnit(unitId: string) {
 }
 
 // Computed property for warband variant
-const warbandVariant = computed(() => {
-  if (!army.value?.warbandVariant?.name) return null
-  return warbandVariantStore.warbandVariants.find(
-    (v) => v.name === army.value?.warbandVariant?.name,
-  )
-})
+const warbandVariant = computed(() => armyStore.currentWarbandVariant)
 </script>
 
 <template>
@@ -284,11 +279,11 @@ const warbandVariant = computed(() => {
                 <h2 class="text-h4 font-weight-medium tc-heading mb-1">{{ army.name }}</h2>
                 <p class="text-subtitle-1 mb-1">{{ army.faction }}</p>
                 <p v-if="warbandVariant" class="text-subtitle-2 mb-1 text-primary">
-                  {{ warbandVariant.name }}
+                  Variant: {{ warbandVariant.name }}
                 </p>
                 <p class="text-body-2 text-medium-emphasis">
                   <v-icon icon="mdi-target" size="small" class="mr-1"></v-icon>
-                  Target Points: {{ targetPoints }}
+                  Current Points: {{ army.currentPoints }}
                 </p>
               </div>
               <v-spacer></v-spacer>
@@ -326,31 +321,6 @@ const warbandVariant = computed(() => {
             </div>
 
             <hr class="tc-divider" />
-
-            <!-- Warband Variant Section -->
-            <v-card
-              v-if="warbandVariant"
-              variant="outlined"
-              class="mb-6 pa-4 tc-card"
-              elevation="0"
-            >
-              <h3 class="text-h6 font-weight-medium mb-2 tc-heading">Warband Variant</h3>
-              <p class="text-body-1 mb-4">{{ warbandVariant.description }}</p>
-              <div class="rules-list">
-                <h4 class="text-subtitle-1 font-weight-medium mb-2">Special Rules:</h4>
-                <ul class="list-unstyled">
-                  <li v-for="(rule, index) in warbandVariant.rules" :key="index" class="mb-2">
-                    <v-icon
-                      icon="mdi-check-circle"
-                      color="primary"
-                      size="small"
-                      class="mr-2"
-                    ></v-icon>
-                    {{ rule }}
-                  </li>
-                </ul>
-              </div>
-            </v-card>
 
             <!-- Quick Reference View when enabled -->
             <QuickReferenceView v-if="quickReferenceMode" :units="units" :army="army" />
@@ -404,7 +374,7 @@ const warbandVariant = computed(() => {
               </v-card>
 
               <!-- Units section -->
-              <v-card variant="outlined" class="pa-4 tc-card" elevation="0">
+              <v-card variant="outlined" class="mb-6 pa-4 tc-card" elevation="0">
                 <div class="d-flex align-center mb-4">
                   <h3 class="text-h6 font-weight-medium mb-0 tc-heading">Units</h3>
                   <v-spacer></v-spacer>
@@ -438,6 +408,28 @@ const warbandVariant = computed(() => {
                 <p v-else class="text-medium-emphasis text-center py-4">
                   No units added yet. Click "Add Unit" to add your first unit.
                 </p>
+              </v-card>
+
+              <!-- Warband Variant Section -->
+              <v-card v-if="warbandVariant" variant="outlined" class="pa-4 tc-card" elevation="0">
+                <h3 class="text-h6 font-weight-medium mb-2 tc-heading">
+                  Variant - {{ warbandVariant.name }}
+                </h3>
+                <p class="text-body-1 mb-4">{{ warbandVariant.description }}</p>
+                <div class="rules-list">
+                  <h4 class="text-subtitle-1 font-weight-medium mb-2">Special Rules:</h4>
+                  <ul class="list-unstyled">
+                    <li v-for="(rule, index) in warbandVariant.rules" :key="index" class="mb-2">
+                      <v-icon
+                        icon="mdi-check-circle"
+                        color="primary"
+                        size="small"
+                        class="mr-2"
+                      ></v-icon>
+                      {{ rule }}
+                    </li>
+                  </ul>
+                </div>
               </v-card>
             </template>
           </v-card-text>

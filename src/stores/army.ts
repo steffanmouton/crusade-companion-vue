@@ -9,6 +9,7 @@ import {
   getTimestamp,
 } from '../services/firestore'
 import type { Army } from '../types/firebase'
+import { useWarbandVariantStore } from './warbandVariantStore'
 
 const COLLECTION_NAME = 'armies'
 
@@ -17,10 +18,17 @@ export const useArmyStore = defineStore('army', () => {
   const currentArmy = ref<Army | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const warbandVariantStore = useWarbandVariantStore()
 
   // Computed properties
   const hasArmies = computed(() => armies.value.length > 0)
   const totalArmies = computed(() => armies.value.length)
+  const currentWarbandVariant = computed(() => {
+    if (!currentArmy.value?.warbandVariantId) return null
+    return warbandVariantStore.warbandVariants.find(
+      (variant) => variant.id === currentArmy.value?.warbandVariantId,
+    )
+  })
 
   // Load all armies for the current user
   async function loadArmies() {
@@ -45,7 +53,17 @@ export const useArmyStore = defineStore('army', () => {
 
     try {
       const army = await getDocument<Army>(COLLECTION_NAME, id)
+      if (!army) {
+        error.value = 'Army not found'
+        return null
+      }
       currentArmy.value = army
+
+      // Ensure warband variants are loaded
+      if (army.warbandVariantId) {
+        await warbandVariantStore.fetchWarbandVariants()
+      }
+
       return army
     } catch (err: any) {
       console.error(`Error loading army ${id}:`, err)
@@ -168,6 +186,7 @@ export const useArmyStore = defineStore('army', () => {
     error,
     hasArmies,
     totalArmies,
+    currentWarbandVariant,
     loadArmies,
     loadArmy,
     createArmy,

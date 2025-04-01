@@ -1,12 +1,16 @@
 <template>
   <div class="quick-reference-container">
     <div class="quick-reference-header">
-      <h2 class="army-name">
-        {{ army.name }} - {{ typeof army.faction === 'string' ? army.faction : army.faction.name }}
-      </h2>
-      <p v-if="warbandVariant" class="warband-variant text-primary">
-        {{ warbandVariant.name }}
-      </p>
+      <div>
+        <h2 class="army-name">{{ army.name }} - {{ army.faction }}</h2>
+        <p v-if="warbandVariant" class="warband-variant text-primary">
+          Variant: {{ warbandVariant.name }}
+        </p>
+        <p class="text-body-2 text-medium-emphasis">
+          <v-icon icon="mdi-target" size="small" class="mr-1"></v-icon>
+          Points: {{ army.currentPoints }}
+        </p>
+      </div>
 
       <v-btn
         color="primary"
@@ -16,18 +20,8 @@
         @click="printToPdf"
         class="print-btn"
       >
-        Print to PDF
+        Printer Friendly View
       </v-btn>
-    </div>
-
-    <!-- Warband Variant Section -->
-    <div v-if="warbandVariant" class="warband-variant-section">
-      <h3>Warband Variant Rules</h3>
-      <ul>
-        <li v-for="(rule, index) in warbandVariant.rules" :key="index">
-          {{ rule }}
-        </li>
-      </ul>
     </div>
 
     <div class="unit-list">
@@ -173,32 +167,30 @@
         </div>
       </div>
     </div>
+
+    <!-- Warband Variant Section -->
+    <div v-if="warbandVariant" class="warband-variant-section">
+      <h3>{{ warbandVariant.name }} Rules</h3>
+      <ul>
+        <li v-for="(rule, index) in warbandVariant.rules" :key="index">
+          {{ rule }}
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
-import type { Unit } from '../models/unit'
-import type { Faction } from '../models/faction'
+import { ref, computed, onMounted } from 'vue'
 import { useTroopStore } from '../stores/troopStore'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import TroopStatsTable from './TroopStatsTable.vue'
+import type { Army } from '../types/firebase'
+import type { Unit } from '../models/unit'
 
 const props = defineProps<{
   units: Unit[]
-  army: {
-    id: string
-    name: string
-    faction: string | Faction
-    currentPoints: number
-    targetPoints: number
-    currency: number
-    battles?: number
-    wins?: number
-    losses?: number
-    description?: string
-    warbandVariant?: { name: string; rules: string[] }
-  }
+  army: Army
 }>()
 
 const troopStore = useTroopStore()
@@ -251,7 +243,296 @@ function getEquipmentIcon(type: string): string {
 
 // Function to print to PDF
 function printToPdf() {
-  window.print()
+  // Create a new window
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) return
+
+  // Get the current component's content
+  const content = document.querySelector('.quick-reference-container')?.innerHTML
+  if (!content) return
+
+  // Remove the print button from the content
+  const contentWithoutPrintButton = content.replace(
+    /<button[^>]*class="[^"]*print-btn[^"]*"[^>]*>[\s\S]*?<\/button>/g,
+    '',
+  )
+
+  // Write the HTML structure with the same styles
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${props.army.name} - Quick Reference</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+        <style>
+          /* Vuetify base styles */
+          :root {
+            --v-theme-primary: #1976d2;
+            --v-theme-secondary: #424242;
+            --v-theme-error: #ff5252;
+            --v-theme-info: #2196f3;
+            --v-theme-success: #4caf50;
+            --v-theme-warning: #fb8c00;
+          }
+
+          body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+          }
+
+          .print-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+          }
+
+          .print-btn, .close-btn {
+            padding: 8px 16px;
+            border: 1px solid #1976d2;
+            border-radius: 4px;
+            background-color: white;
+            color: #1976d2;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            transition: all 0.2s;
+          }
+
+          .print-btn:hover, .close-btn:hover {
+            background-color: #1976d2;
+            color: white;
+          }
+
+          /* Troop Stats Table Styles */
+          .troop-stats-table {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: calc(100% - 16px);
+            padding: 10px 8px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            margin: 8px 8px;
+            border: 1px solid rgba(139, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          }
+
+          .stat-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 0 8px;
+          }
+
+          .stat-name {
+            font-size: 12px;
+            color: #8b0000;
+            font-weight: 500;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #212121;
+          }
+
+          .stat-divider {
+            position: absolute;
+            right: 0;
+            top: 12%;
+            height: 76%;
+            width: 1px;
+            background-color: rgba(139, 0, 0, 0.2);
+          }
+
+          /* Existing styles */
+          .quick-reference-container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          .quick-reference-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+          }
+          .quick-reference-header > div {
+            flex: 1;
+          }
+          .army-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #8b0000;
+            margin: 0 0 8px 0;
+          }
+          .warband-variant {
+            font-size: 1.1rem;
+            margin: 0 0 8px 0;
+          }
+          .text-medium-emphasis {
+            margin: 0;
+            display: flex;
+            align-items: center;
+          }
+          .unit-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+          }
+          .unit-quick-card {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 8px;
+            padding: 16px;
+            background-color: white;
+          }
+          .unit-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+          }
+          .unit-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 0;
+          }
+          .troop-name {
+            font-size: 0.9rem;
+            color: #666;
+          }
+          .section-title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 10px 0 5px 0;
+            color: #8b0000;
+          }
+          .equipment-list,
+          .abilities-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+          }
+          .equipment-item,
+          .ability-item {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          }
+          .equipment-item:last-child,
+          .ability-item:last-child {
+            border-bottom: none;
+          }
+          .equipment-name {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+          }
+          .equipment-modifiers {
+            font-style: italic;
+            font-size: 0.85rem;
+            margin-left: 24px;
+            margin-top: 2px;
+          }
+          .equipment-rules {
+            font-size: 0.85rem;
+            margin-left: 24px;
+            margin-top: 2px;
+            background-color: rgba(0, 0, 0, 0.03);
+            padding: 4px 8px;
+            border-radius: 4px;
+          }
+          .no-equipment {
+            color: #999;
+            font-style: italic;
+          }
+          .special-equipment-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+          }
+          .special-equipment-item {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          }
+          .special-equipment-item:last-child {
+            border-bottom: none;
+          }
+          .equipment-description {
+            font-size: 0.85rem;
+            margin-left: 24px;
+            margin-top: 2px;
+          }
+          .ability-name {
+            font-weight: bold;
+            color: #8b0000;
+            font-size: 0.95rem;
+          }
+          .ability-description {
+            font-size: 0.85rem;
+            margin-left: 4px;
+            margin-bottom: 4px;
+          }
+          .keywords-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+          }
+          .keyword-chip {
+            background-color: rgba(139, 0, 0, 0.05) !important;
+          }
+          .warband-variant-section {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+          }
+          .warband-variant-section h3 {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+          }
+          .warband-variant-section ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+          }
+          .warband-variant-section li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+          }
+          .warband-variant-section li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--v-primary-base);
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-controls">
+          <button class="print-btn" onclick="window.print()">Print</button>
+          <button class="close-btn" onclick="window.close()">Return to App</button>
+        </div>
+        ${contentWithoutPrintButton}
+      </body>
+    </html>
+  `)
+
+  // Close the document
+  printWindow.document.close()
 }
 
 // Function to reload troops if needed
@@ -268,8 +549,8 @@ async function reloadTroops() {
 
 // Computed property for warband variant
 const warbandVariant = computed(() => {
-  if (!props.army?.warbandVariant) return null
-  return warbandVariantStore.getVariantByName(props.army.warbandVariant.name)
+  if (!props.army.warbandVariantId) return null
+  return warbandVariantStore.warbandVariants.find((v) => v.id === props.army.warbandVariantId)
 })
 </script>
 
@@ -283,14 +564,32 @@ const warbandVariant = computed(() => {
 .quick-reference-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.quick-reference-header > div {
+  flex: 1;
 }
 
 .army-name {
   font-size: 1.8rem;
   font-weight: bold;
   color: #8b0000;
+  margin: 0 0 8px 0;
+}
+
+.warband-variant {
+  font-size: 1.1rem;
+  margin: 0 0 8px 0;
+}
+
+.text-medium-emphasis {
+  margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 .unit-list {
@@ -470,16 +769,16 @@ const warbandVariant = computed(() => {
     padding: 0;
   }
 
+  .quick-reference-header {
+    border-bottom: 1px solid #000;
+    margin-bottom: 24px;
+  }
+
   .unit-quick-card {
     break-inside: avoid;
     page-break-inside: avoid;
     margin-bottom: 15px;
   }
-}
-
-.warband-variant {
-  font-size: 1.1rem;
-  margin: 0.5rem 0;
 }
 
 .warband-variant-section {

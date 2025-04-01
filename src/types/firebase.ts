@@ -21,11 +21,7 @@ export interface Army {
   wins: number
   losses: number
   description?: string
-  warbandVariant?: {
-    name: string
-    description: string
-    rules: string[]
-  }
+  warbandVariantId?: string
   createdAt: number
   updatedAt: number
 }
@@ -36,14 +32,16 @@ export interface Unit {
   userId: string
   armyId: string
   name: string
-  type: string
-  power: number
-  points: number
-  experience: number
-  rank: string
-  battles: number
-  kills: number
-  notes?: string
+  troopId: string
+  costPoints: number
+  costCurrency: number
+  currentEquipment: {
+    name: string
+    type: string
+    modifiers?: string[]
+    rules?: string[]
+  }[]
+  purchasedAbilities: string[]
   createdAt: number
   updatedAt: number
 }
@@ -77,4 +75,15 @@ export interface Equipment {
   rules: string[]
   limit: number
   onlyFor: object
+}
+
+// Warband Variant type
+export interface WarbandVariant {
+  id: string
+  name: string
+  faction: string
+  description: string
+  rules: string[]
+  createdAt: number
+  updatedAt: number
 }

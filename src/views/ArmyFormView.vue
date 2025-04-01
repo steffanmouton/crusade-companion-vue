@@ -24,7 +24,7 @@ const faction = ref<string>(FactionNames.TRENCH_PILGRIMS) // Default faction
 const targetPoints = ref(0)
 const currency = ref(0) // For Starting Glory Points
 const description = ref('')
-const warbandVariant = ref<any>(null)
+const warbandVariantId = ref<string | null>(null)
 const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
@@ -57,7 +57,7 @@ onMounted(async () => {
         targetPoints.value = army.targetPoints
         currency.value = army.currency || 0
         description.value = army.description || ''
-        warbandVariant.value = army.warbandVariant || null
+        warbandVariantId.value = army.warbandVariantId || null
       } else {
         errorMessage.value = 'Army not found'
         router.push('/dashboard')
@@ -120,7 +120,7 @@ const handleSubmit = async () => {
         targetPoints: targetPoints.value,
         currency: currency.value,
         description: description.value,
-        warbandVariant: warbandVariant.value,
+        warbandVariantId: warbandVariantId.value || undefined,
       })
 
       if (success) {
@@ -139,7 +139,7 @@ const handleSubmit = async () => {
         targetPoints: targetPoints.value,
         currency: currency.value,
         description: description.value,
-        warbandVariant: warbandVariant.value,
+        warbandVariantId: warbandVariantId.value || undefined,
         battles: 0,
         wins: 0,
         losses: 0,
@@ -148,14 +148,13 @@ const handleSubmit = async () => {
       if (army) {
         successMessage.value = 'Army created successfully'
         // Navigate to the new army detail after a short delay
-        setTimeout(() => router.push(`/army/${army.id}`), 750)
+        setTimeout(() => router.push(`/army/${army.id}`), 1500)
       } else {
         throw new Error('Failed to create army')
       }
     }
   } catch (error: any) {
-    errorMessage.value = error.message || 'An error occurred'
-    console.error('Army form error:', error)
+    errorMessage.value = error.message || 'Failed to save army'
   } finally {
     isLoading.value = false
   }
@@ -313,18 +312,18 @@ const goBack = () => {
               <!-- Warband Variant Field -->
               <v-select
                 v-if="availableWarbandVariants.length > 0"
-                v-model="warbandVariant"
+                v-model="warbandVariantId"
                 label="Warband Variant"
                 :items="availableWarbandVariants"
                 item-title="name"
-                item-value="name"
+                item-value="id"
                 variant="outlined"
                 density="comfortable"
                 class="mb-2 tc-field"
                 bg-color="background"
                 :hint="
-                  warbandVariant
-                    ? availableWarbandVariants.find((v) => v.name === warbandVariant)?.description
+                  warbandVariantId
+                    ? availableWarbandVariants.find((v) => v.id === warbandVariantId)?.description
                     : ''
                 "
                 persistent-hint
