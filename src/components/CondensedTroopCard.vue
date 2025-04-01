@@ -22,7 +22,12 @@
       <!-- Middle with troop info -->
       <div class="px-3 py-2 troop-info flex-grow-1">
         <div class="d-flex justify-space-between">
-          <h3 class="text-subtitle-1 font-weight-medium mb-0">{{ troop.name }}</h3>
+          <div class="d-flex align-center">
+            <h3 class="text-subtitle-1 font-weight-medium mb-0">{{ troop.name }}</h3>
+            <v-chip v-if="isRequired" color="error" size="small" class="ml-2" variant="flat">
+              Required
+            </v-chip>
+          </div>
           <span class="cost-text">{{ formatCost(troop.cost) }}</span>
         </div>
         <div class="text-caption text-grey">{{ troop.factionName }}</div>
@@ -73,6 +78,7 @@ import { formatCost } from '../models/cost'
 
 defineProps<{
   troop: Troop
+  isRequired?: boolean
 }>()
 
 defineEmits(['add-troop', 'view-details'])

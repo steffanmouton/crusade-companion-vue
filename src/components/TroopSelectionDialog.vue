@@ -24,7 +24,12 @@
             class="mb-4"
           ></v-text-field>
 
-          <div v-if="filteredTroops.length === 0" class="text-center py-8">
+          <v-tabs v-model="activeTab" color="primary" class="mb-4">
+            <v-tab value="elites">Elites</v-tab>
+            <v-tab value="troops">Troops</v-tab>
+          </v-tabs>
+
+          <div v-if="filteredTroopsByTab.length === 0" class="text-center py-8">
             <v-icon
               icon="mdi-alert-circle-outline"
               color="warning"
@@ -40,9 +45,10 @@
 
           <div v-else class="troop-list">
             <CondensedTroopCard
-              v-for="troop in filteredTroops"
+              v-for="troop in filteredTroopsByTab"
               :key="troop.id"
               :troop="troop"
+              :is-required="isRequiredUnit(troop)"
               @add-troop="selectTroop(troop)"
               @view-details="viewTroopDetails(troop)"
             />
@@ -104,6 +110,7 @@ const searchQuery = ref('')
 const selectedTroop = ref<Troop | null>(null)
 const troopStore = useTroopStore()
 const equipmentStore = useEquipmentStore()
+const activeTab = ref('elites')
 
 // Watch for changes to modelValue prop
 watch(
@@ -138,6 +145,24 @@ const filteredTroops = computed(() => {
       troop.type.toLowerCase().includes(query) ||
       troop.keywords.some((keyword: string) => keyword.toLowerCase().includes(query))
     )
+  })
+})
+
+// Computed property for filtered troops by tab
+const filteredTroopsByTab = computed(() => {
+  const troops = filteredTroops.value
+  const filtered =
+    activeTab.value === 'elites'
+      ? troops.filter((troop) => troop.keywords.includes('ELITE'))
+      : troops.filter((troop) => !troop.keywords.includes('ELITE'))
+
+  // Sort required units to the top
+  return filtered.sort((a, b) => {
+    const aRequired = isRequiredUnit(a)
+    const bRequired = isRequiredUnit(b)
+    if (aRequired && !bRequired) return -1
+    if (!aRequired && bRequired) return 1
+    return 0
   })
 })
 
@@ -181,6 +206,11 @@ function saveUnit(unit: Unit) {
   // The unit has already been saved to Firestore by the UnitForm component
   emit('unit-added', unit)
   dialog.value = false
+}
+
+// Function to check if a unit is required
+function isRequiredUnit(troop: Troop): boolean {
+  return troop.countAllowed.length === 1 && troop.countAllowed[0] === 1
 }
 </script>
 
