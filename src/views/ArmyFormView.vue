@@ -168,6 +168,16 @@ const goBack = () => {
     router.push('/dashboard')
   }
 }
+
+// Delete army
+const deleteArmy = async () => {
+  if (confirm('Are you sure you want to delete this army? This action cannot be undone.')) {
+    const success = await armyStore.deleteArmy(armyId.value)
+    if (success) {
+      router.push('/dashboard')
+    }
+  }
+}
 </script>
 
 <template>
@@ -197,8 +207,20 @@ const goBack = () => {
       <!-- Form content when loaded -->
       <v-container v-else class="py-8">
         <v-card class="mx-auto tc-card" max-width="800" elevation="1">
-          <v-card-title class="text-h4 font-weight-medium tc-heading pt-4 px-4">
+          <v-card-title class="text-h4 font-weight-medium tc-heading pt-4 px-4 d-flex align-center">
             {{ formTitle }}
+            <v-spacer></v-spacer>
+            <v-btn
+              v-if="isEditMode"
+              color="error"
+              variant="flat"
+              prepend-icon="mdi-delete"
+              class="tc-btn"
+              elevation="0"
+              @click="deleteArmy"
+            >
+              Delete Army
+            </v-btn>
           </v-card-title>
 
           <v-card-text>

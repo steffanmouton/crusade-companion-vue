@@ -142,16 +142,6 @@ const editArmy = () => {
   router.push(`/army/${armyId.value}/edit`)
 }
 
-// Delete army
-const deleteArmy = async () => {
-  if (confirm('Are you sure you want to delete this army? This action cannot be undone.')) {
-    const success = await armyStore.deleteArmy(armyId.value)
-    if (success) {
-      router.push('/dashboard')
-    }
-  }
-}
-
 // Function to open the troop selection dialog
 function openAddUnitDialog() {
   showTroopSelectionDialog.value = true
@@ -274,20 +264,9 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
             </v-btn>
 
             <!-- Army header -->
-            <div class="d-flex align-center mb-6">
-              <div>
-                <h2 class="text-h4 font-weight-medium tc-heading mb-1">{{ army.name }}</h2>
-                <p class="text-subtitle-1 mb-1">{{ army.faction }}</p>
-                <p v-if="warbandVariant" class="text-subtitle-2 mb-1 text-primary">
-                  Variant: {{ warbandVariant.name }}
-                </p>
-                <p class="text-body-2 text-medium-emphasis">
-                  <v-icon icon="mdi-target" size="small" class="mr-1"></v-icon>
-                  Current Points: {{ army.currentPoints }}
-                </p>
-              </div>
-              <v-spacer></v-spacer>
-              <div>
+            <div class="d-flex flex-column mb-6">
+              <!-- Action buttons -->
+              <div class="d-flex flex-wrap gap-2 mb-4">
                 <v-btn
                   color="primary"
                   variant="outlined"
@@ -307,16 +286,18 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
                 >
                   Edit
                 </v-btn>
-                <v-btn
-                  color="error"
-                  variant="flat"
-                  prepend-icon="mdi-delete"
-                  class="tc-btn"
-                  elevation="0"
-                  @click="deleteArmy"
-                >
-                  Delete
-                </v-btn>
+              </div>
+              <!-- Army details -->
+              <div>
+                <h2 class="text-h4 font-weight-medium tc-heading mb-1">{{ army.name }}</h2>
+                <p class="text-subtitle-1 mb-1">{{ army.faction }}</p>
+                <p v-if="warbandVariant" class="text-subtitle-2 mb-1 text-primary">
+                  Variant: {{ warbandVariant.name }}
+                </p>
+                <p class="text-body-2 text-medium-emphasis">
+                  <v-icon icon="mdi-target" size="small" class="mr-1"></v-icon>
+                  Current Points: {{ army.currentPoints }}
+                </p>
               </div>
             </div>
 
@@ -421,7 +402,7 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
                   <ul class="list-unstyled">
                     <li v-for="(rule, index) in warbandVariant.rules" :key="index" class="mb-2">
                       <v-icon
-                        icon="mdi-check-circle"
+                        icon="mdi-book-open-variant"
                         color="primary"
                         size="small"
                         class="mr-2"
@@ -687,5 +668,6 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
 
 .rules-list ul {
   padding-left: 1rem;
+  list-style-type: none;
 }
 </style>

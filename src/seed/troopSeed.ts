@@ -1,9 +1,10 @@
 import { createDucatsCost } from '../models/cost'
+import type { Troop } from '../models/troop'
 
 /**
  * Initial troop data for seeding the Firestore database
  */
-export const troopSeed = [
+const hereticTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-hp',
     name: 'Heretic Priest',
@@ -248,6 +249,8 @@ export const troopSeed = [
       armor: 0,
       baseSize: 25,
     },
+    equipmentDescription:
+      'Wretched can be equipped with any weapon, armour or equipment from the Heretic Legion Armoury. None of their weapons, armour or equipment can cost more than 10 ducats each. Every Wretched must be equipped with at least one weapon.',
     defaultEquipment: [],
     abilities: [
       "Law of Hell: If a Wretch manages to take any enemy ELITE model Out of Action or performs a Glorious Deed, it gains its freedom and is immediately removed from the battle and from your warband permanently. It does not count as a casualty, but your warband's total size for this battle is reduced by one for purposes of Morale.",
@@ -260,3 +263,8 @@ export const troopSeed = [
     cardHeroSideImageURI: '/troops/CardHeroSide-Wretched.png',
   },
 ]
+
+/**
+ * Combined troop data for seeding the Firestore database
+ */
+export const troopSeed: Troop[] = [...hereticTroopsSeed]
