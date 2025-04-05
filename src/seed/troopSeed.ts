@@ -1,4 +1,4 @@
-import { createDucatsCost } from '../models/cost'
+import { createDucatsCost, createGloryPointsCost } from '../models/cost'
 import type { Troop } from '../models/troop'
 
 /**
@@ -6,7 +6,7 @@ import type { Troop } from '../models/troop'
  */
 const hereticTroopsSeed: Troop[] = [
   {
-    id: 'tc-tr-hp',
+    id: 'tc-tr-heretic-priest',
     name: 'Heretic Priest',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -35,8 +35,8 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticPriest.png',
   },
   {
-    id: 'tc-tr-dc',
-    name: 'Death Commando',
+    id: 'tc-tr-heretic-death-commando',
+    name: 'Heretic Death Commando',
     factionId: 1,
     factionName: 'Heretic Legion',
     description:
@@ -65,7 +65,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticDeathCommando.png',
   },
   {
-    id: 'tc-tr-hc',
+    id: 'tc-tr-heretic-chorister',
     name: 'Heretic Chorister',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -94,7 +94,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticChorister.png',
   },
   {
-    id: 'tc-tr-ht',
+    id: 'tc-tr-heretic-trooper',
     name: 'Heretic Trooper',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -120,7 +120,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
   },
   {
-    id: 'tc-tr-hlm',
+    id: 'tc-tr-heretic-legionnaire-melee',
     name: 'Heretic Legionnaire (Melee)',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -146,7 +146,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
   },
   {
-    id: 'tc-tr-hlr',
+    id: 'tc-tr-heretic-legionnaire-ranged',
     name: 'Heretic Legionnaire (Ranged)',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -172,7 +172,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
   },
   {
-    id: 'tc-tr-ww',
+    id: 'tc-tr-war-wolf-assault-beast',
     name: 'War Wolf Assault Beast',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -202,7 +202,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-WarWolfAssaultBeast.png',
   },
   {
-    id: 'tc-tr-ahi',
+    id: 'tc-tr-heavy-infantry',
     name: 'Anointed Heavy Infantry',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -235,7 +235,7 @@ const hereticTroopsSeed: Troop[] = [
     factionId: 1,
     factionName: 'Heretic Legion',
     description:
-      'Artillery Witches stalk the battlefields, hurling ordnance assembled in the death factories of Hell\'s Third Circle. They are completely mute and no one has ever seen their faces. Some question if they are even living, and there are tales that they too were manufactured in Hell. They can pull an infinite number of Infernal Bombs from a portal to Hell that they manifest at will, summoning them to their hands from a gate of midnight blackness.',
+      "Artillery Witches stalk the battlefields, hurling ordnance assembled in the death factories of Hell's Third Circle. They are completely mute and no one has ever seen their faces. Some question if they are even living, and there are tales that they too were manufactured in Hell. They can pull an infinite number of Infernal Bombs from a portal to Hell that they manifest at will, summoning them to their hands from a gate of midnight blackness.",
     type: 'Troop',
     cost: createDucatsCost(90),
     stats: {
@@ -252,7 +252,7 @@ const hereticTroopsSeed: Troop[] = [
     abilities: [
       'Infernal Bomb: This wicked infernal weapon is treated as a one-handed Ranged weapon with the Keyword BLAST 3". Specify a 1x1mm point on the battlefield within 36" that the Witch can see and that you want to target. Next, make a Ranged Attack ACTION. If the roll fails (i.e. you roll 6 or less with the two lowest Dice), the bomb lands 1" away from its intended location, multiplied by the number representing the degree of failure (for example, if you rolled 5, the bomb lands 2" away, as 7 - 5 = 2). The direction is decided by your opponent. Roll on the Injury Chart for each model within the BLAST radius. If the bomb lands exactly on top of any model, roll with 3D6 on the Injury Chart and add the dice together! Other models hit by the bomb roll on the Injury Chart as standard. Any model hit, but not taken Out of Action, by this attack is blown D3" directly away from the point of impact (roll for each model separately), stopping if they hit other models, buildings or objects. This attack has the Keyword SHRAPNEL and therefore causes an additional +1 BLOOD MARKER. Cover, range and higher position do not affect attacks by the Infernal Bomb. Roll injuries for models that would benefit from Cover from the perspective of the BLAST point with -1 DICE. The Activation of the Witch ends immediately after using the Infernal Bomb.',
       'Artificial Life: Artillery Witches are not affected by FEAR. Additionally, attacks with the Keyword GAS suffer a -1 DICE penalty to injure the Witch and they do not suffer additional BLOOD MARKERS from the Keyword GAS.',
-      'Levitate: The Artillery Witch can Climb up without taking an ACTION and does not roll on the Injury Chart when falling.'
+      'Levitate: The Artillery Witch can Climb up without taking an ACTION and does not roll on the Injury Chart when falling.',
     ],
     keywords: ['HERETIC', 'ARTIFICIAL'],
     countAllowed: [0, 1, 2],
@@ -260,7 +260,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-ArtilleryWitch.png',
   },
   {
-    id: 'tc-tr-w',
+    id: 'tc-tr-wretched',
     name: 'Wretched',
     factionId: 1,
     factionName: 'Heretic Legion',
@@ -294,7 +294,259 @@ const hereticTroopsSeed: Troop[] = [
   },
 ]
 
+const mercenaryTroopsSeed: Troop[] = [
+  {
+    id: 'tc-tr-combat-medic',
+    name: 'Combat Medic',
+    factionId: 0, // Using 0 to indicate a mercenary unit
+    factionName: 'Mercenary',
+    description:
+      'The Sisters of St. Cosmas are a highly trained elite medical corps, specialising in battlefield first aid and surgeries on the front lines of the Great War. The Sisters take a modified Hippocratic Oath that compels them to help any wounded soldiers of the Faith, no matter how dire the circumstance, as well as dispatching heretics and other enemies they find on the battlefield without pity or mercy.',
+    type: 'Mercenary',
+    cost: createGloryPointsCost(2), // 2 Glory Points
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: 0,
+      melee: 0,
+      armor: -1,
+      baseSize: 25,
+    },
+    equipmentDescription:
+      'The Medic carries a Misericordia and a Medi-kit. They wear a gas mask and suit of standard armour (reflected on the profile above). You cannot modify the equipment, armour and weapons of the Medic in any way.',
+    defaultEquipment: ['Misericordia', 'Medi-kit', 'Gas Mask', 'Standard Armour'],
+    abilities: [
+      'Finish the Fallen: Due their knowledge of anatomy and physiology, medics are experts at inflicting debilitating injuries and excruciating pain. Unless the target has the Keyword DEMONIC or BLACK GRAIL, add +1 BONUS DICE to any injury rolls the medic makes in melee against opponents who are Down.',
+      'Expert Medic: Medic adds +1 BONUS DICE whenever they use their Medi-Kit to aid friendly models.',
+    ],
+    keywords: [],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['Trench Pilgrims'],
+    cardHeaderImageURI: '/troops/CardHeader-CombatMedic.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-CombatMedic.png',
+  },
+  {
+    id: 'tc-tr-witchburner',
+    name: 'Witchburner',
+    factionId: 0,
+    factionName: 'Mercenary',
+    description:
+      'The Witchburners are the field officers of the Inquisition. They are tasked with hunting down and punishing witches, warlocks and heretics that cannot be brought to face justice by conventional means. On the battlefield they have the power to channel divine retribution on those deemed to have transgressed against God, causing sinners to burst into flames with mere words of condemnation.',
+    type: 'Mercenary',
+    cost: createGloryPointsCost(5), // 5 Glory Points
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: 0,
+      melee: 1,
+      armor: -2,
+      baseSize: 32,
+    },
+    equipmentDescription:
+      'The Witchburner is equipped with Reinforced Armour, wears a Helmet and carries a War Gavel (see below). You cannot alter their armour, weapons or equipment in any way.',
+    defaultEquipment: ['Reinforced Armour', 'Helmet', 'War Gavel'],
+    abilities: [
+      'Divine Judgement: The Witchburner can select any model in the opposing warband within 24" (even if hidden or out of sight) and bring the Judgement of Heaven upon them with a Litany of Condemnation. This is a RISKY ACTION. If successful, the model suffers one BLOOD MARKER (models with the Keyword HERETIC, BLACK GRAIL or DEMONIC suffer two BLOOD MARKERS) as it bursts into celestial flames. This holy fire even affects units that are immune to FIRE weapons.',
+      'Ceremonial Duty: The Witchburner has taken vows to persecute heretics with extreme prejudice. Nothing will stop this holy task. The Witchburner is immune to FEAR.',
+      'Dignified Conduct: Due to the dignity of their status, the Witchburner cannot take the Dash ACTION.',
+    ],
+    keywords: [],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
+    cardHeaderImageURI: '/troops/CardHeader-Witchburner.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-Witchburner.png',
+  },
+  {
+    id: 'tc-tr-communicant-anti-tank-hunter',
+    name: 'Communicant Anti-Tank Hunter',
+    factionId: 0,
+    factionName: 'Mercenary',
+    description:
+      'Communicants are partakers of the experimental Chemical Communion – the blood and flesh harvested from a Meta-Christ by the Mendelist monks and applied to the genome of volunteers. The most holy and pious of the Church are chosen to partake of the experimental communion, going through many biological changes to become larger and more durable, greatly enhancing their effectiveness on the battlefield.',
+    type: 'Mercenary',
+    cost: createGloryPointsCost(5), // 5 Glory Points
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: 1,
+      melee: 1,
+      armor: -1,
+      baseSize: 40,
+    },
+    equipmentDescription:
+      'The Communicant is armed with an anti-materiel rifle and a helmet. They count as being armed with two Trench clubs in Melee combat – its fists are deadly weapons in their own right. Their flesh is hard as iron, so Communicants are considered to be wearing Standard Armour as noted in their profile. You cannot alter their weapons and equipment in any way.',
+    defaultEquipment: ['Anti-Materiel Rifle', 'Helmet', 'Trench Club (x2)'],
+    abilities: [
+      'Strong: The Communicant ignores the effect of the Keyword HEAVY on any weapon they wield.',
+      'Tough: Communicants are creatures with unnatural vitality and are subject to the rules for TOUGH creatures.',
+      'Miracle of Regeneration: At the Start of the Activation a Communicant may remove one BLOOD MARKER from themselves if they have any.',
+    ],
+    keywords: ['TOUGH', 'STRONG'],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
+    cardHeaderImageURI: '/troops/CardHeader-CommunicantAntiTankHunter.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-CommunicantAntiTankHunter.png',
+  },
+  {
+    id: 'tc-tr-mendelist-ammo-monk',
+    name: 'Mendelist Ammo Monk',
+    factionId: 0,
+    factionName: 'Mercenary',
+    description:
+      'The Order of Mendelist Monks is entrusted with the design of divinely enhanced items and the creation of the Communicants, devotees who have undergone Chemical Communion with an infusion of the synthesised blood of a Meta-Christ. The Brotherhood of Blessed Munitions is one of the sub-sects of the Mendelist Order, whose duty is to provide the faithful with various types of ammunition treated with the chemically altered blood of a Meta-Christ.',
+    type: 'Mercenary',
+    cost: createGloryPointsCost(2), // 2 Glory Points
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: -1,
+      melee: -1,
+      armor: 0,
+      baseSize: 25,
+    },
+    equipmentDescription:
+      'The Monk has no weapons. They wear a gas mask and carry the Ammunition Sacrament (see below). You may not change their armaments in any way.',
+    defaultEquipment: ['Gas Mask'],
+    abilities: [
+      'Faithful Followers: When a friendly model within 1" of the Monk is Activated, you can declare that the Monk is Activated at the same time. You may then use the Monk before taking any ACTION or movement with the model you originally Activated. This does not allow you to Activate the Monk more than once per Turn.',
+      'The Ammunition Sacrement: As a RISKY ACTION, the Monk can provide a friendly model within 1" of it with one of the following benefits. The chosen benefit lasts until the end of the targeted model\'s Activation this Turn: Bullet of the Guided Path: Whenever this model makes an Attack with a Ranged Weapon, add +1 DICE to hit. Cartridge of His Wrath: Add the Keywords SHRAPNEL and BLAST 2" to every Ranged Weapon this model is equipped with. Echo of His Word: Whenever this model makes an Attack with a Ranged Weapon, add +1 to injury rolls caused by that Attack.',
+    ],
+    keywords: [],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
+    cardHeaderImageURI: '/troops/CardHeader-MendelistAmmoMonk.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-MendelistAmmoMonk.png',
+  },
+  {
+    id: 'tc-tr-sin-eater',
+    name: 'Sin Eater',
+    factionId: 0,
+    factionName: 'Mercenary',
+    description:
+      "Sin Eaters are horrific creatures: once they were mortal men and women, but their overwhelming greed and hunger for human flesh tainted with Sin, combined with the corrupting influence of the Hellgate, has turned them into a form that matches their inner foulness. They're swollen into monstrous proportions and are always at a point of nearly bursting, yet forever ravenous for more flesh and human sins to devour.",
+    type: 'Mercenary',
+    cost: createGloryPointsCost(6), // 6 Glory Points
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: -1,
+      melee: 2,
+      armor: -2,
+      baseSize: 50,
+    },
+    equipmentDescription:
+      "The Sin Eater is equipped with Reinforced Armour and a 2-handed Tenderizer Maul. You cannot alter the Sin Eater's weapons and equipment in any way.",
+    defaultEquipment: ['Reinforced Armour', 'Tenderizer Maul'],
+    abilities: [
+      'Tough: Sin Eaters are huge creatures with unnatural vitality and are subject to the rules for TOUGH creatures.',
+      'Devour the Guilty: As a RISKY ACTION, the Sin Eater can attempt to consume a model, friend (in which case the ACTION is not RISKY and is done with +1 DICE) or foe, that is on a 40mm or smaller base and is within 1". If successful, remove the model from the table and set aside any markers that the model has (BLOOD, INFECTION, BLESSING etc.). While it is devoured the model cannot be targeted by any attack or ability. When Activated, the devoured model may make one melee attack ACTION available to it, but the attack suffers a -3 DICE penalty when rolling to hit. A devoured model counts as being Down for all rules purposes (including Morale) and, if it is still devoured at the end of the battle, it counts as being Out of Action instead. Whenever the Sin Eater is activated, the devoured model suffers one BLOOD MARKER automatically that cannot be avoided by any means. If the devoured model suffers a BLOOD MARKER in this way when it already has six BLOOD MARKERS, it is immediately taken Out of Action and it is no longer considered devoured. If the Sin Eater is taken Out of Action, the devoured model is placed Down where the Sin Eater was. The Sin Eater can only ever have one consumed model in its belly.',
+      'Vomit: The Sin Eater attempts to purge a model it has devoured as an ACTION with +4 DICE. If successful, the model\'s controller places the model within 1" of the Sin Eater. If no suitable space exists, the vomit fails and the model remains devoured. The vomited model is Down. The Sin Eater can only use this ACTION if it has a model devoured.',
+      'Tenderizer Maul: This weapon has the same rules as a two-handed hammer but its huge reach means that the Sin Eater may make one Melee Attack ACTION against each enemy model it is fighting in Melee.',
+    ],
+    keywords: ['HERETIC', 'FEAR', 'TOUGH', 'STRONG'],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['Heretic Legion', 'Black Grail', 'Court of the Seven-headed Serpent'],
+    cardHeaderImageURI: '/troops/CardHeader-SinEater.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-SinEater.png',
+  },
+  {
+    id: 'tc-tr-goetic-warlock',
+    name: 'Goetic Warlock',
+    factionId: 0,
+    factionName: 'Mercenary',
+    description:
+      'Goetic Warlocks are horrific creations from the death factories of the 3rd Circle of Hell, manufactured from captured priests, prophets, vicars, rectors and monks. Fiendish machines first burn their flesh away with hellfire, encasing the still-living skeletons in an infernal suit of armour and stamping them with goetic runes. The process is so agonising that they consent to a demonic pact to bring end to their pain.',
+    type: 'Mercenary',
+    cost: createGloryPointsCost(4), // 4 Glory Points
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: 1,
+      melee: 1,
+      armor: -2,
+      baseSize: 40,
+    },
+    equipmentDescription:
+      "The Warlock wears Reinforced Armour. A Warlock counts as being armed with two swords in Melee combat – its arms are deadly weapons in their own right. You cannot alter the Warlock's weapons and equipment in any way.",
+    defaultEquipment: ['Reinforced Armour'],
+    abilities: [
+      'Goetic Portal: As a RISKY ACTION with +1 DICE, the Warlock can Teleport up to 6" in any direction into a free space it can see, including into melee with an enemy model. The Warlock may bring a single enemy model that is in Melee Combat with it and has a base size of 32mm or smaller. There must be suitable space for the Warlock (and a possible passenger which must end the teleport in Melee Combat with the Warlock) at its target destination or this teleport automatically fails. It may not teleport out of the battlefield. It may teleport even if it is currently Down, but remains so after the teleportation.',
+      "Barbed Embrace: Enemies cannot Retreat from the Goetic Warlock. Additionally, if a model is able to move out of Melee Combat with the Warlock because of a special ability (such as the Assassin's Dagger), they cannot.",
+      'Unholy Horror: The Goetic Warlock causes FEAR.',
+      'Goetic Gaze: This is an ACTION which is modified exactly the same way as a ranged attack, executed against one enemy the Warlock can see within 24". If successful, the model suffers one BLOOD MARKER. If the success is a Critical Success, the target suffers two BLOOD MARKERS instead. This ACTION can be used against enemy models in Melee Combat without having to randomise the target.',
+    ],
+    keywords: ['DEMONIC', 'ARTIFICIAL', 'FEAR'],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['Heretic Legion', 'Court of the Seven-headed Serpent'],
+    cardHeaderImageURI: '/troops/CardHeader-GoeticWarlock.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-GoeticWarlock.png',
+  },
+  {
+    id: 'tc-tr-observer',
+    name: 'Observer',
+    factionId: 0,
+    factionName: 'Mercenary',
+    description:
+      'When the need is great, the Synod of Strategic Prophecy sends Observers to support the war effort. This order of warrior monks lives a life of absolute solitude, sharpening their minds and bodies, making of themselves living weapons in the Hands of God. They wear a specially crafted helmet enabling them to attune to the Voice of God, granting them the capacity to simultaneously perceive the immediate past, present and future.',
+    type: 'Mercenary',
+    cost: createGloryPointsCost(3), // 3 Glory Points
+    stats: {
+      movement: 8,
+      movementType: 'Infantry',
+      ranged: 1,
+      melee: 2,
+      armor: -1,
+      baseSize: 32,
+    },
+    equipmentDescription:
+      "Standard Armour, Oculus Helm (counts as Combat Helmet and Gas Mask), Trench Polearm, in-built Medi-Kit. You cannot alter the Observer's weapons and equipment in any way.",
+    defaultEquipment: ['Standard Armour', 'Oculus Helm', 'Trench Polearm', 'Medi-Kit'],
+    abilities: [
+      'Lightning Speed: In Melee, the Observer may attack twice with its Trench Polearm instead of only once.',
+      'Temporal Fugue: Attacks that target the Observer suffer -1 DICE to hit.',
+      'Eye of God: If the Observer fails an ACTION, you may re-roll the dice. However, if any of the dice you roll gives a result of 1, there is psychic backlash and the Observer suffers a Down result (including any resulting BLOOD MARKERS), and their Activation immediately ends.',
+      "Voice of God: As a RISKY ACTION, the Observer may command any model on the board, friend or a foe, that has not been Activated this Turn. If successful, that model is compelled by the Divine Words. The Observer's Activation immediately ends and the target's Activation begins immediately after.",
+    ],
+    keywords: [],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
+    cardHeaderImageURI: '/troops/CardHeader-Observer.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-Observer.png',
+  },
+  {
+    id: 'tc-tr-mamluk-faris',
+    name: 'Mamluk Faris',
+    factionId: 0,
+    factionName: 'Mercenary',
+    description:
+      "Mamluks are an echo of a bygone age, last members of the warrior-elite that once ruled a great empire in Northern Africa. They suffered grievous losses at the earliest stages of the Great War when the Legions of demon Zalambuer emerged from the Hellgate. To this day the Mamluk knights play a deadly game of ambush and sudden raids on the Aegyptian front against Mammon's legions, making their living as swords for hire.",
+    type: 'Mercenary',
+    cost: createGloryPointsCost(4), // 4 Glory Points
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: 1,
+      melee: 1,
+      armor: -2,
+      baseSize: 32,
+    },
+    equipmentDescription:
+      'A Mamluk carries a Jezzail with Alchemical Ammunition. They wear a Helmet and Reinforced Armour. In addition, before each battle, you may choose one of the following loadouts from their personal armoury: Polearm and Trench Shield, Sword and Pistol, or Two-handed sword (Mamluk ignores the Keyword HEAVY on this weapon).',
+    defaultEquipment: ['Jezzail', 'Alchemical Ammunition', 'Helmet', 'Reinforced Armour'],
+    abilities: [
+      'Sworn Sword: Mamluks can form a FIRETEAM with any one ELITE model in the Warband they are part of. This FIRETEAM is always in addition to any other FIRETEAM(s) the Warband is allowed to form. If a Mamluk joins a New Antioch FIRETEAM, the model benefits from the Co-ordinated Fireteam special rules.',
+      'Martial Prowess: Mamluks are disciples of Furūsiyya, the Knightly Discipline passed on through generations, they practice ceaselessly and have few equals. This gives their Jezzails the Keyword ASSAULT as well as the Shield Combo ability. Additionally, they suffer no penalties for fighting with off-hand weapons in melee.',
+      'Arabian Destrier: Unless the scenario prohibits use of the special deployment of INFILTRATORS, you may deploy the Mamluk on any table edge as long as they are at least 8" away from any enemy model after INFILTRATORS are deployed. Mamluks can also be deployed in your own deployment zone as standard.',
+    ],
+    keywords: [],
+    countAllowed: [0, 1],
+    mercenaryFactions: ['Iron Sultanate', 'New Antioch'],
+    cardHeaderImageURI: '/troops/CardHeader-MamlukFaris.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-MamlukFaris.png',
+  },
+]
+
 /**
  * Combined troop data for seeding the Firestore database
  */
-export const troopSeed: Troop[] = [...hereticTroopsSeed]
+export const troopSeed: Troop[] = [...hereticTroopsSeed, ...mercenaryTroopsSeed]
