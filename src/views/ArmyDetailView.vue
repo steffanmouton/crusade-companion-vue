@@ -32,7 +32,6 @@ const unitsFromStore = computed(() => unitStore.units)
 
 // Convert units from Firestore format to the format expected by components
 const units = computed(() => {
-  console.log('Units from unitStore:', unitsFromStore.value)
   const convertedUnits = unitsFromStore.value.map((firestoreUnit) => {
     // First, create an object with optional properties expected by the UI
     const uiUnit: ModelUnit = {
@@ -57,7 +56,6 @@ const units = computed(() => {
 
     return uiUnit
   })
-  console.log('Converted units for UI:', convertedUnits)
   return convertedUnits
 })
 
@@ -70,18 +68,6 @@ const showUnitFormDialog = ref(false)
 const selectedUnit = ref<ModelUnit | null>(null)
 const selectedTroop = ref<Troop | null>(null)
 const quickReferenceMode = ref(false)
-
-// Add a computed property to get the faction ID
-const factionId = computed(() => {
-  if (!army.value) return 1
-  const faction = army.value.faction
-  if (typeof faction === 'object' && faction !== null && 'id' in faction) {
-    // @ts-expect-error - We've already checked that 'id' exists in faction
-    return faction.id
-  }
-  // Default to faction ID 1 if not found
-  return 1
-})
 
 // Computed properties for the cost counter
 const currentCost = computed(() => army.value?.currentPoints || 0)

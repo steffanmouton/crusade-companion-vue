@@ -138,7 +138,6 @@ watch(dialog, (newValue) => {
 const filteredTroops = computed(() => {
   // Show all troops and let filteredTroopsByTab handle the filtering
   const troops = troopStore.troops
-  console.log('All troops:', troops)
 
   if (!searchQuery.value) {
     return troops
@@ -158,33 +157,19 @@ const filteredTroops = computed(() => {
 // Computed property for filtered troops by tab
 const filteredTroopsByTab = computed(() => {
   const troops = filteredTroops.value
-  console.log('Filtering troops for tab:', activeTab.value)
-  console.log('Current faction name:', props.factionName)
 
   const filtered =
     activeTab.value === 'elites'
-      ? troops.filter((troop) => {
-          console.log('Checking elite:', troop.name, troop.factionName, props.factionName)
-          return troop.type === 'Elite' && troop.factionName === props.factionName
-        })
+      ? troops.filter((troop) => troop.type === 'Elite' && troop.factionName === props.factionName)
       : activeTab.value === 'troops'
-        ? troops.filter((troop) => {
-            console.log('Checking troop:', troop.name, troop.factionName, props.factionName)
-            return troop.type === 'Troop' && troop.factionName === props.factionName
-          })
-        : troops.filter((troop) => {
-            console.log(
-              'Checking mercenary:',
-              troop.name,
-              troop.mercenaryFactions,
-              props.factionName,
-            )
-            return (
-              troop.type === 'Mercenary' && troop.mercenaryFactions?.includes(props.factionName)
-            )
-          })
+        ? troops.filter(
+            (troop) => troop.type === 'Troop' && troop.factionName === props.factionName,
+          )
+        : troops.filter(
+            (troop) =>
+              troop.type === 'Mercenary' && troop.mercenaryFactions?.includes(props.factionName),
+          )
 
-  console.log('Filtered troops:', filtered)
   // Sort required units to the top
   return filtered.sort((a, b) => {
     const aRequired = isRequiredUnit(a)
@@ -201,8 +186,6 @@ async function loadTroops() {
   try {
     // Initialize both troops and equipment
     await Promise.all([troopStore.initializeTroops(), equipmentStore.initializeEquipment()])
-    console.log('Loaded troops:', troopStore.troops)
-    console.log('Faction name:', props.factionName)
   } catch (error) {
     console.error('Error loading data:', error)
   } finally {
