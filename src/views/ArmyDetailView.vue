@@ -144,7 +144,10 @@ const editArmy = () => {
 }
 
 // Function to open the troop selection dialog
-function openAddUnitDialog() {
+async function openAddUnitDialog() {
+  if (!army.value) {
+    await armyStore.loadArmy(armyId.value)
+  }
   showTroopSelectionDialog.value = true
 }
 
@@ -450,8 +453,8 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
     <!-- Troop Selection Dialog -->
     <TroopSelectionDialog
       v-model="showTroopSelectionDialog"
-      :faction-id="factionId"
-      :army-id="armyId"
+      :factionName="army?.faction || ''"
+      :armyId="armyId"
       @unit-added="handleAddUnit"
     />
 
