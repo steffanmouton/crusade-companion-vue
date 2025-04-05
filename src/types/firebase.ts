@@ -21,7 +21,7 @@ export interface Army {
   wins: number
   losses: number
   description?: string
-  warbandVariantId?: string
+  warbandVariantId?: string | null
   createdAt: number
   updatedAt: number
 }

@@ -91,6 +91,7 @@ export const useArmyStore = defineStore('army', () => {
         wins: 0,
         losses: 0,
         userId: '', // This will be overwritten by the addDocument function
+        warbandVariantId: armyData.warbandVariantId ?? null, // Ensure warbandVariantId is never undefined
         ...timestamp,
       }
 
