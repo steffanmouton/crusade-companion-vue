@@ -17,6 +17,7 @@ export interface Troop {
   abilities: string[]
   keywords: string[]
   countAllowed: number[]
+  mercenaryFactions?: string[]
   cardHeaderImageURI?: string
   cardHeroSideImageURI?: string
 }

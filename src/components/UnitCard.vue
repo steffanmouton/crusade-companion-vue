@@ -410,10 +410,14 @@ function handleImageError(value: string | undefined) {
   .unit-image-container {
     width: 100%;
     min-width: 100%;
-    height: 200px; /* Slightly taller image */
+    height: 200px;
     min-height: 200px;
     border-right: none;
     border-bottom: 1px solid rgba(80, 0, 0, 0.3);
+  }
+
+  .unit-details-container {
+    width: 100%;
   }
 
   .unit-details-container .v-card-title {
@@ -421,7 +425,7 @@ function handleImageError(value: string | undefined) {
   }
 
   .equipment-list {
-    max-height: 300px; /* Significantly increased height for mobile view */
+    max-height: 300px;
   }
 }
 </style>

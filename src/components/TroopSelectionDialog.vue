@@ -27,6 +27,7 @@
           <v-tabs v-model="activeTab" color="primary" class="mb-4">
             <v-tab value="elites">Elites</v-tab>
             <v-tab value="troops">Troops</v-tab>
+            <v-tab value="mercenaries">Mercenaries</v-tab>
           </v-tabs>
 
           <div v-if="filteredTroopsByTab.length === 0" class="text-center py-8">
@@ -153,8 +154,8 @@ const filteredTroopsByTab = computed(() => {
   const troops = filteredTroops.value
   const filtered =
     activeTab.value === 'elites'
-      ? troops.filter((troop) => troop.keywords.includes('ELITE'))
-      : troops.filter((troop) => !troop.keywords.includes('ELITE'))
+      ? troops.filter((troop) => troop.type === 'Elite')
+      : troops.filter((troop) => troop.type === 'Troop')
 
   // Sort required units to the top
   return filtered.sort((a, b) => {

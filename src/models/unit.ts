@@ -8,4 +8,5 @@ export interface Unit {
   costCurrency: number
   currentEquipment: Equipment[]
   purchasedAbilities: string[]
+  isMercenary: boolean
 }

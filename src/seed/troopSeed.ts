@@ -178,7 +178,7 @@ const hereticTroopsSeed: Troop[] = [
     factionName: 'Heretic Legion',
     description:
       "This abomination charges through miles of barbed wire to clear a path for the heretic infantry; its uniquely formed head designed to cut clean through it. War Wolves wear unique armour forged in the factories of hell, as seen by the maker's marks stamped upon it.",
-    type: 'Beast',
+    type: 'Troop',
     cost: createDucatsCost(140),
     stats: {
       movement: 8,
@@ -208,7 +208,7 @@ const hereticTroopsSeed: Troop[] = [
     factionName: 'Heretic Legion',
     description:
       'Heavily armed and armoured assault troops. Their skin is burned and blistering from their ordained pilgrimages to Hell and back.',
-    type: 'Heavy',
+    type: 'Troop',
     cost: createDucatsCost(95),
     stats: {
       movement: 6,
@@ -230,13 +230,43 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-AnointedHeavyInfantry.png',
   },
   {
+    id: 'tc-tr-artillery-witch',
+    name: 'Artillery Witch',
+    factionId: 1,
+    factionName: 'Heretic Legion',
+    description:
+      'Artillery Witches stalk the battlefields, hurling ordnance assembled in the death factories of Hell\'s Third Circle. They are completely mute and no one has ever seen their faces. Some question if they are even living, and there are tales that they too were manufactured in Hell. They can pull an infinite number of Infernal Bombs from a portal to Hell that they manifest at will, summoning them to their hands from a gate of midnight blackness.',
+    type: 'Troop',
+    cost: createDucatsCost(90),
+    stats: {
+      movement: 6,
+      movementType: 'Infantry',
+      ranged: 0,
+      melee: -1,
+      armor: 0,
+      baseSize: 25,
+    },
+    equipmentDescription:
+      'An Artillery Witch is always equipped with an endless supply of Infernal Bombs (see below) and can carry no other ranged weapons. Otherwise, she can be equipped with any melee weapon, armour or equipment from the Heretic Legion Armoury.',
+    defaultEquipment: [],
+    abilities: [
+      'Infernal Bomb: This wicked infernal weapon is treated as a one-handed Ranged weapon with the Keyword BLAST 3". Specify a 1x1mm point on the battlefield within 36" that the Witch can see and that you want to target. Next, make a Ranged Attack ACTION. If the roll fails (i.e. you roll 6 or less with the two lowest Dice), the bomb lands 1" away from its intended location, multiplied by the number representing the degree of failure (for example, if you rolled 5, the bomb lands 2" away, as 7 - 5 = 2). The direction is decided by your opponent. Roll on the Injury Chart for each model within the BLAST radius. If the bomb lands exactly on top of any model, roll with 3D6 on the Injury Chart and add the dice together! Other models hit by the bomb roll on the Injury Chart as standard. Any model hit, but not taken Out of Action, by this attack is blown D3" directly away from the point of impact (roll for each model separately), stopping if they hit other models, buildings or objects. This attack has the Keyword SHRAPNEL and therefore causes an additional +1 BLOOD MARKER. Cover, range and higher position do not affect attacks by the Infernal Bomb. Roll injuries for models that would benefit from Cover from the perspective of the BLAST point with -1 DICE. The Activation of the Witch ends immediately after using the Infernal Bomb.',
+      'Artificial Life: Artillery Witches are not affected by FEAR. Additionally, attacks with the Keyword GAS suffer a -1 DICE penalty to injure the Witch and they do not suffer additional BLOOD MARKERS from the Keyword GAS.',
+      'Levitate: The Artillery Witch can Climb up without taking an ACTION and does not roll on the Injury Chart when falling.'
+    ],
+    keywords: ['HERETIC', 'ARTIFICIAL'],
+    countAllowed: [0, 1, 2],
+    cardHeaderImageURI: '/troops/CardHeader-ArtilleryWitch.png',
+    cardHeroSideImageURI: '/troops/CardHeroSide-ArtilleryWitch.png',
+  },
+  {
     id: 'tc-tr-w',
     name: 'Wretched',
     factionId: 1,
     factionName: 'Heretic Legion',
     description:
       'Many unfortunates fall into the hands of the Heretic warbands, either during one of their many raids or battles, or purchased from the slave markets within their own territories. Some are foolhardy adventurers who travel into the domains of the damned only to be caught by their watchful patrols. Branded with cursed flesh-eating tattoos and heavily drugged, they serve as disposable cannon fodder for the Heretic forces.',
-    type: 'Slave',
+    type: 'Troop',
     cost: createDucatsCost(25),
     armyBuildingRules: [
       'Your warband may include any number of Wretched as long as they are outnumbered by models with the Keyword HERETIC.',
