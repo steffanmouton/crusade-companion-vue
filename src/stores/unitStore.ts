@@ -16,11 +16,11 @@ const COLLECTION_NAME = 'units'
 // Extended Unit type that includes costPoints for our internal use
 interface UnitWithCost extends Unit {
   costPoints: number
-  troopId?: string
+  troopId: string
   troopName?: string
-  costCurrency?: number
-  currentEquipment?: any[]
-  purchasedAbilities?: string[]
+  costCurrency: number
+  currentEquipment: { name: string; type: string; modifiers?: string[]; rules?: string[] }[]
+  purchasedAbilities: string[]
 }
 
 export const useUnitStore = defineStore('unit', () => {

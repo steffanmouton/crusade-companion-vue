@@ -43,6 +43,7 @@ const units = computed(() => {
       costCurrency: 0,
       currentEquipment: [],
       purchasedAbilities: [],
+      isMercenary: false,
     }
 
     // Add any properties that exist in the Firestore unit
