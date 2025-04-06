@@ -403,11 +403,6 @@ function handleImageError(value: string | undefined) {
   margin-top: 4px;
 }
 
-.desktop-image,
-.mobile-image {
-  /* These classes are no longer needed */
-}
-
 /* Mobile responsive layout */
 @media (max-width: 600px) {
   .unit-container {
