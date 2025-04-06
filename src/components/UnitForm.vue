@@ -68,7 +68,7 @@
                         size="small"
                         variant="text"
                         color="error"
-                        @click="removeEquipment(item)"
+                        @click.stop="removeEquipment(item)"
                       ></v-btn>
                     </v-card-text>
                   </v-card>
@@ -107,7 +107,7 @@
                         size="small"
                         variant="text"
                         color="error"
-                        @click="removeEquipment(item)"
+                        @click.stop="removeEquipment(item)"
                       ></v-btn>
                     </v-card-text>
                   </v-card>
@@ -146,7 +146,7 @@
                         size="small"
                         variant="text"
                         color="error"
-                        @click="removeEquipment(item)"
+                        @click.stop="removeEquipment(item)"
                       ></v-btn>
                     </v-card-text>
                   </v-card>
@@ -185,7 +185,7 @@
                         size="small"
                         variant="text"
                         color="error"
-                        @click="removeEquipment(item)"
+                        @click.stop="removeEquipment(item)"
                       ></v-btn>
                     </v-card-text>
                   </v-card>

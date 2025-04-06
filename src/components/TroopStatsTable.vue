@@ -21,9 +21,9 @@ const props = defineProps<{
 // Create an array of stats to display
 const stats = computed(() => [
   { name: 'Movement', value: props.movement },
-  { name: 'Ranged', value: props.ranged },
-  { name: 'Melee', value: props.melee },
-  { name: 'Armor', value: props.armor },
+  { name: 'Ranged', value: props.ranged > 0 ? `+${props.ranged}` : props.ranged },
+  { name: 'Melee', value: props.melee > 0 ? `+${props.melee}` : props.melee },
+  { name: 'Armor', value: props.armor > 0 ? `+${props.armor}` : props.armor },
 ])
 </script>
 
