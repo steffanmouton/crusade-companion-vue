@@ -33,7 +33,7 @@ const stats = computed(() => [
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 10px 8px;
+  padding: 8px;
   background-color: #fafafa;
   border-radius: 8px;
   margin: 8px 0;
@@ -72,5 +72,40 @@ const stats = computed(() => [
   height: 76%;
   width: 1px;
   background-color: rgba(139, 0, 0, 0.2); /* Transparent dark red */
+}
+
+/* Mobile styles */
+@media (max-width: 600px) {
+  .troop-stats-table {
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+
+  .stat-container {
+    flex: 0 0 50%;
+    padding: 8px;
+    margin-bottom: 0;
+  }
+
+  .stat-container:nth-child(odd) {
+    border-right: 1px solid rgba(139, 0, 0, 0.2);
+  }
+
+  .stat-container:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(139, 0, 0, 0.2);
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  .stat-name {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
 }
 </style>

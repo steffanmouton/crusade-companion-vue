@@ -46,8 +46,15 @@
             <div>
               <div class="text-h6">{{ unit.name }}</div>
               <div class="text-caption">{{ troopName }}</div>
+              <div class="text-caption text-medium-emphasis d-md-none mt-1">
+                {{
+                  formatCost({
+                    currencies: [{ type: CurrencyType.DUCATS, amount: unit.costPoints }],
+                  })
+                }}
+              </div>
             </div>
-            <div class="text-subtitle-1 font-weight-medium">
+            <div class="text-caption text-medium-emphasis d-none d-md-block">
               {{
                 formatCost({ currencies: [{ type: CurrencyType.DUCATS, amount: unit.costPoints }] })
               }}
