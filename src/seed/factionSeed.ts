@@ -1,4 +1,5 @@
 import type { Faction } from '../models/faction'
+import { createDucatsCost } from '../models/cost'
 
 /**
  * Initial faction data for seeding the Firestore database
@@ -11,7 +12,11 @@ export const factionSeed: Faction[] = [
     iconUrl: '@/assets/icons/icon_heretic_legion.png',
     troopTypes: ['Infantry', 'Beasts', 'Cultists'],
     specialRules: ['Heretical Fury', 'Dark Bargains'],
-    armory: [],
+    isPlayable: true,
+    equipmentRules: {
+      costs: {},
+      limits: {}
+    }
   },
   {
     id: 'tc-fc-tp',
@@ -20,7 +25,11 @@ export const factionSeed: Faction[] = [
     iconUrl: '@/assets/icons/icon_trench_pilgrims.png',
     troopTypes: ['Infantry', 'Cavalry', 'Artillery'],
     specialRules: ['Special Rule 1', 'Special Rule 2'],
-    armory: [],
+    isPlayable: true,
+    equipmentRules: {
+      costs: {},
+      limits: {}
+    }
   },
   {
     id: 'tc-fc-is',
@@ -29,7 +38,11 @@ export const factionSeed: Faction[] = [
     iconUrl: '',
     troopTypes: ['Mechanized', 'Infantry', 'War Machines'],
     specialRules: ['Iron Discipline', 'Advanced Weaponry'],
-    armory: [],
+    isPlayable: true,
+    equipmentRules: {
+      costs: {},
+      limits: {}
+    }
   },
   {
     id: 'tc-fc-na',
@@ -38,7 +51,11 @@ export const factionSeed: Faction[] = [
     iconUrl: '',
     troopTypes: ['Infantry', 'Cavalry', 'Artillery'],
     specialRules: ['Special Rule 1', 'Special Rule 2'],
-    armory: [],
+    isPlayable: true,
+    equipmentRules: {
+      costs: {},
+      limits: {}
+    }
   },
   {
     id: '5',
@@ -47,7 +64,11 @@ export const factionSeed: Faction[] = [
     iconUrl: '',
     troopTypes: ['Infantry', 'Cavalry', 'Artillery'],
     specialRules: ['Special Rule 1', 'Special Rule 2'],
-    armory: [],
+    isPlayable: true,
+    equipmentRules: {
+      costs: {},
+      limits: {}
+    }
   },
   {
     id: '6',
@@ -56,6 +77,23 @@ export const factionSeed: Faction[] = [
     iconUrl: '',
     troopTypes: ['Infantry', 'Cavalry', 'Artillery'],
     specialRules: ['Special Rule 1', 'Special Rule 2'],
-    armory: [],
+    isPlayable: true,
+    equipmentRules: {
+      costs: {},
+      limits: {}
+    }
   },
+  {
+    id: 'mercenary',
+    name: 'Mercenary',
+    description: `Various mercenary forces available for hire by the main factions. These fighters pledge their service to whoever can pay their price, bringing specialized skills to the battlefield.`,
+    iconUrl: '@/assets/icons/icon_mercenary.png',
+    troopTypes: ['Mercenary'],
+    specialRules: ['Hired Guns'],
+    isPlayable: false, // Cannot be selected as a primary faction
+    equipmentRules: {
+      costs: {},
+      limits: {}
+    }
+  }
 ]

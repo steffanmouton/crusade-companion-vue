@@ -7,13 +7,14 @@ export interface Equipment {
   description: string
   type: string
   range?: string
-  cost?: Cost
   modifiers?: string[]
   keywords?: string[]
   equipmentIndicator?: EquipmentIndicator
   rules?: string[]
-  limit?: number
-  onlyFor?: EquipmentOnlyFor
+  handedness?: HandednessType
+  isSpecial?: boolean
+  explorationOnly?: boolean  // Flag for items that can only be gained during Exploration
+  category?: EquipmentCategory
 }
 
 export interface EquipmentIndicator {
@@ -21,9 +22,21 @@ export interface EquipmentIndicator {
   shieldCombo?: boolean
 }
 
-export interface EquipmentOnlyFor {
-  faction?: string
-  warbandVariant?: string
-  troops?: string[]
-  keywords?: string[]
+export enum HandednessType {
+  ONE_HANDED = 'one-handed',
+  TWO_HANDED = 'two-handed',
+  NO_HANDS = 'no-hands',
+  ONE_HAND_REQUIRED = 'one-hand-required' // For items like shields, standards, musical instruments
+}
+
+export enum EquipmentCategory {
+  MELEE_WEAPON = 'Melee Weapon',
+  RANGED_WEAPON = 'Ranged Weapon',
+  ARMOUR = 'Armour',
+  HEADGEAR = 'Headgear',
+  GRENADE = 'Grenade',
+  SHIELD = 'Shield',
+  MUSICAL_INSTRUMENT = 'Musical Instrument',
+  STANDARD = 'Standard',
+  EQUIPMENT = 'Equipment'
 }

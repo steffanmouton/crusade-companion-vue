@@ -88,6 +88,7 @@
 import { ref, computed, watch } from 'vue'
 import { useTroopStore } from '../stores/troopStore'
 import { useEquipmentStore } from '../stores/equipmentStore'
+import { useFactionStore } from '../stores/factionStore'
 import CondensedTroopCard from './CondensedTroopCard.vue'
 import TroopCard from './TroopCard.vue'
 import UnitForm from './UnitForm.vue'
@@ -111,7 +112,13 @@ const searchQuery = ref('')
 const selectedTroop = ref<Troop | null>(null)
 const troopStore = useTroopStore()
 const equipmentStore = useEquipmentStore()
+const factionStore = useFactionStore()
 const activeTab = ref('elites')
+
+// Get faction ID from faction name
+const factionId = computed(() => {
+  return factionStore.factions.find(f => f.name === props.factionName)?.id || '';
+})
 
 // Watch for changes to modelValue prop
 watch(
@@ -166,8 +173,10 @@ const filteredTroopsByTab = computed(() => {
             (troop) => troop.type === 'Troop' && troop.factionName === props.factionName,
           )
         : troops.filter(
-            (troop) =>
-              troop.type === 'Mercenary' && troop.mercenaryFactions?.includes(props.factionName),
+            // Filter mercenaries based on mercenaryFactions property
+            (troop) => troop.type === 'Mercenary' && 
+              (troop.mercenaryFactions?.includes(props.factionName) || 
+               troop.factionId === 'mercenary')
           )
 
   // Sort required units to the top
@@ -185,7 +194,7 @@ async function loadTroops() {
   loading.value = true
   try {
     // Initialize both troops and equipment
-    await Promise.all([troopStore.initializeTroops(), equipmentStore.initializeEquipment()])
+    await Promise.all([troopStore.initializeTroops(), equipmentStore.fetchEquipment()])
   } catch (error) {
     console.error('Error loading data:', error)
   } finally {
@@ -222,9 +231,10 @@ function saveUnit(unit: Unit) {
   dialog.value = false
 }
 
-// Function to check if a unit is required
+// Function to check if a unit is required - we don't have this concept yet, so return false
 function isRequiredUnit(troop: Troop): boolean {
-  return troop.countAllowed.length === 1 && troop.countAllowed[0] === 1
+  // For now, no troops are required
+  return false;
 }
 </script>
 

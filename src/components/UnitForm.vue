@@ -18,7 +18,7 @@
               <div class="text-subtitle-1 font-weight-medium">{{ troop.name }}</div>
               <div class="text-caption font-weight-medium">{{ troop.factionName }}</div>
               <div class="text-caption">
-                {{ formatCost(troop.cost) }}
+                {{ troopCost ? formatCost(troopCost) : 'FREE' }}
               </div>
             </div>
           </div>
@@ -40,6 +40,44 @@
             <h3 class="text-subtitle-1 font-weight-medium">Equipment</h3>
           </div>
 
+          <!-- Equipment validation warnings -->
+          <v-alert
+            v-if="validationResult && validationResult.warnings.length > 0"
+            type="warning"
+            variant="tonal"
+            class="mb-3"
+            density="compact"
+          >
+            <div class="text-subtitle-2 mb-1">Equipment Warnings:</div>
+            <ul class="pl-4 mb-0">
+              <li v-for="(warning, index) in validationResult.warnings" :key="index" class="text-caption">
+                {{ warning.message }}
+                <div v-if="warning.details" class="text-caption text-grey">
+                  {{ warning.details }}
+                </div>
+              </li>
+            </ul>
+          </v-alert>
+
+          <!-- Equipment validation errors -->
+          <v-alert
+            v-if="validationResult && validationResult.errors.length > 0"
+            type="error"
+            variant="tonal"
+            class="mb-3"
+            density="compact"
+          >
+            <div class="text-subtitle-2 mb-1">Equipment Errors:</div>
+            <ul class="pl-4 mb-0">
+              <li v-for="(error, index) in validationResult.errors" :key="index" class="text-caption">
+                {{ error.message }}
+                <div v-if="error.details" class="text-caption text-grey">
+                  {{ error.details }}
+                </div>
+              </li>
+            </ul>
+          </v-alert>
+
           <!-- Equipment categories -->
           <v-row>
             <!-- Melee Weapons -->
@@ -54,13 +92,25 @@
                     v-for="item in getEquipmentOfType('Melee Weapon')"
                     :key="item.id"
                     class="equipment-slot equipment-slot-filled mb-2"
+                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
                     @click="editEquipment(item)"
                   >
                     <v-card-text class="d-flex align-center justify-space-between pa-4">
                       <div>
                         <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="text-caption text-medium-emphasis">
-                          {{ formatEquipmentCost(item) }}
+                        <div class="d-flex align-center">
+                          <div class="text-caption text-medium-emphasis mr-2">
+                            {{ formatEquipmentCost(item) }}
+                          </div>
+                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
+                            {{ formatHandedness(item.handedness) }}
+                          </v-chip>
+                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
+                            Special
+                          </v-chip>
+                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
+                            Exploration Only
+                          </v-chip>
                         </div>
                       </div>
                       <v-btn
@@ -93,13 +143,25 @@
                     v-for="item in getEquipmentOfType('Ranged Weapon')"
                     :key="item.id"
                     class="equipment-slot equipment-slot-filled mb-2"
+                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
                     @click="editEquipment(item)"
                   >
                     <v-card-text class="d-flex align-center justify-space-between pa-4">
                       <div>
                         <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="text-caption text-medium-emphasis">
-                          {{ formatEquipmentCost(item) }}
+                        <div class="d-flex align-center">
+                          <div class="text-caption text-medium-emphasis mr-2">
+                            {{ formatEquipmentCost(item) }}
+                          </div>
+                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
+                            {{ formatHandedness(item.handedness) }}
+                          </v-chip>
+                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
+                            Special
+                          </v-chip>
+                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
+                            Exploration Only
+                          </v-chip>
                         </div>
                       </div>
                       <v-btn
@@ -132,13 +194,25 @@
                     v-for="item in getEquipmentOfType('Armour')"
                     :key="item.id"
                     class="equipment-slot equipment-slot-filled mb-2"
+                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
                     @click="editEquipment(item)"
                   >
                     <v-card-text class="d-flex align-center justify-space-between pa-4">
                       <div>
                         <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="text-caption text-medium-emphasis">
-                          {{ formatEquipmentCost(item) }}
+                        <div class="d-flex align-center">
+                          <div class="text-caption text-medium-emphasis mr-2">
+                            {{ formatEquipmentCost(item) }}
+                          </div>
+                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
+                            {{ formatHandedness(item.handedness) }}
+                          </v-chip>
+                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
+                            Special
+                          </v-chip>
+                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
+                            Exploration Only
+                          </v-chip>
                         </div>
                       </div>
                       <v-btn
@@ -171,13 +245,25 @@
                     v-for="item in getEquipmentOfType('Other')"
                     :key="item.id"
                     class="equipment-slot equipment-slot-filled mb-2"
+                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
                     @click="editEquipment(item)"
                   >
                     <v-card-text class="d-flex align-center justify-space-between pa-4">
                       <div>
                         <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="text-caption text-medium-emphasis">
-                          {{ formatEquipmentCost(item) }}
+                        <div class="d-flex align-center">
+                          <div class="text-caption text-medium-emphasis mr-2">
+                            {{ formatEquipmentCost(item) }}
+                          </div>
+                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
+                            {{ formatHandedness(item.handedness) }}
+                          </v-chip>
+                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
+                            Special
+                          </v-chip>
+                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
+                            Exploration Only
+                          </v-chip>
                         </div>
                       </div>
                       <v-btn
@@ -206,6 +292,10 @@
           :selectedEquipment="unitData.currentEquipment"
           :filterType="selectedEquipmentType"
           :editingItem="selectedEquipmentForEdit"
+          :variantName="getVariantName(props.troop)"
+          :warbandVariant="currentWarbandVariant"
+          :faction="currentFaction"
+          :troop="props.troop"
           @save="handleEquipmentSelection"
         />
 
@@ -214,6 +304,9 @@
           v-model="showEquipmentDetailDialog"
           :equipment="selectedEquipmentItem"
           :selectedEquipment="unitData.currentEquipment"
+          :variantName="getVariantName(props.troop)"
+          :warbandVariant="currentWarbandVariant"
+          :faction="currentFaction"
           @add="addEquipment"
         />
 
@@ -226,7 +319,7 @@
               </template>
               <v-list-item-title class="text-body-1">Base troop cost</v-list-item-title>
               <v-list-item-subtitle class="text-right font-weight-medium">
-                {{ formatCost(troop.cost) }}
+                {{ troopCost ? formatCost(troopCost) : 'FREE' }}
               </v-list-item-subtitle>
             </v-list-item>
 
@@ -283,6 +376,17 @@ import { useUnitStore } from '../stores/unitStore'
 import LoadingIndicator from './LoadingIndicator.vue'
 import EquipmentSelectionDialog from './EquipmentSelectionDialog.vue'
 import EquipmentDetailDialog from './EquipmentDetailDialog.vue'
+import { HandednessType } from '../models/equipment'
+import { validateEquipment, type ValidationResult } from '../utils/equipmentValidator'
+import { useFactionStore } from '../stores/factionStore'
+import { 
+  getEquipmentCost, 
+  formatEquipmentCost as formatEquipmentCostUtil, 
+  getTroopCost 
+} from '../utils/equipmentUtils'
+import type { WarbandVariant } from '../models/warbandVariant'
+import { useWarbandVariantStore } from '../stores/warbandVariantStore'
+import { useArmyStore } from '../stores/army'
 
 // Props
 const props = defineProps<{
@@ -300,6 +404,8 @@ const saving = ref(false)
 const availableEquipment = ref<Equipment[]>([])
 const equipmentStore = useEquipmentStore()
 const unitStore = useUnitStore()
+const armyStore = useArmyStore()
+const warbandVariantStore = useWarbandVariantStore()
 const error = ref<string | null>(null)
 
 // Add state for equipment dialogs
@@ -309,8 +415,23 @@ const selectedEquipmentItem = ref<Equipment | null>(null)
 const selectedEquipmentType = ref<string>('')
 const selectedEquipmentForEdit = ref<Equipment | null>(null)
 
+// Add state for warband variant
+const currentWarbandVariant = ref<WarbandVariant | null>(null)
+
 // Computed
 const isEditing = computed(() => !!props.unit)
+
+// Add a new computed property to get faction
+const faction = computed(() => {
+  return props.troop?.factionId 
+    ? factionStore.factions.find(f => f.id === props.troop.factionId.toString())
+    : null
+})
+
+// Add a new computed property that handles the type checking properly
+const currentFaction = computed(() => {
+  return faction.value || null
+})
 
 // Create reactive unit data
 const unitData = reactive<{
@@ -331,8 +452,24 @@ const unitData = reactive<{
   purchasedAbilities: props.unit?.purchasedAbilities || [],
 })
 
-// Calculate equipment cost
+// Create a new computed property for troopCost
+const troopCost = computed(() => {
+  if (!faction.value) return null
+  return getTroopCost(props.troop.id, faction.value, currentWarbandVariant.value)
+})
+
+// Update equipment cost calculation to use faction rules
 const equipmentCost = computed(() => {
+  if (!faction.value) return {
+    currencies: [
+      { type: CurrencyType.DUCATS, amount: 0 },
+      { type: CurrencyType.GLORY_POINTS, amount: 0 },
+    ],
+  }
+  
+  // Get the variant name from the troop
+  const variantName = getVariantName(props.troop)
+  
   return unitData.currentEquipment.reduce(
     (total, equipment) => {
       // Skip cost calculation for default equipment items by name
@@ -344,19 +481,22 @@ const equipmentCost = computed(() => {
         return total
       }
 
-      if (equipment.cost) {
+      // Get the equipment cost using faction rules
+      const cost = getEquipmentCost(equipment, faction.value!, currentWarbandVariant.value)
+      
+      if (cost) {
         return {
           currencies: [
             {
               type: CurrencyType.DUCATS,
               amount:
-                getCostForCurrency(equipment.cost, CurrencyType.DUCATS) +
+                getCostForCurrency(cost, CurrencyType.DUCATS) +
                 getCostForCurrency(total, CurrencyType.DUCATS),
             },
             {
               type: CurrencyType.GLORY_POINTS,
               amount:
-                getCostForCurrency(equipment.cost, CurrencyType.GLORY_POINTS) +
+                getCostForCurrency(cost, CurrencyType.GLORY_POINTS) +
                 getCostForCurrency(total, CurrencyType.GLORY_POINTS),
             },
           ],
@@ -373,9 +513,9 @@ const equipmentCost = computed(() => {
   )
 })
 
-// Calculate total cost
+// Update total cost computation to use troopCost
 const totalCost = computed(() => {
-  if (!props.troop.cost) {
+  if (!troopCost.value) {
     return equipmentCost.value
   }
 
@@ -384,13 +524,13 @@ const totalCost = computed(() => {
       {
         type: CurrencyType.DUCATS,
         amount:
-          getCostForCurrency(props.troop.cost, CurrencyType.DUCATS) +
+          getCostForCurrency(troopCost.value, CurrencyType.DUCATS) +
           getCostForCurrency(equipmentCost.value, CurrencyType.DUCATS),
       },
       {
         type: CurrencyType.GLORY_POINTS,
         amount:
-          getCostForCurrency(props.troop.cost, CurrencyType.GLORY_POINTS) +
+          getCostForCurrency(troopCost.value, CurrencyType.GLORY_POINTS) +
           getCostForCurrency(equipmentCost.value, CurrencyType.GLORY_POINTS),
       },
     ],
@@ -408,21 +548,34 @@ function addEquipment(equipment: Equipment) {
 
 function handleEquipmentSelection(items: Equipment[]) {
   if (selectedEquipmentForEdit.value) {
-    // Replace the edited item
+    // Remove the old item
     const index = unitData.currentEquipment.findIndex(
-      (item) => item.id === selectedEquipmentForEdit.value?.id,
+      (item) => item.id === selectedEquipmentForEdit.value?.id
     )
     if (index !== -1) {
       unitData.currentEquipment.splice(index, 1)
     }
   }
-  // Add the new items
+
+  // Add the selected items
   unitData.currentEquipment.push(...items)
-  selectedEquipmentForEdit.value = null
-  showEquipmentSelectionDialog.value = false
+  
+  // Run validation
+  validateCurrentEquipment()
 }
 
 async function saveUnit() {
+  // Validate one more time
+  validateCurrentEquipment()
+  
+  // If there are errors, ask for confirmation before saving
+  if (validationResult.value && validationResult.value.errors.length > 0) {
+    const confirmSave = confirm('There are equipment validation errors. Do you want to save anyway?')
+    if (!confirmSave) {
+      return
+    }
+  }
+
   saving.value = true
   error.value = null
 
@@ -435,7 +588,7 @@ async function saveUnit() {
       totalCost: totalCost.value,
       ducatsCost,
       gloryCost,
-      baseCost: props.troop.cost ? getCostForCurrency(props.troop.cost, CurrencyType.DUCATS) : 0,
+      baseCost: troopCost.value ? getCostForCurrency(troopCost.value, CurrencyType.DUCATS) : 0,
       equipmentCost: getCostForCurrency(equipmentCost.value, CurrencyType.DUCATS),
     })
 
@@ -488,46 +641,38 @@ async function saveUnit() {
 
 // Load equipment and default equipment on mount
 onMounted(async () => {
-  // Load available equipment from the equipment store
-  await loadAvailableEquipment()
+  try {
+    await equipmentStore.fetchEquipment()
 
-  // If editing existing unit, don't add default equipment
-  if (isEditing.value) {
-    return
-  }
-
-  // Add default equipment for new units
-  if (props.troop.defaultEquipment && props.troop.defaultEquipment.length > 0) {
-    console.log('Adding default equipment:', props.troop.defaultEquipment)
-
-    // Ensure equipment store is loaded
-    if (equipmentStore.equipment.length === 0) {
-      console.log('Equipment store not loaded, initializing...')
-      await equipmentStore.initializeEquipment()
+    // Set default name based on troop type if new unit
+    if (!isEditing.value && props.troop) {
+      unitData.name = `${props.troop.name} #${uuidv4().substring(0, 4)}`
     }
 
-    // Find the equipment objects that match the names in defaultEquipment
-    const defaultEquipmentItems = []
-
-    for (const equipName of props.troop.defaultEquipment) {
-      // Find equipment by name (case-insensitive comparison)
-      const item = equipmentStore.equipment.find(
-        (item) => item.name.toLowerCase() === equipName.toLowerCase(),
-      )
-
-      if (item) {
-        console.log(`Found equipment item for "${equipName}":`, item)
-        defaultEquipmentItems.push(item)
-      } else {
-        console.warn(`Default equipment item with name "${equipName}" not found in equipment store`)
+    // Load associated army and warband variant if available
+    if (props.armyId) {
+      // Get army data
+      const army = await armyStore.loadArmy(props.armyId)
+      
+      // Load warband variant if the army has one
+      if (army && army.warbandVariantId) {
+        await warbandVariantStore.fetchWarbandVariants()
+        
+        const variant = warbandVariantStore.warbandVariants.find(v => v.id === army.warbandVariantId)
+        if (variant) {
+          currentWarbandVariant.value = variant
+        }
       }
     }
 
-    console.log('Found default equipment items:', defaultEquipmentItems)
+    // Now that everything's loaded, get available equipment
+    await loadAvailableEquipment()
 
-    if (defaultEquipmentItems.length > 0) {
-      unitData.currentEquipment = [...defaultEquipmentItems]
-    }
+    // Run validation
+    validateCurrentEquipment()
+  } catch (err) {
+    console.error('Error initializing unit form:', err)
+    error.value = 'Failed to load equipment data'
   }
 })
 
@@ -536,20 +681,40 @@ async function loadAvailableEquipment() {
   // Ensure equipment is loaded first
   if (equipmentStore.equipment.length === 0) {
     console.log('Initializing equipment store in loadAvailableEquipment')
-    await equipmentStore.initializeEquipment()
+    await equipmentStore.fetchEquipment()
   }
 
   console.log('Equipment store items:', equipmentStore.equipment.length)
 
-  if (props.troop.keywords) {
-    // Get equipment that's available for this troop based on its ID and keywords
-    availableEquipment.value = equipmentStore.getEquipmentForTroop(
+  try {
+    // Get the army to find the faction
+    const army = await armyStore.loadArmy(props.armyId)
+    if (!army) {
+      console.error('Could not load army')
+      return
+    }
+
+    // Get equipment available for the troop based on faction rules
+    let troopEquipment = equipmentStore.getEquipmentForTroop(
       props.troop.id,
-      props.troop.keywords,
+      props.troop.keywords || []
     )
-  } else {
-    // Fallback to all equipment if needed
-    availableEquipment.value = equipmentStore.equipment
+    
+    // Filter by warband variant if applicable
+    if (currentWarbandVariant.value) {
+      // Check if there are warband-specific overrides
+      const variantOverrides = currentWarbandVariant.value.troopSpecificOverrides?.[props.troop.id]
+      if (variantOverrides?.allowedEquipmentTypes) {
+        // Filter by allowed equipment types in the variant
+        troopEquipment = troopEquipment.filter(item => 
+          variantOverrides.allowedEquipmentTypes?.includes(item.type))
+      }
+    }
+    
+    availableEquipment.value = troopEquipment
+  } catch (err) {
+    console.error('Error loading available equipment:', err)
+    availableEquipment.value = []
   }
 }
 
@@ -560,16 +725,25 @@ function getEquipmentOfType(type: string) {
   return unitData.currentEquipment.filter((item) => item.type === type)
 }
 
-// Add this helper function to handle cost formatting
+// Replace formatEquipmentCost function
 function formatEquipmentCost(equipment: Equipment | undefined) {
-  if (!equipment?.cost) return 'FREE'
-  return formatCost(equipment.cost)
+  if (!equipment || !faction.value) return 'FREE'
+  
+  // Format the equipment cost using the utility function
+  return formatEquipmentCostUtil(
+    equipment,
+    faction.value,
+    formatCost,
+    currentWarbandVariant.value
+  )
 }
 
 function removeEquipment(equipment: Equipment) {
   const index = unitData.currentEquipment.findIndex((item) => item.id === equipment.id)
   if (index !== -1) {
     unitData.currentEquipment.splice(index, 1)
+    // Run validation
+    validateCurrentEquipment()
   }
 }
 
@@ -585,6 +759,72 @@ function editEquipment(item: Equipment) {
   selectedEquipmentForEdit.value = item
   selectedEquipmentType.value = item.type
   showEquipmentSelectionDialog.value = true
+}
+
+// Add these lines to your component's script
+const factionStore = useFactionStore()
+const validationResult = ref<ValidationResult | null>(null)
+
+// Add this function to format handedness for display
+function formatHandedness(handedness: HandednessType): string {
+  switch (handedness) {
+    case HandednessType.ONE_HANDED:
+      return '1-Hand'
+    case HandednessType.TWO_HANDED:
+      return '2-Hand'
+    case HandednessType.NO_HANDS:
+      return 'No Hands'
+    case HandednessType.ONE_HAND_REQUIRED:
+      return 'Requires Hand'
+    default:
+      return ''
+  }
+}
+
+// Add these functions to check for warnings and errors on specific items
+function hasWarning(item: Equipment): boolean {
+  if (!validationResult.value) return false
+  return validationResult.value.warnings.some(w => 
+    w.details?.includes(item.name) || w.message.includes(item.name)
+  )
+}
+
+function hasError(item: Equipment): boolean {
+  if (!validationResult.value) return false
+  return validationResult.value.errors.some(e => 
+    e.details?.includes(item.name) || e.message.includes(item.name)
+  )
+}
+
+// Add a function to validate the current equipment
+function validateCurrentEquipment() {
+  // Run the validation - no warbandVariantId passed to avoid errors
+  validationResult.value = validateEquipment(
+    unitData.currentEquipment, 
+    faction.value || null, // Ensure we pass null instead of undefined
+    props.troop,
+    currentWarbandVariant.value // Pass the whole variant object
+  )
+}
+
+// Run initial validation on mount and when equipment changes
+onMounted(() => {
+  setTimeout(() => {
+    validateCurrentEquipment()
+  }, 500) // Short delay to allow for default equipment to be loaded
+})
+
+// Watch for changes to equipment and revalidate
+watch(() => unitData.currentEquipment.length, () => {
+  validateCurrentEquipment()
+})
+
+// Add a helper function to get the variant name
+function getVariantName(troop?: Troop): string {
+  if (troop?.warbandVariant) {
+    return troop.warbandVariant
+  }
+  return 'No Variant'
 }
 </script>
 
@@ -656,5 +896,13 @@ function editEquipment(item: Equipment) {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.has-warning {
+  border: 1px solid orange !important;
+}
+
+.has-error {
+  border: 1px solid red !important;
 }
 </style>

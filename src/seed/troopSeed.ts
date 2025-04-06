@@ -8,12 +8,11 @@ const hereticTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-heretic-priest',
     name: 'Heretic Priest',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'The Leader of a Heretic warband. These fallen priests perform all kinds of unholy magics, summoning petrifying demons and creatures using their Goetic spells. Often pledged to a Demon Lord in Hell, such as Pazuzu or Guison, the Profane Gospels they recite terrify church forces, causing ears to bleed and eyeballs to burst in their sockets.',
     type: 'Elite',
-    cost: createDucatsCost(80),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -30,19 +29,17 @@ const hereticTroopsSeed: Troop[] = [
       'Tough: Demonic vitality makes the Heretic Priests very difficult to slay. They are subject to the rules for TOUGH creatures.',
     ],
     keywords: ['HERETIC', 'ELITE', 'TOUGH'],
-    countAllowed: [1],
     cardHeaderImageURI: '/troops/CardHeader-HereticPriest.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticPriest.png',
   },
   {
     id: 'tc-tr-heretic-death-commando',
     name: 'Heretic Death Commando',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'Silent Killers equipped with stealth generators that hide them from the eyes of God. These terrifying infiltrators have been known to kill entire enemy squads alone.',
     type: 'Elite',
-    cost: createDucatsCost(90),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -60,19 +57,17 @@ const hereticTroopsSeed: Troop[] = [
       'Hide: As a RISKY ACTION with +1 DICE the Commando can hide if any piece of scenery the model is touching can block line of sight in any direction, even partially, regardless of whether an enemy currently has a clear LOS. If successful, enemies cannot target the Commando with ranged attacks or Charges. Weapons with the Keyword BLAST affect the Commando as normal if it is in the radius of the weapon. This effect ends if the Commando moves from its exact position in any way, it makes a Ranged Attack or an enemy model comes within 1.5" of it.',
     ],
     keywords: ['HERETIC', 'ELITE', 'INFILTRATOR'],
-    countAllowed: [0, 1],
     cardHeaderImageURI: '/troops/CardHeader-DeathCommando.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticDeathCommando.png',
   },
   {
     id: 'tc-tr-heretic-chorister',
     name: 'Heretic Chorister',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'Suicide is a Mortal Sin, and sacrificing yourself to the glory of Hell is a yet greater affront to God. Some Heretics born with a gift of sonorous voice but little prospects of rising through the ranks but possessing a determination to excel may pursue the dark path of becoming a Chorister. Their severed heads sing their agonising hymns, filling the minds of their enemies with visions from the Pits of Hell, weakening both the resolve and strength of those unfortunate enough to hear the dire song.',
     type: 'Elite',
-    cost: createDucatsCost(65),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -89,19 +84,17 @@ const hereticTroopsSeed: Troop[] = [
       'Unholy Horror: The Chorister causes FEAR.',
     ],
     keywords: ['HERETIC', 'ELITE', 'FEAR'],
-    countAllowed: [0, 1],
     cardHeaderImageURI: '/troops/CardHeader-HereticChorister.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticChorister.png',
   },
   {
     id: 'tc-tr-heretic-trooper',
     name: 'Heretic Trooper',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'These soldiers make up the bulk of the Heretic forces. They have witnessed the Gate of Hell and survived, damning them for all eternity.',
     type: 'Troop',
-    cost: createDucatsCost(30),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -115,19 +108,17 @@ const hereticTroopsSeed: Troop[] = [
     defaultEquipment: [],
     abilities: [],
     keywords: ['HERETIC'],
-    countAllowed: [],
     cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
   },
   {
     id: 'tc-tr-heretic-legionnaire-melee',
     name: 'Heretic Legionnaire (Melee)',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'An upgraded Heretic Trooper who has proven their worth in close combat. Their melee prowess has been enhanced through training and experience.',
     type: 'Troop',
-    cost: createDucatsCost(40),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -141,19 +132,17 @@ const hereticTroopsSeed: Troop[] = [
     defaultEquipment: [],
     abilities: [],
     keywords: ['HERETIC'],
-    countAllowed: [],
     cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
   },
   {
     id: 'tc-tr-heretic-legionnaire-ranged',
     name: 'Heretic Legionnaire (Ranged)',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'An upgraded Heretic Trooper who has proven their worth in ranged combat. Their marksmanship has been enhanced through training and experience.',
     type: 'Troop',
-    cost: createDucatsCost(40),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -167,19 +156,17 @@ const hereticTroopsSeed: Troop[] = [
     defaultEquipment: [],
     abilities: [],
     keywords: ['HERETIC'],
-    countAllowed: [],
     cardHeaderImageURI: '/troops/CardHeader-HereticTrooper.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-HereticTrooper.png',
   },
   {
     id: 'tc-tr-war-wolf-assault-beast',
     name: 'War Wolf Assault Beast',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       "This abomination charges through miles of barbed wire to clear a path for the heretic infantry; its uniquely formed head designed to cut clean through it. War Wolves wear unique armour forged in the factories of hell, as seen by the maker's marks stamped upon it.",
     type: 'Troop',
-    cost: createDucatsCost(140),
     stats: {
       movement: 8,
       movementType: 'Infantry',
@@ -191,25 +178,24 @@ const hereticTroopsSeed: Troop[] = [
     equipmentDescription:
       'You cannot buy additional equipment, weapons or armour for War Wolves. Each War Wolf is encased in a nigh impregnable suit of Tartarus Armour that is reflected in its profile above. Additionally, each War Wolf has a set of Shredding Claws and a vicious Chainsaw Mouth. These pieces of equipment are built into the integrity of its construction and cannot be removed or lost in any way. The weapons are detailed below. The War Wolf may make one attack ACTION with each of these weapons in Melee Combat and may make no other attacks during its Activation (so it can make two attacks per Activation).',
     defaultEquipment: ['Chainmaw', 'Shredding Claws'],
+    isDefaultEquipmentRemovable: false,
     abilities: [
       'Tough: War Wolves are huge creatures with unnatural vitality and are subject to the rules for TOUGH creatures.',
       'Loping Dash: A War Wolf may take its Dash ACTION with +2 DICE. The War Wolf ignores movement penalties caused by Difficult Terrain.',
       'Terrifying: A War Wolf is a blasphemous creation of Hell and causes FEAR.',
     ],
     keywords: ['HERETIC', 'FEAR', 'TOUGH', 'ARTIFICIAL'],
-    countAllowed: [0, 1],
     cardHeaderImageURI: '/troops/CardHeader-WarWolfAssaultBeast.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-WarWolfAssaultBeast.png',
   },
   {
     id: 'tc-tr-heavy-infantry',
     name: 'Anointed Heavy Infantry',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'Heavily armed and armoured assault troops. Their skin is burned and blistering from their ordained pilgrimages to Hell and back.',
     type: 'Troop',
-    cost: createDucatsCost(95),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -221,23 +207,22 @@ const hereticTroopsSeed: Troop[] = [
     equipmentDescription:
       'Anointed are always equipped with a suit of Reinforced Armour and Infernal brand mark which are included in the cost. This armour can never be removed. Otherwise they can be equipped with any weapon, armour or equipment from the Heretic Legion Armoury and may purchase a Trench Shield.',
     defaultEquipment: ['Reinforced Armour', 'Infernal Brand Mark'],
+    isDefaultEquipmentRemovable: false,
     abilities: [
       'Strong: The Heretic Heavy Infantry ignores the effect of the Keyword HEAVY on any weapon they wield.',
     ],
     keywords: ['HERETIC', 'STRONG'],
-    countAllowed: [0, 1, 2, 3, 4, 5],
     cardHeaderImageURI: '/troops/CardHeader-AnointedHeavyInfantry.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-AnointedHeavyInfantry.png',
   },
   {
     id: 'tc-tr-artillery-witch',
     name: 'Artillery Witch',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       "Artillery Witches stalk the battlefields, hurling ordnance assembled in the death factories of Hell's Third Circle. They are completely mute and no one has ever seen their faces. Some question if they are even living, and there are tales that they too were manufactured in Hell. They can pull an infinite number of Infernal Bombs from a portal to Hell that they manifest at will, summoning them to their hands from a gate of midnight blackness.",
     type: 'Troop',
-    cost: createDucatsCost(90),
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -255,19 +240,17 @@ const hereticTroopsSeed: Troop[] = [
       'Levitate: The Artillery Witch can Climb up without taking an ACTION and does not roll on the Injury Chart when falling.',
     ],
     keywords: ['HERETIC', 'ARTIFICIAL'],
-    countAllowed: [0, 1, 2],
     cardHeaderImageURI: '/troops/CardHeader-ArtilleryWitch.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-ArtilleryWitch.png',
   },
   {
     id: 'tc-tr-wretched',
     name: 'Wretched',
-    factionId: 1,
+    factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
     description:
       'Many unfortunates fall into the hands of the Heretic warbands, either during one of their many raids or battles, or purchased from the slave markets within their own territories. Some are foolhardy adventurers who travel into the domains of the damned only to be caught by their watchful patrols. Branded with cursed flesh-eating tattoos and heavily drugged, they serve as disposable cannon fodder for the Heretic forces.',
     type: 'Troop',
-    cost: createDucatsCost(25),
     armyBuildingRules: [
       'Your warband may include any number of Wretched as long as they are outnumbered by models with the Keyword HERETIC.',
     ],
@@ -288,7 +271,6 @@ const hereticTroopsSeed: Troop[] = [
       'Chattel: Wretched can be sold at any time for their full ducat value between battles. Note that their weapons, armour and equipment still only fetch half price.',
     ],
     keywords: [],
-    countAllowed: [],
     cardHeaderImageURI: '/troops/CardHeader-Wretched.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-Wretched.png',
   },
@@ -298,19 +280,18 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-combat-medic',
     name: 'Combat Medic',
-    factionId: 0, // Using 0 to indicate a mercenary unit
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       'The Sisters of St. Cosmas are a highly trained elite medical corps, specialising in battlefield first aid and surgeries on the front lines of the Great War. The Sisters take a modified Hippocratic Oath that compels them to help any wounded soldiers of the Faith, no matter how dire the circumstance, as well as dispatching heretics and other enemies they find on the battlefield without pity or mercy.',
     type: 'Mercenary',
-    cost: createGloryPointsCost(2), // 2 Glory Points
     stats: {
       movement: 6,
       movementType: 'Infantry',
-      ranged: 0,
-      melee: 0,
-      armor: -1,
-      baseSize: 25,
+      ranged: 2,
+      melee: 2,
+      armor: 0,
+      baseSize: 32,
     },
     equipmentDescription:
       'The Medic carries a Misericordia and a Medi-kit. They wear a gas mask and suit of standard armour (reflected on the profile above). You cannot modify the equipment, armour and weapons of the Medic in any way.',
@@ -320,7 +301,6 @@ const mercenaryTroopsSeed: Troop[] = [
       'Expert Medic: Medic adds +1 BONUS DICE whenever they use their Medi-Kit to aid friendly models.',
     ],
     keywords: [],
-    countAllowed: [0, 1],
     mercenaryFactions: ['Trench Pilgrims'],
     cardHeaderImageURI: '/troops/CardHeader-CombatMedic.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-CombatMedic.png',
@@ -328,12 +308,11 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-witchburner',
     name: 'Witchburner',
-    factionId: 0,
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       'The Witchburners are the field officers of the Inquisition. They are tasked with hunting down and punishing witches, warlocks and heretics that cannot be brought to face justice by conventional means. On the battlefield they have the power to channel divine retribution on those deemed to have transgressed against God, causing sinners to burst into flames with mere words of condemnation.',
     type: 'Mercenary',
-    cost: createGloryPointsCost(5), // 5 Glory Points
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -351,7 +330,6 @@ const mercenaryTroopsSeed: Troop[] = [
       'Dignified Conduct: Due to the dignity of their status, the Witchburner cannot take the Dash ACTION.',
     ],
     keywords: [],
-    countAllowed: [0, 1],
     mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
     cardHeaderImageURI: '/troops/CardHeader-Witchburner.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-Witchburner.png',
@@ -359,12 +337,11 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-communicant-anti-tank-hunter',
     name: 'Communicant Anti-Tank Hunter',
-    factionId: 0,
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       'Communicants are partakers of the experimental Chemical Communion – the blood and flesh harvested from a Meta-Christ by the Mendelist monks and applied to the genome of volunteers. The most holy and pious of the Church are chosen to partake of the experimental communion, going through many biological changes to become larger and more durable, greatly enhancing their effectiveness on the battlefield.',
     type: 'Mercenary',
-    cost: createGloryPointsCost(5), // 5 Glory Points
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -382,7 +359,6 @@ const mercenaryTroopsSeed: Troop[] = [
       'Miracle of Regeneration: At the Start of the Activation a Communicant may remove one BLOOD MARKER from themselves if they have any.',
     ],
     keywords: ['TOUGH', 'STRONG'],
-    countAllowed: [0, 1],
     mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
     cardHeaderImageURI: '/troops/CardHeader-CommunicantAntiTankHunter.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-CommunicantAntiTankHunter.png',
@@ -390,12 +366,11 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-mendelist-ammo-monk',
     name: 'Mendelist Ammo Monk',
-    factionId: 0,
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       'The Order of Mendelist Monks is entrusted with the design of divinely enhanced items and the creation of the Communicants, devotees who have undergone Chemical Communion with an infusion of the synthesised blood of a Meta-Christ. The Brotherhood of Blessed Munitions is one of the sub-sects of the Mendelist Order, whose duty is to provide the faithful with various types of ammunition treated with the chemically altered blood of a Meta-Christ.',
     type: 'Mercenary',
-    cost: createGloryPointsCost(2), // 2 Glory Points
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -412,7 +387,6 @@ const mercenaryTroopsSeed: Troop[] = [
       'The Ammunition Sacrement: As a RISKY ACTION, the Monk can provide a friendly model within 1" of it with one of the following benefits. The chosen benefit lasts until the end of the targeted model\'s Activation this Turn: Bullet of the Guided Path: Whenever this model makes an Attack with a Ranged Weapon, add +1 DICE to hit. Cartridge of His Wrath: Add the Keywords SHRAPNEL and BLAST 2" to every Ranged Weapon this model is equipped with. Echo of His Word: Whenever this model makes an Attack with a Ranged Weapon, add +1 to injury rolls caused by that Attack.',
     ],
     keywords: [],
-    countAllowed: [0, 1],
     mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
     cardHeaderImageURI: '/troops/CardHeader-MendelistAmmoMonk.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-MendelistAmmoMonk.png',
@@ -420,12 +394,11 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-sin-eater',
     name: 'Sin Eater',
-    factionId: 0,
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       "Sin Eaters are horrific creatures: once they were mortal men and women, but their overwhelming greed and hunger for human flesh tainted with Sin, combined with the corrupting influence of the Hellgate, has turned them into a form that matches their inner foulness. They're swollen into monstrous proportions and are always at a point of nearly bursting, yet forever ravenous for more flesh and human sins to devour.",
     type: 'Mercenary',
-    cost: createGloryPointsCost(6), // 6 Glory Points
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -444,7 +417,6 @@ const mercenaryTroopsSeed: Troop[] = [
       'Tenderizer Maul: This weapon has the same rules as a two-handed hammer but its huge reach means that the Sin Eater may make one Melee Attack ACTION against each enemy model it is fighting in Melee.',
     ],
     keywords: ['HERETIC', 'FEAR', 'TOUGH', 'STRONG'],
-    countAllowed: [0, 1],
     mercenaryFactions: ['Heretic Legion', 'Black Grail', 'Court of the Seven-headed Serpent'],
     cardHeaderImageURI: '/troops/CardHeader-SinEater.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-SinEater.png',
@@ -452,12 +424,11 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-goetic-warlock',
     name: 'Goetic Warlock',
-    factionId: 0,
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       'Goetic Warlocks are horrific creations from the death factories of the 3rd Circle of Hell, manufactured from captured priests, prophets, vicars, rectors and monks. Fiendish machines first burn their flesh away with hellfire, encasing the still-living skeletons in an infernal suit of armour and stamping them with goetic runes. The process is so agonising that they consent to a demonic pact to bring end to their pain.',
     type: 'Mercenary',
-    cost: createGloryPointsCost(4), // 4 Glory Points
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -476,7 +447,6 @@ const mercenaryTroopsSeed: Troop[] = [
       'Goetic Gaze: This is an ACTION which is modified exactly the same way as a ranged attack, executed against one enemy the Warlock can see within 24". If successful, the model suffers one BLOOD MARKER. If the success is a Critical Success, the target suffers two BLOOD MARKERS instead. This ACTION can be used against enemy models in Melee Combat without having to randomise the target.',
     ],
     keywords: ['DEMONIC', 'ARTIFICIAL', 'FEAR'],
-    countAllowed: [0, 1],
     mercenaryFactions: ['Heretic Legion', 'Court of the Seven-headed Serpent'],
     cardHeaderImageURI: '/troops/CardHeader-GoeticWarlock.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-GoeticWarlock.png',
@@ -484,12 +454,11 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-observer',
     name: 'Observer',
-    factionId: 0,
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       'When the need is great, the Synod of Strategic Prophecy sends Observers to support the war effort. This order of warrior monks lives a life of absolute solitude, sharpening their minds and bodies, making of themselves living weapons in the Hands of God. They wear a specially crafted helmet enabling them to attune to the Voice of God, granting them the capacity to simultaneously perceive the immediate past, present and future.',
     type: 'Mercenary',
-    cost: createGloryPointsCost(3), // 3 Glory Points
     stats: {
       movement: 8,
       movementType: 'Infantry',
@@ -508,7 +477,6 @@ const mercenaryTroopsSeed: Troop[] = [
       "Voice of God: As a RISKY ACTION, the Observer may command any model on the board, friend or a foe, that has not been Activated this Turn. If successful, that model is compelled by the Divine Words. The Observer's Activation immediately ends and the target's Activation begins immediately after.",
     ],
     keywords: [],
-    countAllowed: [0, 1],
     mercenaryFactions: ['New Antioch', 'Trench Pilgrims'],
     cardHeaderImageURI: '/troops/CardHeader-Observer.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-Observer.png',
@@ -516,12 +484,11 @@ const mercenaryTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-mamluk-faris',
     name: 'Mamluk Faris',
-    factionId: 0,
+    factionId: 'mercenary',
     factionName: 'Mercenary',
     description:
       "Mamluks are an echo of a bygone age, last members of the warrior-elite that once ruled a great empire in Northern Africa. They suffered grievous losses at the earliest stages of the Great War when the Legions of demon Zalambuer emerged from the Hellgate. To this day the Mamluk knights play a deadly game of ambush and sudden raids on the Aegyptian front against Mammon's legions, making their living as swords for hire.",
     type: 'Mercenary',
-    cost: createGloryPointsCost(4), // 4 Glory Points
     stats: {
       movement: 6,
       movementType: 'Infantry',
@@ -539,7 +506,6 @@ const mercenaryTroopsSeed: Troop[] = [
       'Arabian Destrier: Unless the scenario prohibits use of the special deployment of INFILTRATORS, you may deploy the Mamluk on any table edge as long as they are at least 8" away from any enemy model after INFILTRATORS are deployed. Mamluks can also be deployed in your own deployment zone as standard.',
     ],
     keywords: [],
-    countAllowed: [0, 1],
     mercenaryFactions: ['Iron Sultanate', 'New Antioch'],
     cardHeaderImageURI: '/troops/CardHeader-MamlukFaris.png',
     cardHeroSideImageURI: '/troops/CardHeroSide-MamlukFaris.png',

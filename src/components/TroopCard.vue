@@ -6,9 +6,9 @@
   >
     <v-card-title class="d-flex justify-space-between">
       <span class="tc-card-title">{{ troop.name }}</span>
-      <span v-show="troop.countAllowed.length > 0" class="tc-card-limit"
-        >Max: {{ maxUnits }} {{ troop.armyBuildingRules ? '(See Details)' : '' }}</span
-      >
+      <span v-if="hasMaxUnits" class="tc-card-limit">
+        Max: {{ maxUnitsLabel }} {{ troop.armyBuildingRules ? '(See Details)' : '' }}
+      </span>
     </v-card-title>
     <v-card-subtitle class="d-flex justify-space-between">
       <span class="tc-card-subtitle">{{ troop.factionName }}</span>
@@ -21,7 +21,7 @@
         :melee="troop.stats.melee"
         :armor="troop.stats.armor"
       />
-      <span class="tc-card-subtitle-small">Cost: {{ formatCost(troop.cost) }}</span>
+      <span class="tc-card-subtitle-small">Cost: {{ formattedCost }}</span>
       <p class="text-body-3">{{ troop.description }}</p>
     </v-card-text>
 
@@ -42,10 +42,6 @@
           </p>
 
           <p class="text-body-3">{{ troop.equipmentDescription }}</p>
-
-          <p v-for="item in troop.specialEquipment" :key="item.id">
-            {{ item.name }}: {{ item.description }}
-          </p>
         </v-card-text>
       </div>
     </v-expand-transition>
@@ -96,23 +92,47 @@ import type { Troop } from '../models/troop'
 import TroopStatsTable from './TroopStatsTable.vue'
 import { ref, computed } from 'vue'
 import { formatCost } from '../models/cost'
+import { useFactionStore } from '../stores/factionStore'
+import { getTroopCost } from '../utils/equipmentUtils'
 
 const props = defineProps<{
   troop: Troop
+  warbandVariant?: any // Will be set when displaying with a specific variant
+  maxUnits?: number // Optional prop for max units allowed
 }>()
 
-const hasDetails = computed(() => {
-  return (
-    props.troop.equipmentDescription ||
-    props.troop.specialEquipment ||
-    props.troop.armyBuildingRules
-  )
+// Get the faction store
+const factionStore = useFactionStore()
+
+// Get the faction for this troop
+const faction = computed(() => {
+  return props.troop?.factionId 
+    ? factionStore.factions.find(f => f.id === props.troop.factionId)
+    : null
 })
 
+// Get the cost for this troop
+const troopCost = computed(() => {
+  if (!faction.value) return null
+  return getTroopCost(props.troop.id, faction.value, props.warbandVariant)
+})
+
+// Format the troop cost for display
+const formattedCost = computed(() => {
+  return troopCost.value ? formatCost(troopCost.value) : 'FREE'
+})
+
+// Check if there are details to show
+const hasDetails = computed(() => {
+  return props.troop.equipmentDescription || props.troop.armyBuildingRules
+})
+
+// Check if there are abilities to show
 const hasAbilities = computed(() => {
   return props.troop.abilities.length > 0
 })
 
+// Compute the header image style
 const headerImageStyle = computed(() => {
   if (props.troop.cardHeaderImageURI) {
     return {
@@ -124,9 +144,18 @@ const headerImageStyle = computed(() => {
   }
 })
 
+// Check if max units should be displayed
+const hasMaxUnits = computed(() => {
+  return props.maxUnits !== undefined
+})
+
+// Get the label for max units
+const maxUnitsLabel = computed(() => {
+  return props.maxUnits || 0
+})
+
 const showDetails = ref(false)
 const showAbilities = ref(false)
-const maxUnits = computed(() => Math.max(...props.troop.countAllowed))
 </script>
 
 <style scoped>

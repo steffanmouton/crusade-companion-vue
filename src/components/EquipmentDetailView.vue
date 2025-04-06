@@ -18,7 +18,31 @@
           {{ equipment.type }}
         </v-chip>
         <div class="text-h6">
-          {{ equipment.cost ? formatCost(equipment.cost) : 'FREE' }}
+          {{ getDisplayCost() }}
+        </div>
+      </div>
+
+      <!-- Handedness -->
+      <div v-if="equipment.handedness" class="mb-4">
+        <div class="text-subtitle-2 font-weight-medium mb-2">Handedness</div>
+        <v-chip color="info" variant="outlined">
+          {{ formatHandedness(equipment.handedness) }}
+        </v-chip>
+      </div>
+
+      <!-- Special and Limit indicators -->
+      <div v-if="equipment.isSpecial || equipment.limit || equipment.explorationOnly" class="mb-4">
+        <div class="text-subtitle-2 font-weight-medium mb-2">Special Rules</div>
+        <div class="d-flex flex-wrap gap-2">
+          <v-chip v-if="equipment.isSpecial" color="purple" variant="outlined">
+            Special Equipment
+          </v-chip>
+          <v-chip v-if="equipment.limit" color="warning" variant="outlined">
+            Limit: {{ equipment.limit }}
+          </v-chip>
+          <v-chip v-if="equipment.explorationOnly" color="error" variant="outlined">
+            Exploration Only
+          </v-chip>
         </div>
       </div>
 
@@ -108,6 +132,25 @@
           </li>
         </ul>
       </div>
+
+      <!-- Costs Table -->
+      <div v-if="shouldShowCostsTable()" class="mb-4">
+        <div class="text-subtitle-2 font-weight-medium mb-2">Costs By Variant</div>
+        <v-table density="compact">
+          <thead>
+            <tr>
+              <th>Variant</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(cost, variant) in equipment.costPerVariant" :key="variant">
+              <td>{{ variant }}</td>
+              <td>{{ formatCost(cost) }}</td>
+            </tr>
+          </tbody>
+        </v-table>
+      </div>
     </v-card-text>
   </v-card>
 </template>
@@ -115,9 +158,14 @@
 <script setup lang="ts">
 import type { Equipment } from '../models/equipment'
 import { formatCost } from '../models/cost'
+import { HandednessType } from '../models/equipment'
+import { formatEquipmentCostWithFactionInfo, hasVariableCosts, getEquipmentCostForVariant } from '../utils/equipmentUtils'
+import type { WarbandVariant } from '../models/warbandVariant'
 
-const { equipment } = defineProps<{
-  equipment: Equipment
+const { equipment, variantName, warbandVariant } = defineProps<{
+  equipment: Equipment,
+  variantName?: string,
+  warbandVariant?: WarbandVariant | null
 }>()
 
 const emit = defineEmits<{
@@ -141,6 +189,34 @@ function getEquipmentIcon(type: string) {
     default:
       return 'mdi-toolbox'
   }
+}
+
+// Add the formatHandedness function
+function formatHandedness(handedness: HandednessType | undefined): string {
+  if (!handedness) return '';
+  
+  switch (handedness) {
+    case HandednessType.ONE_HANDED:
+      return 'One-Handed Weapon'
+    case HandednessType.TWO_HANDED:
+      return 'Two-Handed Weapon'
+    case HandednessType.NO_HANDS:
+      return 'Requires No Hands'
+    case HandednessType.ONE_HAND_REQUIRED:
+      return 'Requires One Hand'
+    default:
+      return ''
+  }
+}
+
+// Add this to display the cost in the detail view
+function getDisplayCost(): string {
+  return formatEquipmentCostWithFactionInfo(equipment, variantName, formatCost, warbandVariant)
+}
+
+// Add this to check if we should display a costs table
+function shouldShowCostsTable(): boolean {
+  return hasVariableCosts(equipment) && Object.keys(equipment.costPerVariant).length > 1
 }
 </script>
 
