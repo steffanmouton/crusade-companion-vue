@@ -35,101 +35,187 @@
         ></v-text-field>
 
         <!-- Equipment section -->
-        <h3 class="text-subtitle-1 font-weight-medium mb-2">Equipment</h3>
+        <div class="mb-4">
+          <div class="d-flex justify-space-between align-center mb-2">
+            <h3 class="text-subtitle-1 font-weight-medium">Equipment</h3>
+          </div>
 
-        <!-- Equipment table -->
-        <v-table v-if="unitData.currentEquipment.length > 0" class="mb-3" density="compact">
-          <thead>
-            <tr>
-              <th class="text-left">Name</th>
-              <th class="text-left">Type</th>
-              <th class="text-right">Cost</th>
-              <th class="text-center" width="60">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(equipment, index) in unitData.currentEquipment" :key="index">
-              <td>{{ equipment.name }}</td>
-              <td class="text-caption">{{ equipment.type }}</td>
-              <td class="text-right">
-                <template
-                  v-if="
-                    props.troop.defaultEquipment?.some(
-                      (name) => name.toLowerCase() === equipment.name.toLowerCase(),
-                    )
-                  "
-                >
-                  <span class="free-label">FREE</span>
-                  <span v-if="equipment.cost" class="original-cost">
-                    {{ formatCost(equipment.cost) }}
-                  </span>
-                </template>
-                <template v-else>
-                  {{ equipment.cost ? formatCost(equipment.cost) : '-' }}
-                </template>
-              </td>
-              <td class="text-center">
-                <v-btn
-                  icon="mdi-delete"
-                  size="x-small"
-                  variant="text"
-                  color="error"
-                  @click="removeEquipment(index)"
-                  :disabled="
-                    props.troop.defaultEquipment?.some(
-                      (name) => name.toLowerCase() === equipment.name.toLowerCase(),
-                    )
-                  "
-                  density="comfortable"
-                ></v-btn>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
+          <!-- Equipment categories -->
+          <v-row>
+            <!-- Melee Weapons -->
+            <v-col cols="12">
+              <div class="mb-2">
+                <div class="d-flex align-center mb-2">
+                  <v-icon class="mr-2">mdi-sword</v-icon>
+                  <span class="text-subtitle-2 font-weight-medium">Melee Weapons</span>
+                </div>
+                <div class="equipment-list">
+                  <v-card
+                    v-for="item in getEquipmentOfType('Melee Weapon')"
+                    :key="item.id"
+                    class="equipment-slot equipment-slot-filled mb-2"
+                    @click="editEquipment(item)"
+                  >
+                    <v-card-text class="d-flex align-center justify-space-between pa-4">
+                      <div>
+                        <div class="text-subtitle-2">{{ item.name }}</div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ formatEquipmentCost(item) }}
+                        </div>
+                      </div>
+                      <v-btn
+                        icon="mdi-delete"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        @click="removeEquipment(item)"
+                      ></v-btn>
+                    </v-card-text>
+                  </v-card>
+                  <v-card class="equipment-slot" @click="openEquipmentSelection('Melee Weapon')">
+                    <v-card-text class="text-center pa-4">
+                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
+                    </v-card-text>
+                  </v-card>
+                </div>
+              </div>
+            </v-col>
 
-        <div v-else class="text-center py-4 mb-3 bg-grey-lighten-5 rounded">
-          <v-icon
-            icon="mdi-alert-circle-outline"
-            color="grey-lighten-1"
-            size="large"
-            class="mb-2"
-          ></v-icon>
-          <div class="text-body-2 text-grey">No equipment added yet</div>
+            <!-- Ranged Weapons -->
+            <v-col cols="12">
+              <div class="mb-2">
+                <div class="d-flex align-center mb-2">
+                  <v-icon class="mr-2">mdi-pistol</v-icon>
+                  <span class="text-subtitle-2 font-weight-medium">Ranged Weapons</span>
+                </div>
+                <div class="equipment-list">
+                  <v-card
+                    v-for="item in getEquipmentOfType('Ranged Weapon')"
+                    :key="item.id"
+                    class="equipment-slot equipment-slot-filled mb-2"
+                    @click="editEquipment(item)"
+                  >
+                    <v-card-text class="d-flex align-center justify-space-between pa-4">
+                      <div>
+                        <div class="text-subtitle-2">{{ item.name }}</div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ formatEquipmentCost(item) }}
+                        </div>
+                      </div>
+                      <v-btn
+                        icon="mdi-delete"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        @click="removeEquipment(item)"
+                      ></v-btn>
+                    </v-card-text>
+                  </v-card>
+                  <v-card class="equipment-slot" @click="openEquipmentSelection('Ranged Weapon')">
+                    <v-card-text class="text-center pa-4">
+                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
+                    </v-card-text>
+                  </v-card>
+                </div>
+              </div>
+            </v-col>
+
+            <!-- Armor -->
+            <v-col cols="12">
+              <div class="mb-2">
+                <div class="d-flex align-center mb-2">
+                  <v-icon class="mr-2">mdi-shield</v-icon>
+                  <span class="text-subtitle-2 font-weight-medium">Armor</span>
+                </div>
+                <div class="equipment-list">
+                  <v-card
+                    v-for="item in getEquipmentOfType('Armour')"
+                    :key="item.id"
+                    class="equipment-slot equipment-slot-filled mb-2"
+                    @click="editEquipment(item)"
+                  >
+                    <v-card-text class="d-flex align-center justify-space-between pa-4">
+                      <div>
+                        <div class="text-subtitle-2">{{ item.name }}</div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ formatEquipmentCost(item) }}
+                        </div>
+                      </div>
+                      <v-btn
+                        icon="mdi-delete"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        @click="removeEquipment(item)"
+                      ></v-btn>
+                    </v-card-text>
+                  </v-card>
+                  <v-card class="equipment-slot" @click="openEquipmentSelection('Armour')">
+                    <v-card-text class="text-center pa-4">
+                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
+                    </v-card-text>
+                  </v-card>
+                </div>
+              </div>
+            </v-col>
+
+            <!-- Other Equipment -->
+            <v-col cols="12">
+              <div class="mb-2">
+                <div class="d-flex align-center mb-2">
+                  <v-icon class="mr-2">mdi-toolbox</v-icon>
+                  <span class="text-subtitle-2 font-weight-medium">Other Equipment</span>
+                </div>
+                <div class="equipment-list">
+                  <v-card
+                    v-for="item in getEquipmentOfType('Other')"
+                    :key="item.id"
+                    class="equipment-slot equipment-slot-filled mb-2"
+                    @click="editEquipment(item)"
+                  >
+                    <v-card-text class="d-flex align-center justify-space-between pa-4">
+                      <div>
+                        <div class="text-subtitle-2">{{ item.name }}</div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ formatEquipmentCost(item) }}
+                        </div>
+                      </div>
+                      <v-btn
+                        icon="mdi-delete"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        @click="removeEquipment(item)"
+                      ></v-btn>
+                    </v-card-text>
+                  </v-card>
+                  <v-card class="equipment-slot" @click="openEquipmentSelection('Other')">
+                    <v-card-text class="text-center pa-4">
+                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
+                    </v-card-text>
+                  </v-card>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
         </div>
 
-        <!-- Add equipment section -->
-        <div class="d-flex align-center mb-4">
-          <v-select
-            v-model="selectedEquipment"
-            :items="availableEquipment"
-            item-title="name"
-            item-value="id"
-            return-object
-            label="Add equipment"
-            variant="outlined"
-            class="flex-grow-1 mr-2"
-            :hint="selectedEquipment?.cost ? 'Cost: ' + formatCost(selectedEquipment.cost) : ''"
-            persistent-hint
-          >
-            <template v-slot:item="{ item, props }">
-              <v-list-item
-                v-bind="props"
-                :subtitle="item?.raw?.cost ? 'Cost: ' + formatCost(item.raw.cost) : ''"
-              ></v-list-item>
-            </template>
-          </v-select>
-          <v-btn
-            color="primary"
-            variant="flat"
-            min-width="36"
-            width="36"
-            height="56"
-            :disabled="!selectedEquipment"
-            @click="addEquipment"
-          >
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-        </div>
+        <!-- Equipment Selection Dialog -->
+        <EquipmentSelectionDialog
+          v-model="showEquipmentSelectionDialog"
+          :selectedEquipment="unitData.currentEquipment"
+          :filterType="selectedEquipmentType"
+          :editingItem="selectedEquipmentForEdit"
+          @save="handleEquipmentSelection"
+        />
+
+        <!-- Equipment Detail Dialog -->
+        <EquipmentDetailDialog
+          v-model="showEquipmentDetailDialog"
+          :equipment="selectedEquipmentItem"
+          :selectedEquipment="unitData.currentEquipment"
+          @add="addEquipment"
+        />
 
         <!-- Cost summary -->
         <v-card class="cost-summary mb-4" elevation="0" variant="outlined">
@@ -195,6 +281,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { useEquipmentStore } from '../stores/equipmentStore'
 import { useUnitStore } from '../stores/unitStore'
 import LoadingIndicator from './LoadingIndicator.vue'
+import EquipmentSelectionDialog from './EquipmentSelectionDialog.vue'
+import EquipmentDetailDialog from './EquipmentDetailDialog.vue'
 
 // Props
 const props = defineProps<{
@@ -209,11 +297,17 @@ const emit = defineEmits(['save', 'close'])
 // State
 const form = ref()
 const saving = ref(false)
-const selectedEquipment = ref<Equipment | null>(null)
 const availableEquipment = ref<Equipment[]>([])
 const equipmentStore = useEquipmentStore()
 const unitStore = useUnitStore()
 const error = ref<string | null>(null)
+
+// Add state for equipment dialogs
+const showEquipmentSelectionDialog = ref(false)
+const showEquipmentDetailDialog = ref(false)
+const selectedEquipmentItem = ref<Equipment | null>(null)
+const selectedEquipmentType = ref<string>('')
+const selectedEquipmentForEdit = ref<Equipment | null>(null)
 
 // Computed
 const isEditing = computed(() => !!props.unit)
@@ -304,15 +398,28 @@ const totalCost = computed(() => {
 })
 
 // Methods
-function addEquipment() {
-  if (selectedEquipment.value) {
-    unitData.currentEquipment.push(selectedEquipment.value)
-    selectedEquipment.value = null
+function addEquipment(equipment: Equipment) {
+  if (!unitData.currentEquipment.some((item) => item.id === equipment.id)) {
+    unitData.currentEquipment.push(equipment)
   }
+  showEquipmentDetailDialog.value = false
+  selectedEquipmentItem.value = null
 }
 
-function removeEquipment(index: number) {
-  unitData.currentEquipment.splice(index, 1)
+function handleEquipmentSelection(items: Equipment[]) {
+  if (selectedEquipmentForEdit.value) {
+    // Replace the edited item
+    const index = unitData.currentEquipment.findIndex(
+      (item) => item.id === selectedEquipmentForEdit.value?.id,
+    )
+    if (index !== -1) {
+      unitData.currentEquipment.splice(index, 1)
+    }
+  }
+  // Add the new items
+  unitData.currentEquipment.push(...items)
+  selectedEquipmentForEdit.value = null
+  showEquipmentSelectionDialog.value = false
 }
 
 async function saveUnit() {
@@ -448,6 +555,37 @@ async function loadAvailableEquipment() {
 
 // Watch for troop changes to reload available equipment
 watch(() => props.troop, loadAvailableEquipment)
+
+function getEquipmentOfType(type: string) {
+  return unitData.currentEquipment.filter((item) => item.type === type)
+}
+
+// Add this helper function to handle cost formatting
+function formatEquipmentCost(equipment: Equipment | undefined) {
+  if (!equipment?.cost) return 'FREE'
+  return formatCost(equipment.cost)
+}
+
+function removeEquipment(equipment: Equipment) {
+  const index = unitData.currentEquipment.findIndex((item) => item.id === equipment.id)
+  if (index !== -1) {
+    unitData.currentEquipment.splice(index, 1)
+  }
+}
+
+// Add this function to handle opening the equipment selection dialog
+function openEquipmentSelection(type: string) {
+  selectedEquipmentForEdit.value = null
+  selectedEquipmentType.value = type
+  showEquipmentSelectionDialog.value = true
+}
+
+// Add the editEquipment function
+function editEquipment(item: Equipment) {
+  selectedEquipmentForEdit.value = item
+  selectedEquipmentType.value = item.type
+  showEquipmentSelectionDialog.value = true
+}
 </script>
 
 <style scoped>
@@ -488,5 +626,35 @@ watch(() => props.troop, loadAvailableEquipment)
 .free-label {
   color: #2e7d32;
   font-weight: 500;
+}
+
+.equipment-slot {
+  height: 100%;
+  min-height: 80px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+}
+
+.equipment-slot:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: rgba(var(--v-theme-primary), 0.5);
+}
+
+.equipment-slot-filled {
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.equipment-slot-filled:hover {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 </style>
