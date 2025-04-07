@@ -283,6 +283,7 @@ function printToPdf() {
       <head>
         <title>${props.army.name} - Quick Reference</title>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css" rel="stylesheet">
         <style>
           /* Vuetify base styles */
           :root {
@@ -292,6 +293,41 @@ function printToPdf() {
             --v-theme-info: #2196f3;
             --v-theme-success: #4caf50;
             --v-theme-warning: #fb8c00;
+          }
+
+          /* Material Design Icons */
+          .mdi::before {
+            font-family: 'Material Design Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 1.5em;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+          }
+
+          .mdi-dice-multiple::before {
+            content: "\\F076E";
+          }
+
+          /* Vuetify icon compatibility */
+          .v-icon {
+            font-family: 'Material Design Icons';
+            font-size: 1em;
+            vertical-align: middle;
+            display: inline-flex;
+          }
+
+          .v-icon.v-icon--size-small {
+            font-size: 0.75em;
+          }
+
+          .v-icon.ml-1 {
+            margin-left: 0.25em;
           }
 
           body {
