@@ -92,7 +92,7 @@
                     <v-chip
                       v-if="
                         troop?.defaultEquipment?.some(
-                          (name) => name.toLowerCase() === item.name.toLowerCase(),
+                          (name) => `tc-eq-${name.toLowerCase().replace(/\s+/g, '-')}` === item.id
                         )
                       "
                       size="x-small"
@@ -401,11 +401,6 @@ function handleImageError(value: string | undefined) {
   background-color: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
   margin-top: 4px;
-}
-
-.desktop-image,
-.mobile-image {
-  /* These classes are no longer needed */
 }
 
 /* Mobile responsive layout */

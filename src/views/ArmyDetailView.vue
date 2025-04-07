@@ -102,7 +102,7 @@ onUnmounted(() => {
 onMounted(async () => {
   // Initialize the equipment store first to ensure equipment data is available for the UnitForm
   const equipmentStore = useEquipmentStore()
-  await equipmentStore.initializeEquipment()
+  await equipmentStore.fetchEquipment()
 
   // Initialize troops if they're not already loaded
   if (troopStore.troops.length === 0) {

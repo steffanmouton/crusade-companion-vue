@@ -4,23 +4,26 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
-import { FactionNames } from '../models/faction'
+import { useFactionStore } from '../stores/factionStore'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const armyStore = useArmyStore()
 const warbandVariantStore = useWarbandVariantStore()
+const factionStore = useFactionStore()
 
-// Create a list of faction options for the dropdown
-const factionOptions = Object.values(FactionNames).map((value) => ({
-  title: value,
-  value: value,
-}))
+// Create a list of faction options for the dropdown using playableFactions
+const factionOptions = computed(() => {
+  return factionStore.playableFactions.map((faction) => ({
+    title: faction.name,
+    value: faction.name,
+  }))
+})
 
 // Form state
 const name = ref('')
-const faction = ref<string>(FactionNames.TRENCH_PILGRIMS) // Default faction
+const faction = ref<string>('') // Will set a default after loading factions
 const targetPoints = ref(0)
 const currency = ref(0) // For Starting Glory Points
 const description = ref('')
@@ -37,36 +40,48 @@ const submitButtonText = computed(() => (isEditMode.value ? 'Update Army' : 'Cre
 
 // Computed property for available warband variants
 const availableWarbandVariants = computed(() => {
-  return warbandVariantStore.warbandVariants.filter((variant) => variant.faction === faction.value)
+  return warbandVariantStore.warbandVariants.filter((variant) => variant.factionId ===
+    factionStore.factions.find(f => f.name === faction.value)?.id
+  );
 })
 
-// Load warband variants on mount
+// Load warband variants and factions on mount
 onMounted(async () => {
-  await warbandVariantStore.fetchWarbandVariants()
+  isLoading.value = true
+  try {
+    await Promise.all([
+      warbandVariantStore.fetchWarbandVariants(),
+      // Make sure factions are loaded
+      factionStore.factions.length === 0 ? Promise.resolve() : Promise.resolve()
+    ])
 
-  if (isEditMode.value && armyId.value) {
-    isLoading.value = true
-
-    try {
-      const army = await armyStore.loadArmy(armyId.value)
-
-      if (army) {
-        // Populate form with army data
-        name.value = army.name
-        faction.value = army.faction
-        targetPoints.value = army.targetPoints
-        currency.value = army.currency || 0
-        description.value = army.description || ''
-        warbandVariantId.value = army.warbandVariantId || null
-      } else {
-        errorMessage.value = 'Army not found'
-        router.push('/dashboard')
-      }
-    } catch (error: any) {
-      errorMessage.value = error.message || 'Failed to load army'
-    } finally {
-      isLoading.value = false
+    // Set default faction if none is set
+    if (!faction.value && factionStore.playableFactions.length > 0) {
+      faction.value = factionStore.playableFactions[0].name
     }
+
+    if (isEditMode.value && armyId.value) {
+      try {
+        const army = await armyStore.loadArmy(armyId.value)
+
+        if (army) {
+          // Populate form with army data
+          name.value = army.name
+          faction.value = army.faction
+          targetPoints.value = army.targetPoints
+          currency.value = army.currency || 0
+          description.value = army.description || ''
+          warbandVariantId.value = army.warbandVariantId || null
+        } else {
+          errorMessage.value = 'Army not found'
+          router.push('/dashboard')
+        }
+      } catch (error: any) {
+        errorMessage.value = error.message || 'Failed to load army'
+      }
+    }
+  } finally {
+    isLoading.value = false
   }
 })
 
@@ -147,8 +162,8 @@ const handleSubmit = async () => {
 
       if (army) {
         successMessage.value = 'Army created successfully'
-        // Navigate to the new army detail after a short delay
-        setTimeout(() => router.push(`/army/${army.id}`), 1500)
+        // Navigate to the dashboard after a short delay
+        setTimeout(() => router.push('/dashboard'), 1500)
       } else {
         throw new Error('Failed to create army')
       }

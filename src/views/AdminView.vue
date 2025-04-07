@@ -517,15 +517,13 @@ async function seedEquipment() {
   seeding.value.equipment = true
   try {
     const db = getFirestore()
-    const equipmentCollection = collection(db, 'equipment')
 
     // Add each equipment item to Firestore
     for (const item of equipmentSeed) {
-      // Extract all properties except id using destructuring and rest
-      const { id: _itemId, ...itemDataWithoutId } = item
-      await addDoc(equipmentCollection, {
-        originalId: _itemId, // Store the original ID as a field
-        ...itemDataWithoutId,
+      // Use the item's id as the document ID
+      const equipmentRef = doc(db, 'equipment', item.id)
+      await setDoc(equipmentRef, {
+        ...item,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       })

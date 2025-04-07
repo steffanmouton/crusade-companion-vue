@@ -74,9 +74,23 @@
                     {{ getEquipmentIcon(equipment?.type) }}
                   </v-icon>
                   <div class="text-h5 mb-2">
-                    {{ equipment?.cost ? formatCost(equipment.cost) : 'FREE' }}
+                    {{ formatEquipmentCostWithVariant(equipment) }}
                   </div>
                   <div class="text-caption text-medium-emphasis">Cost</div>
+                </div>
+              </v-card-text>
+            </v-card>
+
+            <v-card v-if="getLimit(equipment)" variant="outlined" class="mb-4">
+              <v-card-text>
+                <div class="text-center">
+                  <v-icon size="large" color="warning" class="mb-2">
+                    mdi-counter
+                  </v-icon>
+                  <div class="text-h5 mb-2">
+                    Limit: {{ getLimit(equipment) }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">Maximum allowed per warband</div>
                 </div>
               </v-card-text>
             </v-card>
@@ -108,12 +122,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Equipment } from '../models/equipment'
+import type { WarbandVariant } from '../models/warbandVariant'
+import type { Faction } from '../models/faction'
 import { formatCost } from '../models/cost'
+import { getEquipmentCost, getEquipmentLimit } from '../utils/equipmentUtils'
 
 const props = defineProps<{
   modelValue: boolean
   equipment: Equipment | null
   selectedEquipment: Equipment[]
+  variantName?: string
+  warbandVariant?: WarbandVariant | null
+  faction?: Faction | null
 }>()
 
 const emit = defineEmits(['update:modelValue', 'add'])
@@ -154,6 +174,32 @@ function addToUnit() {
     emit('add', props.equipment)
     closeDialog()
   }
+}
+
+// Format equipment cost using faction info
+function formatEquipmentCostWithVariant(equipment: Equipment | null): string {
+  if (!equipment || !props.faction) return 'FREE'
+
+  const cost = getEquipmentCost(
+    equipment,
+    props.faction,
+    props.warbandVariant
+  );
+
+  if (!cost) return 'Not Available';
+  return formatCost(cost);
+}
+
+// Get equipment limit from faction rules
+function getLimit(equipment: Equipment | null): number | null {
+  if (!equipment || !props.faction) return null;
+  return getEquipmentLimit(equipment, props.faction, props.warbandVariant);
+}
+
+// Check if we should display variant costs section
+function hasVariantCosts(equipment: Equipment | null): boolean {
+  // This could be enhanced to actually check different variants of the same faction
+  return false; // Simplified for now, as we're moving away from this model
 }
 </script>
 

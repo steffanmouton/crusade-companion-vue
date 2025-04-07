@@ -18,7 +18,28 @@
           {{ equipment.type }}
         </v-chip>
         <div class="text-h6">
-          {{ equipment.cost ? formatCost(equipment.cost) : 'FREE' }}
+          {{ getDisplayCost() }}
+        </div>
+      </div>
+
+      <!-- Handedness -->
+      <div v-if="equipment.handedness && equipment.handedness !== HandednessType.NO_HANDS" class="mb-4">
+        <div class="text-subtitle-2 font-weight-medium mb-2">Handedness</div>
+        <v-chip color="info" variant="outlined">
+          {{ formatHandedness(equipment.handedness) }}
+        </v-chip>
+      </div>
+
+      <!-- Special and Limit indicators -->
+      <div v-if="equipment.isSpecial || equipment.explorationOnly" class="mb-4">
+        <div class="text-subtitle-2 font-weight-medium mb-2">Special Rules</div>
+        <div class="d-flex flex-wrap gap-2">
+          <v-chip v-if="equipment.isSpecial" color="purple" variant="outlined">
+            Special Equipment
+          </v-chip>
+          <v-chip v-if="equipment.explorationOnly" color="error" variant="outlined">
+            Exploration Only
+          </v-chip>
         </div>
       </div>
 
@@ -115,9 +136,15 @@
 <script setup lang="ts">
 import type { Equipment } from '../models/equipment'
 import { formatCost } from '../models/cost'
+import { HandednessType } from '../models/equipment'
+import { formatEquipmentCost } from '../utils/equipmentUtils'
+import type { WarbandVariant } from '../models/warbandVariant'
+import type { Faction } from '../models/faction'
 
-const { equipment } = defineProps<{
-  equipment: Equipment
+const { equipment, warbandVariant, faction } = defineProps<{
+  equipment: Equipment,
+  warbandVariant?: WarbandVariant | null,
+  faction?: Faction | null
 }>()
 
 const emit = defineEmits<{
@@ -141,6 +168,32 @@ function getEquipmentIcon(type: string) {
     default:
       return 'mdi-toolbox'
   }
+}
+
+// Add the formatHandedness function
+function formatHandedness(handedness: HandednessType | undefined): string {
+  if (!handedness) return '';
+
+  switch (handedness) {
+    case HandednessType.ONE_HANDED:
+      return 'One-Handed Weapon'
+    case HandednessType.TWO_HANDED:
+      return 'Two-Handed Weapon'
+    case HandednessType.NO_HANDS:
+      return 'Requires No Hands'
+    case HandednessType.ONE_HAND_REQUIRED:
+      return 'Requires One Hand'
+    default:
+      return ''
+  }
+}
+
+// Add this to display the cost in the detail view
+function getDisplayCost(): string {
+  if (!faction) {
+    return 'Not Available';
+  }
+  return formatEquipmentCost(equipment, faction, formatCost, warbandVariant);
 }
 </script>
 

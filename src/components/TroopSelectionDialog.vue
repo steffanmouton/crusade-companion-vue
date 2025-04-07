@@ -49,7 +49,8 @@
               v-for="troop in filteredTroopsByTab"
               :key="troop.id"
               :troop="troop"
-              :is-required="isRequiredUnit(troop)"
+              :is-required="isRequiredUnit()"
+              :warband-variant="currentWarbandVariant"
               @add-troop="selectTroop(troop)"
               @view-details="viewTroopDetails(troop)"
             />
@@ -88,6 +89,7 @@
 import { ref, computed, watch } from 'vue'
 import { useTroopStore } from '../stores/troopStore'
 import { useEquipmentStore } from '../stores/equipmentStore'
+import { useFactionStore } from '../stores/factionStore'
 import CondensedTroopCard from './CondensedTroopCard.vue'
 import TroopCard from './TroopCard.vue'
 import UnitForm from './UnitForm.vue'
@@ -111,19 +113,25 @@ const searchQuery = ref('')
 const selectedTroop = ref<Troop | null>(null)
 const troopStore = useTroopStore()
 const equipmentStore = useEquipmentStore()
+const factionStore = useFactionStore()
 const activeTab = ref('elites')
 
-// Watch for changes to modelValue prop
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    dialog.value = newValue
-  },
-)
+// Get faction ID from faction name
+const factionId = computed(() => {
+  return factionStore.factions.find(f => f.name === props.factionName)?.id || '';
+})
 
-// Watch for changes to dialog value
-watch(dialog, (newValue) => {
-  emit('update:modelValue', newValue)
+// Get current warband variant
+const currentWarbandVariant = computed(() => {
+  if (!factionId.value) return null;
+  const faction = factionStore.factions.find(f => f.id === factionId.value);
+  if (!faction?.variants) return null;
+  return faction.variants[0]; // For now, just use the first variant
+})
+
+// Watch for changes to modelValue prop
+watch(() => props.modelValue, (newValue) => {
+  dialog.value = newValue
   if (newValue) {
     if (!props.factionName) {
       console.error('No faction name provided')
@@ -132,6 +140,11 @@ watch(dialog, (newValue) => {
     }
     loadTroops()
   }
+})
+
+// Watch for changes to dialog value
+watch(dialog, (newValue) => {
+  emit('update:modelValue', newValue)
 })
 
 // Computed property for filtered troops
@@ -166,18 +179,14 @@ const filteredTroopsByTab = computed(() => {
             (troop) => troop.type === 'Troop' && troop.factionName === props.factionName,
           )
         : troops.filter(
-            (troop) =>
-              troop.type === 'Mercenary' && troop.mercenaryFactions?.includes(props.factionName),
+            // Filter mercenaries based on mercenaryFactions property
+            (troop) => troop.type === 'Mercenary' &&
+              (troop.mercenaryFactions?.includes(props.factionName) ||
+               troop.factionId === 'mercenary')
           )
 
   // Sort required units to the top
-  return filtered.sort((a, b) => {
-    const aRequired = isRequiredUnit(a)
-    const bRequired = isRequiredUnit(b)
-    if (aRequired && !bRequired) return -1
-    if (!aRequired && bRequired) return 1
-    return 0
-  })
+  return filtered.sort(() => 0);
 })
 
 // Methods
@@ -185,7 +194,7 @@ async function loadTroops() {
   loading.value = true
   try {
     // Initialize both troops and equipment
-    await Promise.all([troopStore.initializeTroops(), equipmentStore.initializeEquipment()])
+    await Promise.all([troopStore.initializeTroops(), equipmentStore.fetchEquipment()])
   } catch (error) {
     console.error('Error loading data:', error)
   } finally {
@@ -222,9 +231,10 @@ function saveUnit(unit: Unit) {
   dialog.value = false
 }
 
-// Function to check if a unit is required
-function isRequiredUnit(troop: Troop): boolean {
-  return troop.countAllowed.length === 1 && troop.countAllowed[0] === 1
+// Function to check if a unit is required - we don't have this concept yet, so return false
+function isRequiredUnit(): boolean {
+  // For now, no troops are required
+  return false;
 }
 </script>
 

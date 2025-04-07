@@ -9,6 +9,9 @@ import {
   getTimestamp,
 } from '../services/firestore'
 import { ref, computed } from 'vue'
+import { collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore'
+import { db } from '../services/firebase'
+import { warbandVariantsSeed } from '../seed/warbandVariantSeed'
 
 const COLLECTION_NAME = 'warbandVariants'
 
@@ -28,7 +31,7 @@ export const useWarbandVariantStore = defineStore('warbandVariant', () => {
   const warbandVariantsByFaction = computed(() => {
     const result: Record<string, FirestoreWarbandVariant[]> = {}
     warbandVariants.value.forEach((variant) => {
-      const faction = variant.faction
+      const faction = variant.factionId
       if (!result[faction]) {
         result[faction] = []
       }
@@ -130,6 +133,59 @@ export const useWarbandVariantStore = defineStore('warbandVariant', () => {
     }
   }
 
+  /**
+   * Seed the Firestore database with initial warband variant data
+   * Uses predefined IDs from the seed data as Firestore document IDs
+   */
+  async function seedWarbandVariants(force = false) {
+    loading.value = true
+    error.value = null
+
+    try {
+      // Check if collection is empty first, unless force is true
+      if (!force) {
+        const snapshot = await getDocs(collection(db, COLLECTION_NAME))
+        if (!snapshot.empty) {
+          console.log('WarbandVariants collection is not empty, skipping seed')
+          return
+        }
+      } else {
+        console.log('Force reseeding warband variants...')
+        // If force is true, delete existing documents first
+        const snapshot = await getDocs(collection(db, COLLECTION_NAME))
+        const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref))
+        await Promise.all(deletePromises)
+        console.log(`Deleted ${snapshot.size} existing warband variant documents`)
+      }
+
+      // Add timestamp fields to the seed data
+      const timestamp = getTimestamp()
+      const seedWithTimestamps = warbandVariantsSeed.map((variant: WarbandVariant) => ({
+        ...variant,
+        ...timestamp
+      }))
+
+      const seedPromises = seedWithTimestamps.map(async (variant: WarbandVariant & { createdAt: number, updatedAt: number }) => {
+        // Use the variant's predefined ID as the document ID
+        const variantRef = doc(db, COLLECTION_NAME, variant.id)
+        await setDoc(variantRef, variant)
+        console.log(`Seeded warband variant: ${variant.name} with ID ${variant.id}`)
+      })
+
+      await Promise.all(seedPromises)
+      console.log('WarbandVariants collection seeded successfully')
+
+      // Reload warband variants after seeding
+      initialized.value = false
+      await fetchWarbandVariants()
+    } catch (err) {
+      console.error('Error seeding warband variants:', err)
+      error.value = err instanceof Error ? err.message : 'Failed to seed warband variants'
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     warbandVariants,
     loading,
@@ -143,5 +199,6 @@ export const useWarbandVariantStore = defineStore('warbandVariant', () => {
     addWarbandVariant,
     updateWarbandVariant,
     deleteWarbandVariant,
+    seedWarbandVariants
   }
 })

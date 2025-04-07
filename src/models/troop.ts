@@ -1,26 +1,4 @@
 import type { Equipment } from './equipment'
-import type { Cost } from './cost'
-
-export interface Troop {
-  id: string
-  name: string
-  factionId: number
-  factionName: string
-  description: string
-  type: string
-  cost: Cost
-  armyBuildingRules?: string[]
-  stats: TroopStats
-  equipmentDescription: string
-  defaultEquipment?: string[]
-  specialEquipment?: Equipment[]
-  abilities: string[]
-  keywords: string[]
-  countAllowed: number[]
-  mercenaryFactions?: string[]
-  cardHeaderImageURI?: string
-  cardHeroSideImageURI?: string
-}
 
 export interface TroopStats {
   movement: number
@@ -29,4 +7,26 @@ export interface TroopStats {
   melee: number
   armor: number
   baseSize: number
+}
+
+export interface Troop {
+  id: string
+  name: string
+  factionId: string
+  factionName: string
+  description: string
+  type: string
+  armyBuildingRules?: string[]
+  stats: TroopStats
+  equipmentDescription: string
+  defaultEquipment?: string[]
+  isDefaultEquipmentRemovable?: boolean
+  isEquipmentLocked?: boolean
+  abilities: string[]
+  keywords: string[]
+  mercenaryFactions?: string[]
+  cardHeaderImageURI?: string
+  cardHeroSideImageURI?: string
+  warbandVariant?: string
+  specialRules?: string[]
 }
