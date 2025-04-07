@@ -64,6 +64,33 @@ export interface FactionEquipmentRules {
   };
 }
 
+export interface FactionTroopRules {
+  // Base costs for troops in this faction
+  costs: Record<string, Cost>;
+
+  // Limits on how many of each troop can be included
+  limits?: Record<string, number>;
+
+  // Available equipment for troops (could override troop defaults)
+  allowedEquipment?: {
+    [troopId: string]: string[]; // Array of equipment IDs allowed for this troop
+  };
+
+  // Restrictions on troops
+  restrictions?: {
+    // Minimum/maximum requirements for specific troop types
+    requirements?: Array<{
+      minCount?: number;
+      maxCount?: number;
+      troopIds?: string[];      // Applies to these specific troops
+      keywords?: string[];      // OR applies to troops with these keywords
+    }>;
+
+    // Global keyword-based restrictions
+    maxKeywordCounts?: Record<string, number>; // e.g. {"ELITE": 3} - max 3 ELITE troops
+  };
+}
+
 export interface ExternalEquipmentAllowance {
   // The faction ID that equipment can be sourced from
   factionId: string;
@@ -86,11 +113,13 @@ export interface Faction {
   name: string
   description: string
   iconUrl: string
-  troopTypes: string[]
   specialRules: string[]
 
   // Equipment rules for this faction
   equipmentRules: FactionEquipmentRules
+
+  // Troop rules for this faction
+  troopRules?: FactionTroopRules
 
   // Whether this faction can use equipment from other factions
   allowsExternalEquipment?: boolean

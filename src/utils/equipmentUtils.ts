@@ -3,7 +3,7 @@ import type { Faction } from '../models/faction'
 import type { WarbandVariant } from '../models/warbandVariant'
 import type { Cost } from '../models/cost'
 import type { Troop } from '../models/troop'
-import { createDucatsCost } from '../models/cost'
+import { createDucatsCost, CurrencyType } from '../models/cost'
 
 /**
  * Gets the cost of equipment for a specific faction and optional variant
@@ -362,6 +362,11 @@ export function getTroopCost(
     return faction.equipmentRules.mercenaryRules.costs[troopId];
   }
 
+  // Check faction base troop costs
+  if (faction.troopRules?.costs?.[troopId]) {
+    return faction.troopRules.costs[troopId];
+  }
+
   // If no cost defined, troop is not available for this faction/variant
   return null;
 }
@@ -423,4 +428,193 @@ export function getAvailableEquipmentForTroop(
     // Check if equipment is allowed for this troop
     return isEquipmentAllowedForTroop(equipment, troop, faction, variant);
   });
+}
+
+/**
+ * Gets the limit of how many of a specific troop can be included in a warband
+ */
+export function getTroopLimit(
+  troopId: string,
+  faction: Faction,
+  variant?: WarbandVariant | null
+): number {
+  // Check variant troop-specific overrides
+  if (variant?.troopSpecificOverrides?.[troopId]?.limit !== undefined) {
+    return variant.troopSpecificOverrides[troopId].limit as number;
+  }
+
+  // Check variant selective override
+  if (variant?.troopOverrides?.limits?.[troopId] !== undefined) {
+    return variant.troopOverrides.limits[troopId];
+  }
+
+  // Check faction base limits
+  if (faction.troopRules?.limits?.[troopId] !== undefined) {
+    return faction.troopRules.limits[troopId];
+  }
+
+  // If no specific limit defined, check if there's a mercenary limit
+  if (faction.equipmentRules.mercenaryRules?.limits?.[troopId] !== undefined) {
+    return faction.equipmentRules.mercenaryRules.limits[troopId];
+  }
+
+  return 0; // No limit by default
+}
+
+/**
+ * Checks if a troop composition meets the requirements specified in faction rules
+ */
+export function meetsTroopRequirements(
+  troopComposition: Record<string, number>,
+  troops: Troop[],
+  faction: Faction,
+  variant?: WarbandVariant | null
+): { meets: boolean; reason?: string } {
+  // Check variant-specific restrictions first if they exist
+  if (variant?.troopOverrides) {
+    // Variant may override availability - check if any troop is unavailable
+    for (const [troopId, count] of Object.entries(troopComposition)) {
+      if (count > 0 && variant.troopOverrides.availability?.[troopId] === false) {
+        return {
+          meets: false,
+          reason: `Troop ${troopId} is not available in this warband variant`
+        };
+      }
+    }
+  }
+
+  if (!faction.troopRules?.restrictions) {
+    return { meets: true };
+  }
+
+  // Check minimum/maximum requirements
+  if (faction.troopRules.restrictions.requirements) {
+    for (const req of faction.troopRules.restrictions.requirements) {
+      // Calculate how many troops in the composition match this requirement
+      let matchCount = 0;
+
+      // Check specific troop IDs
+      if (req.troopIds) {
+        for (const troopId of req.troopIds) {
+          matchCount += troopComposition[troopId] || 0;
+        }
+      }
+
+      // Check keywords
+      if (req.keywords) {
+        const troopsWithKeywords = troops.filter(troop =>
+          req.keywords?.every(keyword => troop.keywords.includes(keyword))
+        );
+        for (const troop of troopsWithKeywords) {
+          matchCount += troopComposition[troop.id] || 0;
+        }
+      }
+
+      // Check minimum requirement
+      if (req.minCount !== undefined && matchCount < req.minCount) {
+        const description = req.troopIds ?
+          `troops (${req.troopIds.join(', ')})` :
+          `troops with keywords [${req.keywords?.join(', ')}]`;
+        return {
+          meets: false,
+          reason: `Need at least ${req.minCount} ${description}, only have ${matchCount}`
+        };
+      }
+
+      // Check maximum requirement
+      if (req.maxCount !== undefined && matchCount > req.maxCount) {
+        const description = req.troopIds ?
+          `troops (${req.troopIds.join(', ')})` :
+          `troops with keywords [${req.keywords?.join(', ')}]`;
+        return {
+          meets: false,
+          reason: `Can have at most ${req.maxCount} ${description}, have ${matchCount}`
+        };
+      }
+    }
+  }
+
+  // Check keyword-based maximums
+  if (faction.troopRules.restrictions.maxKeywordCounts) {
+    const keywordCounts: Record<string, number> = {};
+
+    // Count troops with each keyword
+    for (const [troopId, count] of Object.entries(troopComposition)) {
+      const troop = troops.find(t => t.id === troopId);
+      if (troop) {
+        for (const keyword of troop.keywords) {
+          keywordCounts[keyword] = (keywordCounts[keyword] || 0) + count;
+        }
+      }
+    }
+
+    // Check against maximum allowed
+    for (const [keyword, maxCount] of Object.entries(faction.troopRules.restrictions.maxKeywordCounts)) {
+      const currentCount = keywordCounts[keyword] || 0;
+      if (currentCount > maxCount) {
+        return {
+          meets: false,
+          reason: `Can have at most ${maxCount} troops with the ${keyword} keyword, have ${currentCount}`
+        };
+      }
+    }
+  }
+
+  // All checks passed
+  return { meets: true };
+}
+
+/**
+ * Calculates the total cost of a warband
+ */
+export function calculateWarbandCost(
+  units: Array<{
+    troopId: string,
+    equipment: Equipment[]
+  }>,
+  troops: Troop[],
+  faction: Faction,
+  variant?: WarbandVariant | null
+): { ducats: number; gloryPoints: number } {
+  let totalDucats = 0;
+  let totalGloryPoints = 0;
+
+  for (const unit of units) {
+    // Get the troop
+    const troop = troops.find(t => t.id === unit.troopId);
+    if (!troop) continue;
+
+    // Add troop cost
+    const troopCost = getTroopCost(unit.troopId, faction, variant);
+    if (troopCost) {
+      for (const currency of troopCost.currencies) {
+        if (currency.type === CurrencyType.DUCATS) {
+          totalDucats += currency.amount;
+        } else if (currency.type === CurrencyType.GLORY_POINTS) {
+          totalGloryPoints += currency.amount;
+        }
+      }
+    }
+
+    // Add equipment costs
+    for (const equipment of unit.equipment) {
+      // Skip equipment that is part of default loadout
+      if (troop.defaultEquipment?.includes(equipment.id)) {
+        continue;
+      }
+
+      const equipmentCost = getEquipmentCost(equipment, faction, variant);
+      if (equipmentCost) {
+        for (const currency of equipmentCost.currencies) {
+          if (currency.type === CurrencyType.DUCATS) {
+            totalDucats += currency.amount;
+          } else if (currency.type === CurrencyType.GLORY_POINTS) {
+            totalGloryPoints += currency.amount;
+          }
+        }
+      }
+    }
+  }
+
+  return { ducats: totalDucats, gloryPoints: totalGloryPoints };
 }

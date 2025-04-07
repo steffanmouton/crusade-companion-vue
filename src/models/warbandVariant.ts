@@ -59,10 +59,12 @@ export interface WarbandVariant {
   }
   troopOverrides?: {
     costs?: Record<string, Cost>
+    limits?: Record<string, number> // Limits for troops
     availability?: Record<string, boolean>
   }
   troopSpecificOverrides?: Record<string, {
     pointCost?: number
+    limit?: number
     equipment?: string[]
   }>
 }
