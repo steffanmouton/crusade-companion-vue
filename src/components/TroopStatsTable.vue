@@ -2,7 +2,10 @@
   <div class="troop-stats-table">
     <div class="stat-container" v-for="(stat, index) in stats" :key="stat.name">
       <div class="stat-name">{{ stat.name }}</div>
-      <div class="stat-value">{{ stat.value }}</div>
+      <div class="stat-value">
+        {{ stat.value }}
+        <v-icon v-if="stat.showDice" size="small" class="ml-1">mdi-dice-multiple</v-icon>
+      </div>
       <div class="stat-divider" v-if="index < stats.length - 1"></div>
     </div>
   </div>
@@ -20,10 +23,26 @@ const props = defineProps<{
 
 // Create an array of stats to display
 const stats = computed(() => [
-  { name: 'Movement', value: props.movement },
-  { name: 'Ranged', value: props.ranged > 0 ? `+${props.ranged}` : props.ranged },
-  { name: 'Melee', value: props.melee > 0 ? `+${props.melee}` : props.melee },
-  { name: 'Armor', value: props.armor > 0 ? `+${props.armor}` : props.armor },
+  {
+    name: 'Movement',
+    value: `${props.movement}"`,
+    showDice: false
+  },
+  {
+    name: 'Ranged',
+    value: props.ranged === 0 ? '-' : (props.ranged > 0 ? `+${props.ranged}` : props.ranged),
+    showDice: props.ranged !== 0
+  },
+  {
+    name: 'Melee',
+    value: props.melee === 0 ? '-' : (props.melee > 0 ? `+${props.melee}` : props.melee),
+    showDice: props.melee !== 0
+  },
+  {
+    name: 'Armor',
+    value: props.armor > 0 ? `+${props.armor}` : props.armor,
+    showDice: false
+  },
 ])
 </script>
 

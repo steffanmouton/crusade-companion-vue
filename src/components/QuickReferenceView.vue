@@ -61,7 +61,7 @@
         <div class="unit-equipment">
           <h4 class="section-title">Equipment</h4>
           <ul class="equipment-list">
-            <li v-for="(item, index) in unit.currentEquipment" :key="index" class="equipment-item">
+            <li v-for="(item, index) in getSortedEquipment(unit.currentEquipment)" :key="index" class="equipment-item" @click="showEquipmentDetail(item)">
               <div class="equipment-name">
                 <v-icon size="small" class="mr-1">{{ getEquipmentIcon(item.type) }}</v-icon>
                 {{ item.name }}
@@ -81,6 +81,33 @@
                 </v-chip>
               </div>
 
+              <!-- Display handedness, range for weapons -->
+              <div v-if="item.type === 'Melee Weapon' || item.type === 'Ranged Weapon'" class="equipment-details">
+                <div class="d-flex flex-wrap align-center gap-1 mt-1">
+                  <!-- Handedness -->
+                  <v-chip
+                    v-if="item.handedness"
+                    size="x-small"
+                    color="info"
+                    variant="flat"
+                    class="mr-1"
+                  >
+                    {{ formatHandedness(item.handedness) }}
+                  </v-chip>
+
+                  <!-- Range -->
+                  <v-chip
+                    v-if="item.range"
+                    size="x-small"
+                    color="primary"
+                    variant="flat"
+                    class="mr-1"
+                  >
+                    {{ item.range }}
+                  </v-chip>
+                </div>
+              </div>
+
               <div v-if="item.modifiers && item.modifiers.length > 0" class="equipment-modifiers">
                 {{ item.modifiers.join(', ') }}
               </div>
@@ -92,26 +119,6 @@
               </div>
             </li>
             <li v-if="unit.currentEquipment.length === 0" class="no-equipment">No equipment</li>
-          </ul>
-        </div>
-
-        <!-- Special Equipment -->
-        <div v-if="getTroop(unit.troopId)?.specialEquipment?.length" class="unit-special-equipment">
-          <h4 class="section-title">Special Equipment</h4>
-          <ul class="special-equipment-list">
-            <li
-              v-for="(item, index) in getTroop(unit.troopId)?.specialEquipment ?? []"
-              :key="index"
-              class="special-equipment-item"
-            >
-              <div class="equipment-name">
-                <v-icon size="small" class="mr-1">{{ getEquipmentIcon(item.type) }}</v-icon>
-                <strong>{{ item.name }}</strong>
-              </div>
-              <div class="equipment-description">
-                {{ item.description }}
-              </div>
-            </li>
           </ul>
         </div>
 
@@ -177,6 +184,15 @@
         </li>
       </ul>
     </div>
+
+    <!-- Add equipment detail dialog -->
+    <v-dialog v-model="showEquipmentDetailDialog" max-width="800">
+      <EquipmentDetailView
+        v-if="selectedEquipmentItem"
+        :equipment="selectedEquipmentItem"
+        @close="closeEquipmentDetailDialog"
+      />
+    </v-dialog>
   </div>
 </template>
 
@@ -187,6 +203,9 @@ import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import TroopStatsTable from './TroopStatsTable.vue'
 import type { Army } from '../types/firebase'
 import type { Unit } from '../models/unit'
+import type { Equipment } from '../models/equipment'
+import { HandednessType, EquipmentCategory } from '../models/equipment'
+import EquipmentDetailView from './EquipmentDetailView.vue'
 
 const props = defineProps<{
   units: Unit[]
@@ -552,6 +571,68 @@ const warbandVariant = computed(() => {
   if (!props.army.warbandVariantId) return null
   return warbandVariantStore.warbandVariants.find((v) => v.id === props.army.warbandVariantId)
 })
+
+// Equipment detail dialog state
+const showEquipmentDetailDialog = ref(false)
+const selectedEquipmentItem = ref<Equipment | null>(null)
+
+// Function to show equipment detail dialog
+function showEquipmentDetail(equipment: Equipment) {
+  selectedEquipmentItem.value = equipment
+  showEquipmentDetailDialog.value = true
+}
+
+// Function to close equipment detail dialog
+function closeEquipmentDetailDialog() {
+  showEquipmentDetailDialog.value = false
+  selectedEquipmentItem.value = null
+}
+
+// Format handedness for display
+function formatHandedness(handedness: HandednessType | undefined): string {
+  if (!handedness) return '';
+
+  switch (handedness) {
+    case HandednessType.ONE_HANDED:
+      return '1-Hand'
+    case HandednessType.TWO_HANDED:
+      return '2-Hand'
+    case HandednessType.NO_HANDS:
+      return 'No Hands'
+    case HandednessType.ONE_HAND_REQUIRED:
+      return 'Requires Hand'
+    default:
+      return ''
+  }
+}
+
+// Add getSortedEquipment function to the script section to sort equipment in the same order as UnitForm
+function getSortedEquipment(equipment: Equipment[]) {
+  // Create a copy of the equipment array to avoid modifying the original
+  const equipmentCopy = [...equipment];
+
+  return equipmentCopy.sort((a, b) => {
+    // Define category priorities (lower number = higher priority)
+    const categoryPriority = {
+      [EquipmentCategory.MELEE_WEAPON]: 1,
+      [EquipmentCategory.RANGED_WEAPON]: 2,
+      [EquipmentCategory.ARMOUR]: 3,
+      [EquipmentCategory.SHIELD]: 3,
+      [EquipmentCategory.HEADGEAR]: 3,
+      [EquipmentCategory.EQUIPMENT]: 4,
+      [EquipmentCategory.GRENADE]: 4,
+      [EquipmentCategory.MUSICAL_INSTRUMENT]: 4,
+      [EquipmentCategory.STANDARD]: 4
+    };
+
+    // Get priorities or default to lowest priority (5)
+    const priorityA = categoryPriority[a.category] || 5;
+    const priorityB = categoryPriority[b.category] || 5;
+
+    // Sort by priority (ascending)
+    return priorityA - priorityB;
+  });
+}
 </script>
 
 <style scoped>
@@ -810,5 +891,20 @@ const warbandVariant = computed(() => {
   position: absolute;
   left: 0;
   color: var(--v-primary-base);
+}
+
+.equipment-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.equipment-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.equipment-details {
+  margin-left: 24px;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <v-card class="unit-card ma-2">
+  <v-card class="unit-card ma-2" :class="$attrs.class">
     <div v-if="!hasRequiredProperties" class="pa-4 text-center">
       <v-icon icon="mdi-alert" color="warning" class="mb-2"></v-icon>
       <div class="text-body-1">Invalid unit data structure</div>
@@ -77,9 +77,11 @@
             <h3 class="text-subtitle-2 font-weight-medium mt-3 mb-1">Equipment</h3>
             <v-list dense class="equipment-list">
               <v-list-item
-                v-for="(item, index) in unit.currentEquipment"
+                v-for="(item, index) in sortedEquipment"
                 :key="index"
                 class="pa-0 mb-2"
+                @click="showEquipmentDetail(item)"
+                :class="{ 'clickable-item': true }"
               >
                 <v-list-item-title>
                   <div class="d-flex align-center px-0 py-1">
@@ -105,9 +107,44 @@
                   </div>
                 </v-list-item-title>
 
-                <!-- Display modifiers if available -->
+                <!-- Display handedness, range, and modifiers for weapons -->
                 <v-list-item-subtitle
-                  v-if="item.modifiers && item.modifiers.length > 0"
+                  v-if="item.type === 'Melee Weapon' || item.type === 'Ranged Weapon'"
+                  class="mt-1 ml-8"
+                >
+                  <div class="d-flex flex-wrap align-center mb-1 gap-1">
+                    <!-- Handedness -->
+                    <v-chip
+                      v-if="item.handedness"
+                      size="x-small"
+                      color="info"
+                      variant="flat"
+                      class="mr-1"
+                    >
+                      {{ formatHandedness(item.handedness) }}
+                    </v-chip>
+
+                    <!-- Range -->
+                    <v-chip
+                      v-if="item.range"
+                      size="x-small"
+                      color="primary"
+                      variant="flat"
+                      class="mr-1"
+                    >
+                      {{ item.range }}
+                    </v-chip>
+                  </div>
+
+                  <!-- Modifiers -->
+                  <div v-if="item.modifiers && item.modifiers.length > 0" class="text-caption font-italic">
+                    {{ item.modifiers.join(', ') }}
+                  </div>
+                </v-list-item-subtitle>
+
+                <!-- Display modifiers for non-weapons -->
+                <v-list-item-subtitle
+                  v-else-if="item.modifiers && item.modifiers.length > 0"
                   class="mt-1 ml-8"
                 >
                   <div class="text-caption font-italic">
@@ -160,6 +197,15 @@
       </div>
     </div>
   </v-card>
+
+  <!-- Equipment Detail Dialog -->
+  <v-dialog v-model="showEquipmentDetailDialog" max-width="800">
+    <EquipmentDetailView
+      v-if="selectedEquipmentItem"
+      :equipment="selectedEquipmentItem"
+      @close="closeEquipmentDetailDialog"
+    />
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -171,10 +217,15 @@ import TroopStatsTable from './TroopStatsTable.vue'
 import { useTroopStore } from '../stores/troopStore'
 import { useUnitStore } from '../stores/unitStore'
 import LoadingIndicator from './LoadingIndicator.vue'
+import EquipmentDetailView from './EquipmentDetailView.vue'
+import { HandednessType } from '../models/equipment'
+import type { Equipment } from '../models/equipment'
+import { EquipmentCategory } from '../models/equipment'
 
 const props = defineProps<{
   unit: Unit
   armyId?: string
+  class?: string
 }>()
 
 const emit = defineEmits(['edit-unit', 'delete-unit'])
@@ -184,6 +235,10 @@ const unitStore = useUnitStore()
 const deleting = ref(false)
 const error = ref<string | null>(null)
 const troopsLoading = ref(false)
+
+// Equipment detail dialog state
+const showEquipmentDetailDialog = ref(false)
+const selectedEquipmentItem = ref<Equipment | null>(null)
 
 // Initialize troops if needed
 onMounted(async () => {
@@ -247,6 +302,36 @@ function getEquipmentIcon(type: string): string {
   }
 
   return typeMap[type] || 'mdi-circle-small'
+}
+
+// Format handedness for display
+function formatHandedness(handedness: HandednessType | undefined): string {
+  if (!handedness) return '';
+
+  switch (handedness) {
+    case HandednessType.ONE_HANDED:
+      return '1-Hand'
+    case HandednessType.TWO_HANDED:
+      return '2-Hand'
+    case HandednessType.NO_HANDS:
+      return 'No Hands'
+    case HandednessType.ONE_HAND_REQUIRED:
+      return 'Requires Hand'
+    default:
+      return ''
+  }
+}
+
+// Function to show equipment detail dialog
+function showEquipmentDetail(equipment: Equipment) {
+  selectedEquipmentItem.value = equipment
+  showEquipmentDetailDialog.value = true
+}
+
+// Function to close equipment detail dialog
+function closeEquipmentDetailDialog() {
+  showEquipmentDetailDialog.value = false
+  selectedEquipmentItem.value = null
 }
 
 // Define a reactive reference for window width
@@ -320,6 +405,35 @@ function handleImageError(value: string | undefined) {
     }
   }
 }
+
+// Add sorted equipment computed property in the script section
+// Sort equipment in the same order as UnitForm: Melee Weapons, Ranged Weapons, Armor/Shield/Headgear, Other
+const sortedEquipment = computed(() => {
+  // Create a copy of the equipment array to avoid modifying the original
+  const equipment = [...props.unit.currentEquipment];
+
+  return equipment.sort((a, b) => {
+    // Define category priorities (lower number = higher priority)
+    const categoryPriority = {
+      [EquipmentCategory.MELEE_WEAPON]: 1,
+      [EquipmentCategory.RANGED_WEAPON]: 2,
+      [EquipmentCategory.ARMOUR]: 3,
+      [EquipmentCategory.SHIELD]: 3,
+      [EquipmentCategory.HEADGEAR]: 3,
+      [EquipmentCategory.EQUIPMENT]: 4,
+      [EquipmentCategory.GRENADE]: 4,
+      [EquipmentCategory.MUSICAL_INSTRUMENT]: 4,
+      [EquipmentCategory.STANDARD]: 4
+    };
+
+    // Get priorities or default to lowest priority (5)
+    const priorityA = categoryPriority[a.category] || 5;
+    const priorityB = categoryPriority[b.category] || 5;
+
+    // Sort by priority (ascending)
+    return priorityA - priorityB;
+  });
+});
 </script>
 
 <style scoped>
@@ -401,6 +515,15 @@ function handleImageError(value: string | undefined) {
   background-color: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
   margin-top: 4px;
+}
+
+.clickable-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Mobile responsive layout */

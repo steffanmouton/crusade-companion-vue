@@ -568,6 +568,13 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
   background-color: #f9f9f9;
 }
 
+/* Mobile styles for buttons */
+@media (max-width: 600px) {
+  .d-flex.flex-wrap.gap-2 .v-btn:nth-child(2) {
+    margin-top: 8px;
+  }
+}
+
 /* Mobile styles for cost counter */
 @media (max-width: 600px) {
   .cost-counter {
