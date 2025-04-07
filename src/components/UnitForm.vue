@@ -34,6 +34,16 @@
           class="mb-4"
         ></v-text-field>
 
+        <!-- Unit Image -->
+        <div class="mb-4">
+          <h3 class="text-subtitle-1 font-weight-medium mb-2">Unit Image</h3>
+          <ImageUploader
+            v-model="unitData.imageUrl"
+            :storage-path="`armies/${armyId}/units`"
+            button-text="Add Unit Image"
+          />
+        </div>
+
         <!-- Equipment section -->
         <div class="mb-4">
           <div class="d-flex justify-space-between align-center mb-2">
@@ -315,6 +325,7 @@ import type { WarbandVariant } from '../models/warbandVariant'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import { useArmyStore } from '../stores/army'
 import EquipmentCategoryBlock from './EquipmentCategoryBlock.vue'
+import ImageUploader from './ImageUploader.vue'
 
 // Props
 const props = defineProps<{
@@ -352,11 +363,6 @@ const isEditing = computed(() => !!props.unit)
 
 // Add a new computed property to get faction
 const faction = computed(() => {
-  // Log to debug faction ID lookup
-  console.log('Troop factionId in faction computed property:', props.troop?.factionId);
-  console.log('Troop factionName:', props.troop?.factionName);
-  console.log('Available factions:', factionStore.factions.map(f => ({ id: f.id, name: f.name })));
-
   // First try to find by faction name, which is more reliable
   if (props.troop?.factionName) {
     const factionByName = factionStore.factions.find(f =>
@@ -364,7 +370,6 @@ const faction = computed(() => {
     );
 
     if (factionByName) {
-      console.log('Found faction by name match:', factionByName.name, factionByName.id);
       return factionByName;
     }
   }
@@ -372,7 +377,6 @@ const faction = computed(() => {
   // If the factionId is a firestore ID (not matching tc-fc- pattern), we need to find it directly
   if (props.troop?.factionId && !props.troop.factionId.startsWith('tc-fc-')) {
     const foundFaction = factionStore.factions.find(f => f.id === props.troop.factionId);
-    console.log('Found faction by direct ID match:', foundFaction?.name || 'none');
     return foundFaction || null;
   }
 
@@ -381,7 +385,6 @@ const faction = computed(() => {
     // First try exact match
     const exactMatch = factionStore.factions.find(f => f.id === props.troop.factionId);
     if (exactMatch) {
-      console.log('Found faction by exact match:', exactMatch.name);
       return exactMatch;
     }
 
@@ -401,7 +404,6 @@ const faction = computed(() => {
     if (expectedFactionName) {
       const nameMatch = factionStore.factions.find(f => f.name === expectedFactionName);
       if (nameMatch) {
-        console.log('Found faction by expected name match:', nameMatch.name);
         return nameMatch;
       }
     }
@@ -412,7 +414,6 @@ const faction = computed(() => {
     ? factionStore.factions.find(f => f.id === props.troop.factionId.toString())
     : null;
 
-  console.log('Fallback faction result:', fallbackFaction?.name || 'none');
   return fallbackFaction;
 })
 
@@ -433,6 +434,7 @@ const unitData = reactive<{
   costCurrency: number
   currentEquipment: Equipment[]
   purchasedAbilities: string[]
+  imageUrl?: string
 }>({
   id: props.unit?.id || uuidv4(),
   name: props.unit?.name || props.troop.name,
@@ -441,6 +443,7 @@ const unitData = reactive<{
   costCurrency: props.unit?.costCurrency || 0,
   currentEquipment: props.unit?.currentEquipment || [],
   purchasedAbilities: props.unit?.purchasedAbilities || [],
+  imageUrl: props.unit?.imageUrl || '',
 })
 
 // Create a new computed property for troopCost
@@ -658,14 +661,6 @@ async function saveUnit() {
     const ducatsCost = getCostForCurrency(totalCost.value, CurrencyType.DUCATS)
     const gloryCost = getCostForCurrency(totalCost.value, CurrencyType.GLORY_POINTS)
 
-    console.log('Cost calculation:', {
-      totalCost: totalCost.value,
-      ducatsCost,
-      gloryCost,
-      baseCost: troopCost.value ? getCostForCurrency(troopCost.value, CurrencyType.DUCATS) : 0,
-      equipmentCost: getCostForCurrency(equipmentCost.value, CurrencyType.DUCATS),
-    })
-
     unitData.costPoints = ducatsCost
     unitData.costCurrency = gloryCost
 
@@ -687,6 +682,7 @@ async function saveUnit() {
       battles: 0,
       kills: 0,
       notes: '',
+      imageUrl: unitData.imageUrl,
     }
 
     let result: any
@@ -728,6 +724,17 @@ onMounted(async () => {
     // Set default name based on troop type if new unit
     if (!isEditing.value && props.troop) {
       unitData.name = props.troop.name
+    }
+
+    // If editing, log the unit's image URL
+    if (isEditing.value && props.unit) {
+      console.log('Editing unit with image URL:', props.unit.imageUrl)
+
+      // Ensure imageUrl is properly set in unitData
+      if (props.unit.imageUrl) {
+        unitData.imageUrl = props.unit.imageUrl
+        console.log('Set unitData.imageUrl to:', unitData.imageUrl)
+      }
     }
 
     // Load associated army and warband variant if available

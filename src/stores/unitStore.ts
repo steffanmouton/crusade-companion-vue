@@ -10,6 +10,7 @@ import {
 import { where } from 'firebase/firestore'
 import type { Unit } from '../types/firebase'
 import { useArmyStore } from './army'
+import { deleteImage } from '../services/storage'
 
 const COLLECTION_NAME = 'units'
 
@@ -21,6 +22,7 @@ interface UnitWithCost extends Unit {
   costCurrency: number
   currentEquipment: { name: string; type: string; modifiers?: string[]; rules?: string[] }[]
   purchasedAbilities: string[]
+  imageUrl?: string
 }
 
 export const useUnitStore = defineStore('unit', () => {
@@ -34,32 +36,24 @@ export const useUnitStore = defineStore('unit', () => {
     loading.value = true
     error.value = null
 
-    console.log('Loading units for army ID:', armyId)
-
     try {
       // Query units where armyId matches
-      console.log('Querying Firestore collection:', COLLECTION_NAME)
       const result = await getDocuments<UnitWithCost>(COLLECTION_NAME, [
         where('armyId', '==', armyId),
       ])
-      console.log('Units loaded from Firestore:', {
-        count: result.length,
-        units: result.map((u) => ({ id: u.id, name: u.name })),
-      })
 
-      // Check if units have proper properties
-      if (result.length > 0) {
-        const sampleUnit = result[0]
-        console.log('Sample unit structure:', {
-          hasId: !!sampleUnit.id,
-          hasArmyId: !!sampleUnit.armyId,
-          hasTroopId: !!sampleUnit.troopId,
-          hasCostPoints: sampleUnit.costPoints !== undefined,
-          keys: Object.keys(sampleUnit),
-        })
-      }
+      // Process and store units with imageUrl properly preserved
+      units.value = result.map(unit => {
+        // Explicitly ensure the imageUrl is included and not undefined
+        const processedUnit = {
+          ...unit,
+          // Keep imageUrl if it exists
+          imageUrl: unit.imageUrl || undefined
+        };
 
-      units.value = result
+        return processedUnit;
+      });
+
       return result
     } catch (err: any) {
       console.error(`Error loading units for army ${armyId}:`, err)
@@ -155,6 +149,21 @@ export const useUnitStore = defineStore('unit', () => {
       // Get the original unit
       const originalUnit = units.value.find((u) => u.id === id)
       const originalArmyId = originalUnit?.armyId
+      const originalImageUrl = originalUnit?.imageUrl
+
+      // Check if we need to delete the old image - this happens when:
+      // 1. There was an original image
+      // 2. The image is being changed (either to a new image or to null/undefined)
+      // 3. The new image URL is different from the old one
+      if (originalImageUrl &&
+          unitData.imageUrl !== undefined &&
+          originalImageUrl !== unitData.imageUrl) {
+        try {
+          await deleteImage(originalImageUrl);
+        } catch {
+          // Continue with unit update even if image deletion fails
+        }
+      }
 
       // Add updated timestamp
       const data = {
@@ -168,7 +177,15 @@ export const useUnitStore = defineStore('unit', () => {
       // Update in local state
       const index = units.value.findIndex((u) => u.id === id)
       if (index !== -1) {
-        units.value[index] = { ...units.value[index], ...data }
+        // Ensure we preserve important fields like imageUrl when updating
+        units.value[index] = {
+          ...units.value[index],
+          ...data,
+          // Explicitly ensure imageUrl is preserved if it exists in the update
+          imageUrl: unitData.imageUrl !== undefined
+            ? unitData.imageUrl
+            : units.value[index].imageUrl
+        }
       }
 
       // Refresh army points total if cost or army ID changed
@@ -193,66 +210,41 @@ export const useUnitStore = defineStore('unit', () => {
 
   // Delete a unit
   async function deleteUnit(id: string, armyId?: string) {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
 
     try {
       // Find the unit to get its army ID if not provided
-      const unitToDelete = units.value.find((u) => u.id === id)
-      console.log('Attempting to delete unit:', { id, unitToDelete })
+      const unitToDelete = units.value.find((u) => u.id === id);
+      const unitArmyId = armyId || unitToDelete?.armyId;
 
-      if (!unitToDelete) {
-        console.warn('Unit not found in local state:', id)
-      }
-
-      const unitArmyId = armyId || unitToDelete?.armyId
-
-      if (!unitArmyId) {
-        console.warn('No army ID provided or found for unit:', id)
+      // If the unit has an image, delete it from storage
+      if (unitToDelete?.imageUrl) {
+        try {
+          await deleteImage(unitToDelete.imageUrl);
+        } catch {
+          // Continue with unit deletion even if image deletion fails
+        }
       }
 
       // Delete from Firestore
-      console.log('Deleting unit from Firestore:', id)
-      await deleteDocument(COLLECTION_NAME, id)
-
-      // Verify the unit is deleted by trying to get it again
-      try {
-        const { getDocument } = await import('../services/firestore')
-        const deletedUnit = await getDocument(COLLECTION_NAME, id)
-        console.log('Verification after deletion:', { id, exists: !!deletedUnit })
-
-        if (deletedUnit) {
-          console.error('Unit still exists after deletion attempt:', deletedUnit)
-        }
-      } catch (verifyErr) {
-        console.warn('Error verifying deletion:', verifyErr)
-      }
+      await deleteDocument(COLLECTION_NAME, id);
 
       // Remove from local state
-      const countBefore = units.value.length
-      units.value = units.value.filter((u) => u.id !== id)
-      const countAfter = units.value.length
-
-      console.log('Unit removed from local state:', {
-        id,
-        removed: countBefore > countAfter,
-        countBefore,
-        countAfter,
-      })
+      units.value = units.value.filter((u) => u.id !== id);
 
       // Refresh army points total
       if (unitArmyId) {
-        await refreshArmyPoints(unitArmyId)
-        console.log('Army points refreshed for:', unitArmyId)
+        await refreshArmyPoints(unitArmyId);
       }
 
-      return true
+      return true;
     } catch (err: any) {
-      console.error(`Error deleting unit ${id}:`, err)
-      error.value = err.message || 'Failed to delete unit'
-      return false
+      console.error(`Error deleting unit ${id}:`, err);
+      error.value = err.message || 'Failed to delete unit';
+      return false;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 

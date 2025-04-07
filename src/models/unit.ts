@@ -9,4 +9,5 @@ export interface Unit {
   currentEquipment: Equipment[]
   purchasedAbilities: string[]
   isMercenary: boolean
+  imageUrl?: string
 }

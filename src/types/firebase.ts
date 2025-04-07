@@ -42,6 +42,7 @@ export interface Unit {
     rules?: string[]
   }[]
   purchasedAbilities: string[]
+  imageUrl?: string
   createdAt: number
   updatedAt: number
 }

@@ -21,8 +21,42 @@
       <div class="unit-container">
         <!-- Image container with conditional source -->
         <div class="unit-image-container">
+          <!-- Use different v-img approach based on whether we have a custom image -->
           <v-img
+            v-if="unitImageUrl"
             :src="isDesktop ? unitSideImage : unitImage"
+            :key="isDesktop ? 'side-' + unitImageUrl : 'mobile-' + unitImageUrl"
+            height="100%"
+            contain
+            @error="handleImageError"
+          >
+            <!-- Direct fallback image as a backup -->
+            <img
+              v-if="unitImageUrl"
+              :src="getValidImageUrl(unitImageUrl)"
+              style="width: 100%; height: 100%; object-fit: contain;"
+              :alt="unit.name + ' (custom image)'"
+              onerror="this.style.display='none'"
+            />
+
+            <template v-slot:placeholder>
+              <div class="d-flex align-center justify-center fill-height">
+                <v-progress-circular indeterminate color="grey-lighten-4"></v-progress-circular>
+              </div>
+            </template>
+            <template v-slot:error>
+              <div class="d-flex flex-column align-center justify-center fill-height">
+                <v-icon icon="mdi-image-off" size="48" color="grey-lighten-1" class="mb-2"></v-icon>
+                <span class="text-caption text-grey-lighten-1">Image failed to load</span>
+              </div>
+            </template>
+          </v-img>
+
+          <!-- Default troop image when no custom image is available -->
+          <v-img
+            v-else
+            :src="isDesktop ? unitSideImage : unitImage"
+            :key="isDesktop ? 'side-troop' : 'mobile-troop'"
             height="100%"
             contain
             @error="handleImageError"
@@ -33,8 +67,9 @@
               </div>
             </template>
             <template v-slot:error>
-              <div class="d-flex align-center justify-center fill-height">
-                <v-icon icon="mdi-image-off" size="48" color="grey-lighten-1"></v-icon>
+              <div class="d-flex flex-column align-center justify-center fill-height">
+                <v-icon icon="mdi-image-off" size="48" color="grey-lighten-1" class="mb-2"></v-icon>
+                <span class="text-caption text-grey-lighten-1">Image failed to load</span>
               </div>
             </template>
           </v-img>
@@ -221,6 +256,7 @@ import EquipmentDetailView from './EquipmentDetailView.vue'
 import { HandednessType } from '../models/equipment'
 import type { Equipment } from '../models/equipment'
 import { EquipmentCategory } from '../models/equipment'
+import { getValidImageUrl } from '../utils/imageUtils'
 
 const props = defineProps<{
   unit: Unit
@@ -264,27 +300,52 @@ const troopName = computed(() => {
   return troop.value ? troop.value.name : 'Unknown Troop'
 })
 
+// Create a computed property for the image URL to ensure we always get the latest value
+const unitImageUrl = computed(() => {
+  if (props.unit && props.unit.imageUrl) {
+    return props.unit.imageUrl;
+  }
+  return null;
+})
+
 // Get the image for mobile view (will also be fallback for desktop if side image fails)
 const unitImage = computed(() => {
+  // First check if the unit has a custom image
+  if (unitImageUrl.value) {
+    // Always ensure Firebase Storage URLs have alt=media parameter
+    const validatedUrl = getValidImageUrl(unitImageUrl.value);
+    return validatedUrl;
+  }
+
+  // Fall back to troop image
   if (troop.value?.cardHeaderImageURI) {
     // Remove any leading slash and ensure we're using the correct path
     const path = troop.value.cardHeaderImageURI.replace(/^\/+/, '')
-    return `/${path}`
+    return getValidImageUrl(path);
   }
+
   // Default placeholder image
   return '/img/placeholder-unit.jpg'
 })
 
 // Get the side image for desktop view
 const unitSideImage = computed(() => {
+  // First check if the unit has a custom image
+  if (unitImageUrl.value) {
+    // Always ensure Firebase Storage URLs have alt=media parameter
+    const validatedUrl = getValidImageUrl(unitImageUrl.value);
+    return validatedUrl;
+  }
+
   if (troop.value?.cardHeroSideImageURI) {
     // Remove any leading slash and ensure we're using the correct path
     const path = troop.value.cardHeroSideImageURI.replace(/^\/+/, '')
-    return `/${path}`
+    return getValidImageUrl(path);
   } else if (troop.value?.cardHeaderImageURI) {
     // Fall back to header image if no side image
     return unitImage.value
   }
+
   // Default placeholder image
   return '/img/placeholder-unit.jpg'
 })
@@ -398,6 +459,14 @@ const hasRequiredProperties = computed(() => {
 function handleImageError(value: string | undefined) {
   if (value) {
     console.error('Failed to load image:', value)
+    // Log the current unit data for debugging
+    console.log('Unit data:', {
+      id: props.unit.id,
+      name: props.unit.name,
+      hasImageUrl: !!props.unit.imageUrl,
+      imageUrl: props.unit.imageUrl
+    })
+
     // Try to load the placeholder image
     const img = document.querySelector(`img[src="${value}"]`) as HTMLImageElement
     if (img) {

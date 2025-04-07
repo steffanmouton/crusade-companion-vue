@@ -32,6 +32,16 @@ const unitsFromStore = computed(() => unitStore.units)
 
 // Convert units from Firestore format to the format expected by components
 const units = computed(() => {
+  // Log the units from store for debugging
+  console.log('Units from store before conversion:',
+    unitsFromStore.value.map(u => ({
+      id: u.id,
+      name: u.name,
+      imageUrl: u.imageUrl,
+      hasImageUrl: !!u.imageUrl
+    }))
+  );
+
   const convertedUnits = unitsFromStore.value.map((firestoreUnit) => {
     // First, create an object with optional properties expected by the UI
     const uiUnit: ModelUnit = {
@@ -53,9 +63,23 @@ const units = computed(() => {
       uiUnit.currentEquipment = firestoreUnit.currentEquipment as any[]
     if ('purchasedAbilities' in firestoreUnit)
       uiUnit.purchasedAbilities = firestoreUnit.purchasedAbilities as string[]
+    // Copy imageUrl if it exists
+    if ('imageUrl' in firestoreUnit && firestoreUnit.imageUrl)
+      uiUnit.imageUrl = firestoreUnit.imageUrl
 
     return uiUnit
   })
+
+  // Log converted units to debug
+  console.log('Units after conversion:',
+    convertedUnits.map(u => ({
+      id: u.id,
+      name: u.name,
+      imageUrl: u.imageUrl,
+      hasImageUrl: !!u.imageUrl
+    }))
+  );
+
   return convertedUnits
 })
 
