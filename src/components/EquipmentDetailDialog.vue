@@ -179,13 +179,13 @@ function addToUnit() {
 // Format equipment cost using faction info
 function formatEquipmentCostWithVariant(equipment: Equipment | null): string {
   if (!equipment || !props.faction) return 'FREE'
-  
+
   const cost = getEquipmentCost(
     equipment,
     props.faction,
     props.warbandVariant
   );
-  
+
   if (!cost) return 'Not Available';
   return formatCost(cost);
 }

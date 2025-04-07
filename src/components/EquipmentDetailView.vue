@@ -23,7 +23,7 @@
       </div>
 
       <!-- Handedness -->
-      <div v-if="equipment.handedness" class="mb-4">
+      <div v-if="equipment.handedness && equipment.handedness !== HandednessType.NO_HANDS" class="mb-4">
         <div class="text-subtitle-2 font-weight-medium mb-2">Handedness</div>
         <v-chip color="info" variant="outlined">
           {{ formatHandedness(equipment.handedness) }}
@@ -31,14 +31,11 @@
       </div>
 
       <!-- Special and Limit indicators -->
-      <div v-if="equipment.isSpecial || equipment.limit || equipment.explorationOnly" class="mb-4">
+      <div v-if="equipment.isSpecial || equipment.explorationOnly" class="mb-4">
         <div class="text-subtitle-2 font-weight-medium mb-2">Special Rules</div>
         <div class="d-flex flex-wrap gap-2">
           <v-chip v-if="equipment.isSpecial" color="purple" variant="outlined">
             Special Equipment
-          </v-chip>
-          <v-chip v-if="equipment.limit" color="warning" variant="outlined">
-            Limit: {{ equipment.limit }}
           </v-chip>
           <v-chip v-if="equipment.explorationOnly" color="error" variant="outlined">
             Exploration Only
@@ -132,25 +129,6 @@
           </li>
         </ul>
       </div>
-
-      <!-- Costs Table -->
-      <div v-if="shouldShowCostsTable()" class="mb-4">
-        <div class="text-subtitle-2 font-weight-medium mb-2">Costs By Variant</div>
-        <v-table density="compact">
-          <thead>
-            <tr>
-              <th>Variant</th>
-              <th>Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(cost, variant) in equipment.costPerVariant" :key="variant">
-              <td>{{ variant }}</td>
-              <td>{{ formatCost(cost) }}</td>
-            </tr>
-          </tbody>
-        </v-table>
-      </div>
     </v-card-text>
   </v-card>
 </template>
@@ -159,13 +137,14 @@
 import type { Equipment } from '../models/equipment'
 import { formatCost } from '../models/cost'
 import { HandednessType } from '../models/equipment'
-import { formatEquipmentCostWithFactionInfo, hasVariableCosts, getEquipmentCostForVariant } from '../utils/equipmentUtils'
+import { formatEquipmentCost } from '../utils/equipmentUtils'
 import type { WarbandVariant } from '../models/warbandVariant'
+import type { Faction } from '../models/faction'
 
-const { equipment, variantName, warbandVariant } = defineProps<{
+const { equipment, warbandVariant, faction } = defineProps<{
   equipment: Equipment,
-  variantName?: string,
-  warbandVariant?: WarbandVariant | null
+  warbandVariant?: WarbandVariant | null,
+  faction?: Faction | null
 }>()
 
 const emit = defineEmits<{
@@ -194,7 +173,7 @@ function getEquipmentIcon(type: string) {
 // Add the formatHandedness function
 function formatHandedness(handedness: HandednessType | undefined): string {
   if (!handedness) return '';
-  
+
   switch (handedness) {
     case HandednessType.ONE_HANDED:
       return 'One-Handed Weapon'
@@ -211,12 +190,10 @@ function formatHandedness(handedness: HandednessType | undefined): string {
 
 // Add this to display the cost in the detail view
 function getDisplayCost(): string {
-  return formatEquipmentCostWithFactionInfo(equipment, variantName, formatCost, warbandVariant)
-}
-
-// Add this to check if we should display a costs table
-function shouldShowCostsTable(): boolean {
-  return hasVariableCosts(equipment) && Object.keys(equipment.costPerVariant).length > 1
+  if (!faction) {
+    return 'Not Available';
+  }
+  return formatEquipmentCost(equipment, faction, formatCost, warbandVariant);
 }
 </script>
 

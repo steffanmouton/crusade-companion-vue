@@ -13,7 +13,7 @@
       <v-card-text class="pa-4">
         <!-- Add filter controls -->
         <v-row class="mb-4">
-          <v-col cols="12">
+          <v-col cols="12" sm="8">
             <v-checkbox
               v-model="showExplorationOnlyItems"
               label="Show Exploration-Only Items"
@@ -21,7 +21,73 @@
               density="compact"
             ></v-checkbox>
           </v-col>
+          <v-col cols="12" sm="4" class="d-flex justify-end">
+            <v-btn
+              size="small"
+              color="primary"
+              variant="outlined"
+              prepend-icon="mdi-refresh"
+              :loading="refreshing"
+              @click="forceRefreshData"
+            >
+              Refresh Data
+            </v-btn>
+          </v-col>
         </v-row>
+
+        <!-- Debug tools row -->
+        <v-expansion-panels variant="accordion" class="mb-4">
+          <v-expansion-panel title="Debug Tools">
+            <template v-slot:text>
+              <v-row>
+                <v-col cols="12">
+                  <v-card variant="outlined" class="pa-2 mb-2">
+                    <div class="d-flex mb-2">
+                      <v-icon color="warning" class="mr-2">mdi-tools</v-icon>
+                      <div class="text-subtitle-1">Admin Tools</div>
+                    </div>
+                    <v-btn
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                      class="mr-2 mb-2"
+                      prepend-icon="mdi-database-sync"
+                      :loading="reseedingFactions"
+                      @click="reseedFactionData"
+                    >
+                      Reseed Faction Data
+                    </v-btn>
+                    <v-btn
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                      class="mb-2"
+                      prepend-icon="mdi-database-sync"
+                      :loading="reseedingEquipment"
+                      @click="reseedEquipmentData"
+                    >
+                      Reseed Equipment Data
+                    </v-btn>
+                  </v-card>
+
+                  <v-card variant="outlined" class="pa-2">
+                    <div class="d-flex mb-2">
+                      <v-icon color="info" class="mr-2">mdi-information</v-icon>
+                      <div class="text-subtitle-1">Debug Information</div>
+                    </div>
+                    <div v-if="props.faction" class="text-caption">
+                      <strong>Faction:</strong> {{ props.faction.name }} ({{ props.faction.id }})<br>
+                      <strong>Equipment Types:</strong> {{ equipmentTypes.join(', ') }}<br>
+                      <strong>Total Equipment Items:</strong> {{ equipmentStore.equipment.length }}<br>
+                      <strong>Filtered Equipment:</strong> {{ filteredEquipment.length }}<br>
+                      <strong>Troop:</strong> {{ props.troop ? `${props.troop.name} (${props.troop.id})` : 'None' }}<br>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </template>
+          </v-expansion-panel>
+        </v-expansion-panels>
 
         <v-row>
           <v-col v-for="item in filteredEquipment" :key="item.id" cols="12" sm="6" md="4">
@@ -41,17 +107,46 @@
                     <v-chip size="small" color="primary" variant="outlined">
                       {{ formatEquipmentCostWithVariant(item) }}
                     </v-chip>
-                    <v-chip v-if="item.handedness" size="small" color="info" variant="outlined">
+                    <!-- Show bayonet lug feature -->
+                    <v-chip
+                      v-if="item.equipmentIndicator?.hasBayonetLug"
+                      size="small"
+                      color="warning"
+                      variant="flat"
+                    >
+                      Bayonet Lug
+                    </v-chip>
+                    <!-- Show shield combo feature -->
+                    <v-chip
+                      v-if="item.equipmentIndicator?.shieldCombo"
+                      size="small"
+                      color="warning"
+                      variant="flat"
+                    >
+                      Shield Combo
+                    </v-chip>
+                    <!-- Show handedness more prominently for weapons -->
+                    <v-chip
+                      v-if="item.handedness && item.handedness !== HandednessType.NO_HANDS &&
+                            (item.category === EquipmentCategory.MELEE_WEAPON || item.category === EquipmentCategory.RANGED_WEAPON)"
+                      size="small"
+                      color="info"
+                      variant="flat"
+                      class="font-weight-medium"
+                    >
                       {{ formatHandedness(item.handedness) }}
                     </v-chip>
-                    <v-chip v-if="item.isSpecial" size="small" color="purple" variant="outlined">
-                      Special
+                    <!-- Show handedness for non-weapons with less emphasis -->
+                    <v-chip
+                      v-else-if="item.handedness && item.handedness !== HandednessType.NO_HANDS"
+                      size="small"
+                      color="info"
+                      variant="outlined"
+                    >
+                      {{ formatHandedness(item.handedness) }}
                     </v-chip>
                     <v-chip v-if="hasLimit(item)" size="small" color="warning" variant="outlined">
                       Limit: {{ getLimit(item) }}
-                    </v-chip>
-                    <v-chip v-if="item.explorationOnly" size="small" color="error" variant="outlined">
-                      Exploration Only
                     </v-chip>
                   </div>
                   <div v-if="item.keywords && item.keywords.length > 0" class="mt-1">
@@ -104,9 +199,8 @@ import type { Faction } from '../models/faction'
 import { formatCost } from '../models/cost'
 import { useEquipmentStore } from '../stores/equipmentStore'
 import EquipmentDetailView from './EquipmentDetailView.vue'
-import { HandednessType } from '../models/equipment'
-import { 
-  formatEquipmentCost,
+import { HandednessType, EquipmentCategory } from '../models/equipment'
+import {
   getEquipmentCost,
   getEquipmentLimit,
   isEquipmentAllowedForTroop
@@ -135,36 +229,111 @@ const equipmentStore = useEquipmentStore()
 const factionStore = useFactionStore()
 const showDetailsDialog = ref(false)
 const selectedEquipmentForDetails = ref<Equipment | null>(null)
-
-// Add state for the checkbox
 const showExplorationOnlyItems = ref(false)
+const refreshing = ref(false)
+
+// Add these variables for the debug panel
+const reseedingFactions = ref(false)
+const reseedingEquipment = ref(false)
+
+// Computed property to get unique equipment types
+const equipmentTypes = computed(() => {
+  const types = new Set(equipmentStore.equipment.map(item => item.type))
+  return Array.from(types)
+})
 
 // Filter equipment by type
 const filteredEquipment = computed(() => {
-  return equipmentStore.equipment.filter((item) => {
-    // Filter by type
-    if (item.type !== props.filterType) return false
-    
-    // Filter out exploration-only items unless checkbox is checked
-    if (item.explorationOnly && !showExplorationOnlyItems.value) return false
-    
-    // Check if available based on faction rules
-    if (props.faction) {
-      const cost = getEquipmentCost(item, props.faction, props.warbandVariant);
-      if (!cost) return false;
-      
-      // If troop is provided, check if equipment is allowed for this troop
-      if (props.troop && !isEquipmentAllowedForTroop(item, props.troop, props.faction, props.warbandVariant)) {
-        return false;
-      }
-      
-      return true;
+  console.log('Filtering equipment by type:', props.filterType);
+
+  // First step: filter items by type
+  let typeFiltered: Equipment[];
+
+  if (props.filterType === 'Other') {
+    // For "Other", we want to show all items with category EQUIPMENT
+    typeFiltered = equipmentStore.equipment.filter(
+      (item: Equipment) => item.category === EquipmentCategory.EQUIPMENT
+    );
+  } else if (props.filterType === 'Armour') {
+    // For Armour, include ARMOUR, HEADGEAR, and SHIELD categories
+    typeFiltered = equipmentStore.equipment.filter(
+      (item: Equipment) => item.category === EquipmentCategory.ARMOUR ||
+                          item.category === EquipmentCategory.HEADGEAR ||
+                          item.category === EquipmentCategory.SHIELD
+    );
+  } else {
+    // For other types, filter by the type
+    typeFiltered = equipmentStore.equipment.filter(
+      (item: Equipment) => item.type === props.filterType
+    );
+  }
+
+  // If no faction, just return the type-filtered items
+  if (!props.faction) {
+    return typeFiltered;
+  }
+
+  // Temporary solution: If we have a troop but no faction, try to find the faction
+  if (props.troop && props.troop.factionId && !props.faction) {
+    const faction = factionStore.factions.find(f => f.id === props.troop.factionId);
+    if (faction) {
+      return filterEquipmentWithFaction(typeFiltered, faction);
     }
-    
-    // Fall back to simple type check if no faction provided
-    return true;
-  })
-})
+  }
+
+  // Normal case: we have a faction
+  return filterEquipmentWithFaction(typeFiltered, props.faction);
+});
+
+// Helper function to filter equipment with a faction
+function filterEquipmentWithFaction(items: Equipment[], faction: Faction) {
+  console.log(`Filtering ${items.length} items with faction ${faction.name}`);
+
+  // Get the list of equipment IDs that have costs defined for this faction
+  const equipmentIdsWithCosts = faction.equipmentRules?.costs
+    ? Object.keys(faction.equipmentRules.costs)
+    : [];
+
+  console.log(`Equipment IDs with costs in faction ${faction.name}:`, equipmentIdsWithCosts);
+
+  // First filter: equipment must have a cost defined
+  const costFiltered = items.filter(item => {
+    const hasCost = equipmentIdsWithCosts.includes(item.id);
+    if (!hasCost) {
+      console.log(`- ${item.name} (${item.id}) has no cost defined in faction ${faction.name}`);
+    }
+    return hasCost;
+  });
+
+  console.log(`After cost filter: ${costFiltered.length} items left`);
+
+  // Filter out exploration-only items unless checkbox is checked
+  const explorationFiltered = costFiltered.filter(item =>
+    !(item.keywords?.includes('EXPLORATION_ONLY') && !showExplorationOnlyItems.value)
+  );
+
+  console.log(`After exploration filter: ${explorationFiltered.length} items left`);
+
+  // If we don't have a troop, just return the items filtered by cost and exploration
+  if (!props.troop) {
+    return explorationFiltered;
+  }
+
+  // Final filter: equipment must be allowed for this troop
+  return explorationFiltered.filter(item => {
+    console.log(`Checking if ${item.name} (${item.id}) is allowed for ${props.troop.name} (${props.troop.id})`);
+
+    // Check troop restrictions specifically for this item
+    const troopRestrictions = faction.equipmentRules?.troopRestrictions?.[item.id];
+    if (troopRestrictions) {
+      console.log(`- This equipment has troop restrictions:`, troopRestrictions);
+    }
+
+    const isAllowed = isEquipmentAllowedForTroop(item, props.troop, faction, props.warbandVariant);
+    console.log(`- Is allowed: ${isAllowed}`);
+    return isAllowed;
+  });
+}
 
 // Track selected items
 const selectedItems = ref<Equipment[]>([])
@@ -203,7 +372,7 @@ function selectItem(item: Equipment) {
 // Format handedness for display
 function formatHandedness(handedness: HandednessType | undefined): string {
   if (!handedness) return '';
-  
+
   switch (handedness) {
     case HandednessType.ONE_HANDED:
       return '1-Hand'
@@ -258,13 +427,13 @@ function closeDetailsDialog() {
 // Format equipment cost using faction and variant info
 function formatEquipmentCostWithVariant(equipment: Equipment): string {
   if (!props.faction) return 'Not Available';
-  
+
   const cost = getEquipmentCost(
     equipment,
     props.faction,
     props.warbandVariant
   );
-  
+
   if (!cost) return 'Not Available';
   return formatCost(cost);
 }
@@ -279,6 +448,55 @@ function getLimit(equipment: Equipment): number | null {
 function hasLimit(equipment: Equipment): boolean {
   const limit = getLimit(equipment);
   return limit !== null && limit > 0;
+}
+
+// Add this function to force refresh equipment data
+async function forceRefreshData() {
+  refreshing.value = true
+  try {
+    console.log('Force refreshing data...')
+    await factionStore.syncWithFirestore()
+    await equipmentStore.fetchEquipment()
+    console.log('Data refresh complete')
+  } catch (error) {
+    console.error('Error refreshing data:', error)
+  } finally {
+    refreshing.value = false
+  }
+}
+
+// Functions for the debug panel
+async function reseedFactionData() {
+  reseedingFactions.value = true
+  try {
+    console.log('Force reseeding factions...')
+    await factionStore.seedFactions(true)
+    console.log('Faction reseed complete')
+  } catch (error) {
+    console.error('Error reseeding factions:', error)
+  } finally {
+    reseedingFactions.value = false
+  }
+}
+
+async function reseedEquipmentData() {
+  reseedingEquipment.value = true
+  try {
+    console.log('Force reseeding equipment...')
+    // First fetch equipment to ensure store is initialized
+    await equipmentStore.fetchEquipment()
+
+    // Then reseed
+    await equipmentStore.seedEquipment()
+
+    // Finally fetch the new data
+    await equipmentStore.fetchEquipment()
+    console.log('Equipment reseed complete')
+  } catch (error) {
+    console.error('Error reseeding equipment:', error)
+  } finally {
+    reseedingEquipment.value = false
+  }
 }
 </script>
 

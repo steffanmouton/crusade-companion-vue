@@ -26,6 +26,8 @@ export interface ValidationError {
 export enum WarningType {
   FACTION_LIMIT_EXCEEDED = 'faction-limit-exceeded',
   VARIANT_LIMIT_EXCEEDED = 'variant-limit-exceeded',
+  HANDEDNESS_WARNING = 'handedness-warning',
+  SPECIAL_EQUIPMENT_COMBO = 'special-equipment-combo',
 }
 
 export enum ErrorType {
@@ -62,6 +64,9 @@ export function validateEquipment(
   // Check equipment category limits
   validateCategoryLimits(equipment, result)
 
+  // Add information about special equipment combinations
+  addSpecialCombinationInfo(equipment, result)
+
   // Check faction equipment availability and limits
   if (faction) {
     validateFactionEquipment(equipment, faction, troop, warbandVariant, result)
@@ -77,93 +82,162 @@ export function validateEquipment(
  * Validates handedness rules - a model can have either:
  * - One two-handed melee weapon OR up to two one-handed melee weapons
  * - One two-handed ranged weapon OR up to two one-handed ranged weapons
+ *
+ * This now adds warnings instead of errors to allow the user to continue.
+ * Also handles special cases for bayonet lugs and shield combos.
  */
 function validateHandedness(equipment: Equipment[], result: ValidationResult): void {
-  // Count one-handed and two-handed weapons by type
+  // First check for special cases: bayonet lugs and shield combos
+  const hasBayonetLugItem = equipment.some(e => e.equipmentIndicator?.hasBayonetLug === true);
+  const hasShieldComboItem = equipment.some(e => e.equipmentIndicator?.shieldCombo === true);
+
+  console.log('Validating handedness with:', {
+    equipmentCount: equipment.length,
+    hasBayonetLugItem,
+    hasShieldComboItem
+  });
+
+  // Clear any existing handedness warnings
+  result.warnings = result.warnings.filter(warning => warning.type !== WarningType.HANDEDNESS_WARNING);
+
+  // Get bayonets and other melee weapons separately to handle special cases
+  const bayonets = equipment.filter(e =>
+    e.category === EquipmentCategory.MELEE_WEAPON &&
+    e.name.toLowerCase().includes('bayonet')
+  );
+
+  // Only count weapons for handedness with adjustments for special cases
+  // Filter items rather than just counting them
   const meleeOneHanded = equipment.filter(
     (e) =>
-      (e.type === EquipmentCategory.MELEE_WEAPON || e.category === EquipmentCategory.MELEE_WEAPON) &&
-      e.handedness === HandednessType.ONE_HANDED
-  )
+      (e.category === EquipmentCategory.MELEE_WEAPON) &&
+      e.handedness === HandednessType.ONE_HANDED &&
+      // Bayonet is counted as NO_HANDS if there's an item with bayonet lug
+      !(e.name.toLowerCase().includes('bayonet') && hasBayonetLugItem)
+  );
+
+  // Display which bayonets are being excluded from hands count
+  if (hasBayonetLugItem && bayonets.length > 0) {
+    console.log('Bayonets found:', bayonets.map(b => b.name), 'These are NOT counting for handedness');
+  }
+
   const meleeTwoHanded = equipment.filter(
     (e) =>
-      (e.type === EquipmentCategory.MELEE_WEAPON || e.category === EquipmentCategory.MELEE_WEAPON) &&
-      e.handedness === HandednessType.TWO_HANDED
-  )
+      (e.category === EquipmentCategory.MELEE_WEAPON) &&
+      e.handedness === HandednessType.TWO_HANDED &&
+      // Bayonet is counted as NO_HANDS if there's an item with bayonet lug
+      !(e.name.toLowerCase().includes('bayonet') && hasBayonetLugItem)
+  );
+
   const rangedOneHanded = equipment.filter(
     (e) =>
-      (e.type === EquipmentCategory.RANGED_WEAPON ||
-        e.category === EquipmentCategory.RANGED_WEAPON) &&
+      (e.category === EquipmentCategory.RANGED_WEAPON) &&
       e.handedness === HandednessType.ONE_HANDED
-  )
+  );
+
   const rangedTwoHanded = equipment.filter(
     (e) =>
-      (e.type === EquipmentCategory.RANGED_WEAPON ||
-        e.category === EquipmentCategory.RANGED_WEAPON) &&
+      (e.category === EquipmentCategory.RANGED_WEAPON) &&
       e.handedness === HandednessType.TWO_HANDED
-  )
+  );
 
-  // Check items that require one hand
-  const oneHandRequired = equipment.filter((e) => e.handedness === HandednessType.ONE_HAND_REQUIRED)
+  // Shield is counted as NO_HANDS if there's an item with shield combo
+  const shieldItems = equipment.filter(
+    (e) =>
+      e.category === EquipmentCategory.SHIELD &&
+      !hasShieldComboItem
+  );
 
-  // Calculate total hands used
-  const handsTaken = 
-    oneHandRequired.length + 
-    meleeOneHanded.length + 
-    meleeTwoHanded.length * 2 + 
-    rangedOneHanded.length + 
-    rangedTwoHanded.length * 2
+  // Display shield handling logic
+  if (hasShieldComboItem && equipment.some(e => e.category === EquipmentCategory.SHIELD)) {
+    console.log('Shields found with shield combo items - they will NOT count for handedness');
+  }
+
+  // Calculate total hands used for each weapon type, including shields if they count for handedness
+  const meleeHandsUsed = meleeOneHanded.length * 1 + meleeTwoHanded.length * 2;
+  const rangedHandsUsed = rangedOneHanded.length * 1 + rangedTwoHanded.length * 2;
+
+  // Add shield hands if they aren't paired with a shield combo item
+  const shieldHandsUsed = shieldItems.reduce((total, shield) => {
+    if (shield.handedness === HandednessType.ONE_HAND_REQUIRED) {
+      return total + 1;
+    }
+    return total;
+  }, 0);
+
+  console.log('Hands calculation:', {
+    meleeOneHanded: meleeOneHanded.map(e => e.name),
+    meleeTwoHanded: meleeTwoHanded.map(e => e.name),
+    meleeHandsUsed,
+    rangedHandsUsed,
+    shieldHandsUsed
+  });
+
+  // Check if melee hands exceed limit (including shield if appropriate)
+  if (meleeHandsUsed + shieldHandsUsed > 2) {
+    result.warnings.push({
+      type: WarningType.HANDEDNESS_WARNING,
+      message: 'Using more than two hands for melee weapons and shield',
+      details: `You're using ${meleeHandsUsed} hands for melee weapons${shieldHandsUsed > 0 ? ` and ${shieldHandsUsed} for shield` : ''}. Consider removing some weapons.`,
+    });
+  }
 
   // Check if a two-handed melee weapon is combined with one-handed melee weapons
   if (meleeTwoHanded.length > 0 && meleeOneHanded.length > 0) {
-    result.errors.push({
-      type: ErrorType.HANDEDNESS_VIOLATION,
-      message: 'Cannot use two-handed melee weapon with one-handed melee weapons',
-      details: `${meleeTwoHanded[0].name} cannot be combined with ${meleeOneHanded.map(e => e.name).join(', ')}`,
-    })
+    // Only show this warning if the two-handed weapon isn't a bayonet with a bayonet lug
+    const nonBayonetTwoHandedWeapons = meleeTwoHanded.filter(
+      e => !(e.name.toLowerCase().includes('bayonet') && hasBayonetLugItem)
+    );
+
+    // If we have no non-bayonet two-handed weapons with bayonet lugs, there's no actual warning needed
+    if (nonBayonetTwoHandedWeapons.length > 0) {
+      result.warnings.push({
+        type: WarningType.HANDEDNESS_WARNING,
+        message: 'Using two-handed melee weapon with additional one-handed weapons',
+        details: `${nonBayonetTwoHandedWeapons[0].name} uses both hands and is combined with ${meleeOneHanded.map(e => e.name).join(', ')}`,
+      });
+    }
   }
 
   // Check if more than one two-handed melee weapon
   if (meleeTwoHanded.length > 1) {
-    result.errors.push({
-      type: ErrorType.HANDEDNESS_VIOLATION,
-      message: 'Cannot use more than one two-handed melee weapon',
-      details: `Multiple two-handed melee weapons: ${meleeTwoHanded.map(e => e.name).join(', ')}`,
-    })
-  }
+    // Filter out bayonets with bayonet lugs for this warning
+    const nonBayonetTwoHandedWeapons = meleeTwoHanded.filter(
+      e => !(e.name.toLowerCase().includes('bayonet') && hasBayonetLugItem)
+    );
 
-  // Check if more than two one-handed melee weapons
-  if (meleeOneHanded.length > 2) {
-    result.errors.push({
-      type: ErrorType.HANDEDNESS_VIOLATION,
-      message: 'Cannot use more than two one-handed melee weapons',
-      details: `Too many one-handed melee weapons: ${meleeOneHanded.map(e => e.name).join(', ')}`,
-    })
+    if (nonBayonetTwoHandedWeapons.length > 1) {
+      result.warnings.push({
+        type: WarningType.HANDEDNESS_WARNING,
+        message: 'Using multiple two-handed melee weapons',
+        details: `Multiple two-handed melee weapons: ${nonBayonetTwoHandedWeapons.map(e => e.name).join(', ')}`,
+      });
+    }
   }
 
   // Check ranged weapons similarly
+  if (rangedHandsUsed + shieldHandsUsed > 2) {
+    result.warnings.push({
+      type: WarningType.HANDEDNESS_WARNING,
+      message: 'Using more than two hands for ranged weapons and shield',
+      details: `You're using ${rangedHandsUsed} hands for ranged weapons${shieldHandsUsed > 0 ? ` and ${shieldHandsUsed} for shield` : ''}. Consider removing some weapons.`,
+    });
+  }
+
   if (rangedTwoHanded.length > 0 && rangedOneHanded.length > 0) {
-    result.errors.push({
-      type: ErrorType.HANDEDNESS_VIOLATION,
-      message: 'Cannot use two-handed ranged weapon with one-handed ranged weapons',
-      details: `${rangedTwoHanded[0].name} cannot be combined with ${rangedOneHanded.map(e => e.name).join(', ')}`,
-    })
+    result.warnings.push({
+      type: WarningType.HANDEDNESS_WARNING,
+      message: 'Using two-handed ranged weapon with additional one-handed weapons',
+      details: `${rangedTwoHanded[0].name} uses both hands and is combined with ${rangedOneHanded.map(e => e.name).join(', ')}`,
+    });
   }
 
   if (rangedTwoHanded.length > 1) {
-    result.errors.push({
-      type: ErrorType.HANDEDNESS_VIOLATION,
-      message: 'Cannot use more than one two-handed ranged weapon',
+    result.warnings.push({
+      type: WarningType.HANDEDNESS_WARNING,
+      message: 'Using multiple two-handed ranged weapons',
       details: `Multiple two-handed ranged weapons: ${rangedTwoHanded.map(e => e.name).join(', ')}`,
-    })
-  }
-
-  if (rangedOneHanded.length > 2) {
-    result.errors.push({
-      type: ErrorType.HANDEDNESS_VIOLATION,
-      message: 'Cannot use more than two one-handed ranged weapons',
-      details: `Too many one-handed ranged weapons: ${rangedOneHanded.map(e => e.name).join(', ')}`,
-    })
+    });
   }
 }
 
@@ -244,7 +318,7 @@ function validateFactionEquipment(
   equipment.forEach(item => {
     equipmentCounts[item.id] = (equipmentCounts[item.id] || 0) + 1;
   });
-  
+
   // Check each piece of equipment
   for (const item of equipment) {
     // Check if equipment is globally banned for this faction/variant
@@ -256,7 +330,7 @@ function validateFactionEquipment(
       });
       continue;
     }
-    
+
     // Check if equipment is allowed for this troop
     if (!isEquipmentAllowedForTroop(item, troop, faction, warbandVariant)) {
       result.errors.push({
@@ -266,7 +340,7 @@ function validateFactionEquipment(
       });
       continue;
     }
-    
+
     // Check against equipment limits
     const limit = getEquipmentLimit(item, faction, warbandVariant);
     if (limit > 0) {
@@ -280,4 +354,34 @@ function validateFactionEquipment(
       }
     }
   }
-} 
+}
+
+// Add information about special equipment combinations
+function addSpecialCombinationInfo(equipment: Equipment[], result: ValidationResult): void {
+  // Clear existing special equipment combo warnings
+  result.warnings = result.warnings.filter(warning => warning.type !== WarningType.SPECIAL_EQUIPMENT_COMBO);
+
+  // Check for bayonet lug + bayonet combo
+  const bayonets = equipment.filter(e => e.name.toLowerCase().includes('bayonet'));
+  const itemsWithBayonetLug = equipment.filter(e => e.equipmentIndicator?.hasBayonetLug === true);
+
+  if (bayonets.length > 0 && itemsWithBayonetLug.length > 0) {
+    result.warnings.push({
+      type: WarningType.SPECIAL_EQUIPMENT_COMBO,
+      message: 'Bayonet attached to compatible weapon',
+      details: `${bayonets[0].name} is attached to ${itemsWithBayonetLug.map(e => e.name).join(', ')} and doesn't require additional hands (0 hands used).`,
+    });
+  }
+
+  // Check for shield combo items + shield
+  const shields = equipment.filter(e => e.category === EquipmentCategory.SHIELD);
+  const itemsWithShieldCombo = equipment.filter(e => e.equipmentIndicator?.shieldCombo === true);
+
+  if (shields.length > 0 && itemsWithShieldCombo.length > 0) {
+    result.warnings.push({
+      type: WarningType.SPECIAL_EQUIPMENT_COMBO,
+      message: 'Shield combined with compatible weapon',
+      details: `${shields[0].name} is combined with ${itemsWithShieldCombo.map(e => e.name).join(', ')} and doesn't require additional hands (0 hands used).`,
+    });
+  }
+}

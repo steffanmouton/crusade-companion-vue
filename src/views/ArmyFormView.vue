@@ -40,7 +40,7 @@ const submitButtonText = computed(() => (isEditMode.value ? 'Update Army' : 'Cre
 
 // Computed property for available warband variants
 const availableWarbandVariants = computed(() => {
-  return warbandVariantStore.warbandVariants.filter((variant) => variant.factionId === 
+  return warbandVariantStore.warbandVariants.filter((variant) => variant.factionId ===
     factionStore.factions.find(f => f.name === faction.value)?.id
   );
 })
@@ -54,12 +54,12 @@ onMounted(async () => {
       // Make sure factions are loaded
       factionStore.factions.length === 0 ? Promise.resolve() : Promise.resolve()
     ])
-    
+
     // Set default faction if none is set
     if (!faction.value && factionStore.playableFactions.length > 0) {
       faction.value = factionStore.playableFactions[0].name
     }
-    
+
     if (isEditMode.value && armyId.value) {
       try {
         const army = await armyStore.loadArmy(armyId.value)
@@ -162,8 +162,8 @@ const handleSubmit = async () => {
 
       if (army) {
         successMessage.value = 'Army created successfully'
-        // Navigate to the new army detail after a short delay
-        setTimeout(() => router.push(`/army/${army.id}`), 1500)
+        // Navigate to the dashboard after a short delay
+        setTimeout(() => router.push('/dashboard'), 1500)
       } else {
         throw new Error('Failed to create army')
       }

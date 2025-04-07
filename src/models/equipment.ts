@@ -1,20 +1,21 @@
-import type { Cost } from './cost'
-
 export interface Equipment {
   id: string
-  originalId?: string
   name: string
-  description: string
   type: string
+  description: string
   range?: string
-  modifiers?: string[]
-  keywords?: string[]
-  equipmentIndicator?: EquipmentIndicator
-  rules?: string[]
-  handedness?: HandednessType
-  isSpecial?: boolean
-  explorationOnly?: boolean  // Flag for items that can only be gained during Exploration
-  category?: EquipmentCategory
+  modifiers: string[]
+  keywords: string[]
+  equipmentIndicator: {
+    hasBayonetLug: boolean
+    shieldCombo: boolean
+  }
+  rules: string[]
+  handedness: HandednessType
+  category: EquipmentCategory
+  onlyFor?: {
+    warbandVariant?: string
+  }
 }
 
 export interface EquipmentIndicator {

@@ -1,4 +1,4 @@
-import type { Equipment, EquipmentCategory } from './equipment'
+import type { EquipmentCategory } from './equipment'
 import type { Cost } from './cost'
 import type { WarbandVariant } from './warbandVariant'
 
@@ -14,26 +14,38 @@ export enum FactionNames {
 export interface FactionEquipmentRules {
   // Costs for equipment - also serves as the list of available equipment
   costs: Record<string, Cost>;
-  
+
   // Equipment limits across the army
   limits?: Record<string, number>;
-  
+
   // Equipment allowed only for specific troops
   troopRestrictions?: {
     [equipmentId: string]: {
-      allowedTroopIds?: string[];  // If set, only these troops can use this equipment
-      requiredKeywords?: string[];  // Troop must have ALL these keywords
-      bannedKeywords?: string[];    // Troop must NOT have ANY of these keywords
+      // Conditions that must be met for this equipment
+      conditions?: {
+        // Any of these conditions must be met
+        or?: Array<{
+          troopIds?: string[];      // Troop must be one of these IDs
+          keywords?: string[];      // Troop must have ALL these keywords
+          bannedKeywords?: string[]; // Troop must NOT have ANY of these keywords
+        }>;
+        // All of these conditions must be met
+        and?: Array<{
+          troopIds?: string[];      // Troop must be one of these IDs
+          keywords?: string[];      // Troop must have ALL these keywords
+          bannedKeywords?: string[]; // Troop must NOT have ANY of these keywords
+        }>;
+      };
     }
   };
-  
+
   // Global equipment restrictions
   globalRestrictions?: {
     bannedEquipmentIds?: string[];        // Specific equipment that's banned
     bannedKeywords?: string[];            // Equipment with these keywords is banned
     bannedCategories?: EquipmentCategory[]; // Categories that are banned
   };
-  
+
   // Cross-faction equipment allowances
   externalEquipmentAllowances?: {
     factionId: string;
@@ -44,7 +56,7 @@ export interface FactionEquipmentRules {
       bannedKeywords?: string[];
     }
   }[];
-  
+
   // Rules for hiring mercenaries
   mercenaryRules?: {
     costs: { [troopId: string]: Cost };    // Costs to hire each mercenary
@@ -55,15 +67,15 @@ export interface FactionEquipmentRules {
 export interface ExternalEquipmentAllowance {
   // The faction ID that equipment can be sourced from
   factionId: string;
-  
+
   // Optional restrictions on what can be used
   restrictions?: {
     // Only these types are allowed
     allowedTypes?: string[];
-    
+
     // Equipment with these keywords are not allowed
     bannedKeywords?: string[];
-    
+
     // Only equipment with at least one of these keywords is allowed
     allowedKeywords?: string[];
   }
@@ -76,18 +88,18 @@ export interface Faction {
   iconUrl: string
   troopTypes: string[]
   specialRules: string[]
-  
+
   // Equipment rules for this faction
   equipmentRules: FactionEquipmentRules
-  
+
   // Whether this faction can use equipment from other factions
   allowsExternalEquipment?: boolean
-  
+
   // Which other factions' equipment can be used, if allowsExternalEquipment is true
   allowedExternalFactions?: string[]
-  
+
   // Flag to indicate if this faction is selectable when creating a new army
   isPlayable?: boolean
-  
+
   variants?: WarbandVariant[]
 }

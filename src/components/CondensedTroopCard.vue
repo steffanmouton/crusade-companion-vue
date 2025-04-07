@@ -28,7 +28,7 @@
               Required
             </v-chip>
           </div>
-          <span class="cost-text">{{ formatCost(troop.cost) }}</span>
+          <span class="cost-text">{{ formattedCost }}</span>
         </div>
         <div class="text-caption text-grey">{{ troop.factionName }}</div>
 
@@ -75,13 +75,38 @@
 <script setup lang="ts">
 import type { Troop } from '../models/troop'
 import { formatCost } from '../models/cost'
+import { useFactionStore } from '../stores/factionStore'
+import { getTroopCost } from '../utils/equipmentUtils'
+import { computed } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   troop: Troop
   isRequired?: boolean
+  warbandVariant?: any
 }>()
 
 defineEmits(['add-troop', 'view-details'])
+
+// Get the faction store
+const factionStore = useFactionStore()
+
+// Get the faction for this troop
+const faction = computed(() => {
+  return props.troop?.factionId
+    ? factionStore.factions.find(f => f.id === props.troop.factionId)
+    : null
+})
+
+// Get the cost for this troop
+const troopCost = computed(() => {
+  if (!faction.value) return null
+  return getTroopCost(props.troop.id, faction.value, props.warbandVariant)
+})
+
+// Format the troop cost for display
+const formattedCost = computed(() => {
+  return troopCost.value ? formatCost(troopCost.value) : 'FREE'
+})
 </script>
 
 <style scoped>

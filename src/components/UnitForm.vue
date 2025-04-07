@@ -38,7 +38,15 @@
         <div class="mb-4">
           <div class="d-flex justify-space-between align-center mb-2">
             <h3 class="text-subtitle-1 font-weight-medium">Equipment</h3>
+            <v-tooltip v-if="props.troop.isEquipmentLocked" text="This troop's equipment cannot be modified" location="top">
+              <template v-slot:activator="{ props }">
+                <v-icon v-bind="props" color="grey">mdi-lock</v-icon>
+              </template>
+            </v-tooltip>
           </div>
+
+          <!-- Loading indicator for equipment -->
+          <LoadingIndicator v-if="loadingEquipment" text="Loading default equipment..." :size="32" :width="3" />
 
           <!-- Equipment validation warnings -->
           <v-alert
@@ -48,15 +56,34 @@
             class="mb-3"
             density="compact"
           >
-            <div class="text-subtitle-2 mb-1">Equipment Warnings:</div>
-            <ul class="pl-4 mb-0">
-              <li v-for="(warning, index) in validationResult.warnings" :key="index" class="text-caption">
-                {{ warning.message }}
-                <div v-if="warning.details" class="text-caption text-grey">
-                  {{ warning.details }}
-                </div>
-              </li>
-            </ul>
+            <!-- Special equipment combination information (positive warnings) -->
+            <div v-if="hasSpecialEquipmentCombos">
+              <div class="text-subtitle-2 mb-1 text-success d-flex align-center">
+                <v-icon color="success" class="mr-1">mdi-check-circle</v-icon>
+                Special Equipment Combinations:
+              </div>
+              <ul class="pl-4 mb-2">
+                <li v-for="(combo, index) in specialEquipmentCombos" :key="'combo-'+index" class="text-caption font-weight-medium text-success">
+                  {{ combo.message }}
+                  <div v-if="combo.details" class="text-caption text-grey">
+                    {{ combo.details }}
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Regular warnings, only shown if there are any -->
+            <div v-if="regularWarnings.length > 0">
+              <div class="text-subtitle-2 mb-1">Equipment Warnings:</div>
+              <ul class="pl-4 mb-0">
+                <li v-for="(warning, index) in regularWarnings" :key="'warning-'+index" class="text-caption">
+                  {{ warning.message }}
+                  <div v-if="warning.details" class="text-caption text-grey">
+                    {{ warning.details }}
+                  </div>
+                </li>
+              </ul>
+            </div>
           </v-alert>
 
           <!-- Equipment validation errors -->
@@ -82,206 +109,106 @@
           <v-row>
             <!-- Melee Weapons -->
             <v-col cols="12">
-              <div class="mb-2">
-                <div class="d-flex align-center mb-2">
-                  <v-icon class="mr-2">mdi-sword</v-icon>
-                  <span class="text-subtitle-2 font-weight-medium">Melee Weapons</span>
-                </div>
-                <div class="equipment-list">
-                  <v-card
-                    v-for="item in getEquipmentOfType('Melee Weapon')"
-                    :key="item.id"
-                    class="equipment-slot equipment-slot-filled mb-2"
-                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
-                    @click="editEquipment(item)"
-                  >
-                    <v-card-text class="d-flex align-center justify-space-between pa-4">
-                      <div>
-                        <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="d-flex align-center">
-                          <div class="text-caption text-medium-emphasis mr-2">
-                            {{ formatEquipmentCost(item) }}
-                          </div>
-                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
-                            {{ formatHandedness(item.handedness) }}
-                          </v-chip>
-                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
-                            Special
-                          </v-chip>
-                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
-                            Exploration Only
-                          </v-chip>
-                        </div>
-                      </div>
-                      <v-btn
-                        icon="mdi-delete"
-                        size="small"
-                        variant="text"
-                        color="error"
-                        @click.stop="removeEquipment(item)"
-                      ></v-btn>
-                    </v-card-text>
-                  </v-card>
-                  <v-card class="equipment-slot" @click="openEquipmentSelection('Melee Weapon')">
-                    <v-card-text class="text-center pa-4">
-                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
-                    </v-card-text>
-                  </v-card>
-                </div>
+              <div class="d-flex align-center mb-1">
+                <h4>Melee Weapons</h4>
+                <v-chip
+                  v-if="meleeHandsUsed > 0"
+                  size="x-small"
+                  color="info"
+                  class="ml-2"
+                  :class="{ 'bg-warning': meleeHandsUsed > 2 }"
+                >
+                  <v-icon start size="x-small">mdi-hand</v-icon>
+                  {{ meleeHandsUsed }}/2 hands
+                </v-chip>
               </div>
+              <EquipmentCategoryBlock
+                title=""
+                icon="mdi-sword"
+                :equipment="getEquipmentOfType('Melee Weapon')"
+                :isEquipmentLocked="props.troop.isEquipmentLocked || false"
+                :isDefaultEquipmentRemovable="props.troop.isDefaultEquipmentRemovable || false"
+                :defaultEquipment="props.troop.defaultEquipment"
+                :validationResult="validationResult"
+                :formatEquipmentCost="formatEquipmentCost"
+                :isLoading="loadingEquipment"
+                @add="openEquipmentSelection('Melee Weapon')"
+                @edit="editEquipment"
+                @remove="removeEquipment"
+              />
             </v-col>
 
             <!-- Ranged Weapons -->
             <v-col cols="12">
-              <div class="mb-2">
-                <div class="d-flex align-center mb-2">
-                  <v-icon class="mr-2">mdi-pistol</v-icon>
-                  <span class="text-subtitle-2 font-weight-medium">Ranged Weapons</span>
-                </div>
-                <div class="equipment-list">
-                  <v-card
-                    v-for="item in getEquipmentOfType('Ranged Weapon')"
-                    :key="item.id"
-                    class="equipment-slot equipment-slot-filled mb-2"
-                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
-                    @click="editEquipment(item)"
-                  >
-                    <v-card-text class="d-flex align-center justify-space-between pa-4">
-                      <div>
-                        <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="d-flex align-center">
-                          <div class="text-caption text-medium-emphasis mr-2">
-                            {{ formatEquipmentCost(item) }}
-                          </div>
-                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
-                            {{ formatHandedness(item.handedness) }}
-                          </v-chip>
-                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
-                            Special
-                          </v-chip>
-                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
-                            Exploration Only
-                          </v-chip>
-                        </div>
-                      </div>
-                      <v-btn
-                        icon="mdi-delete"
-                        size="small"
-                        variant="text"
-                        color="error"
-                        @click.stop="removeEquipment(item)"
-                      ></v-btn>
-                    </v-card-text>
-                  </v-card>
-                  <v-card class="equipment-slot" @click="openEquipmentSelection('Ranged Weapon')">
-                    <v-card-text class="text-center pa-4">
-                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
-                    </v-card-text>
-                  </v-card>
-                </div>
+              <div class="d-flex align-center mb-1">
+                <h4>Ranged Weapons</h4>
+                <v-chip
+                  v-if="rangedHandsUsed > 0"
+                  size="x-small"
+                  color="info"
+                  class="ml-2"
+                  :class="{ 'bg-warning': rangedHandsUsed > 2 }"
+                >
+                  <v-icon start size="x-small">mdi-hand</v-icon>
+                  {{ rangedHandsUsed }}/2 hands
+                </v-chip>
               </div>
+              <EquipmentCategoryBlock
+                title=""
+                icon="mdi-pistol"
+                :equipment="getEquipmentOfType('Ranged Weapon')"
+                :isEquipmentLocked="props.troop.isEquipmentLocked || false"
+                :isDefaultEquipmentRemovable="props.troop.isDefaultEquipmentRemovable || false"
+                :defaultEquipment="props.troop.defaultEquipment"
+                :validationResult="validationResult"
+                :formatEquipmentCost="formatEquipmentCost"
+                :isLoading="loadingEquipment"
+                @add="openEquipmentSelection('Ranged Weapon')"
+                @edit="editEquipment"
+                @remove="removeEquipment"
+              />
             </v-col>
 
-            <!-- Armor -->
+            <!-- Armor, Shields, & Headgear -->
             <v-col cols="12">
-              <div class="mb-2">
-                <div class="d-flex align-center mb-2">
-                  <v-icon class="mr-2">mdi-shield</v-icon>
-                  <span class="text-subtitle-2 font-weight-medium">Armor</span>
-                </div>
-                <div class="equipment-list">
-                  <v-card
-                    v-for="item in getEquipmentOfType('Armour')"
-                    :key="item.id"
-                    class="equipment-slot equipment-slot-filled mb-2"
-                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
-                    @click="editEquipment(item)"
-                  >
-                    <v-card-text class="d-flex align-center justify-space-between pa-4">
-                      <div>
-                        <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="d-flex align-center">
-                          <div class="text-caption text-medium-emphasis mr-2">
-                            {{ formatEquipmentCost(item) }}
-                          </div>
-                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
-                            {{ formatHandedness(item.handedness) }}
-                          </v-chip>
-                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
-                            Special
-                          </v-chip>
-                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
-                            Exploration Only
-                          </v-chip>
-                        </div>
-                      </div>
-                      <v-btn
-                        icon="mdi-delete"
-                        size="small"
-                        variant="text"
-                        color="error"
-                        @click.stop="removeEquipment(item)"
-                      ></v-btn>
-                    </v-card-text>
-                  </v-card>
-                  <v-card class="equipment-slot" @click="openEquipmentSelection('Armour')">
-                    <v-card-text class="text-center pa-4">
-                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
-                    </v-card-text>
-                  </v-card>
-                </div>
+              <div class="d-flex align-center mb-1">
+                <h4>Armor, Shields, & Headgear</h4>
               </div>
+              <EquipmentCategoryBlock
+                title=""
+                icon="mdi-shield"
+                :equipment="getEquipmentOfType('Armour')"
+                :isEquipmentLocked="props.troop.isEquipmentLocked || false"
+                :isDefaultEquipmentRemovable="props.troop.isDefaultEquipmentRemovable || false"
+                :defaultEquipment="props.troop.defaultEquipment"
+                :validationResult="validationResult"
+                :formatEquipmentCost="formatEquipmentCost"
+                :isLoading="loadingEquipment"
+                @add="openEquipmentSelection('Armour')"
+                @edit="editEquipment"
+                @remove="removeEquipment"
+              />
             </v-col>
 
             <!-- Other Equipment -->
             <v-col cols="12">
-              <div class="mb-2">
-                <div class="d-flex align-center mb-2">
-                  <v-icon class="mr-2">mdi-toolbox</v-icon>
-                  <span class="text-subtitle-2 font-weight-medium">Other Equipment</span>
-                </div>
-                <div class="equipment-list">
-                  <v-card
-                    v-for="item in getEquipmentOfType('Other')"
-                    :key="item.id"
-                    class="equipment-slot equipment-slot-filled mb-2"
-                    :class="{'has-warning': hasWarning(item), 'has-error': hasError(item)}"
-                    @click="editEquipment(item)"
-                  >
-                    <v-card-text class="d-flex align-center justify-space-between pa-4">
-                      <div>
-                        <div class="text-subtitle-2">{{ item.name }}</div>
-                        <div class="d-flex align-center">
-                          <div class="text-caption text-medium-emphasis mr-2">
-                            {{ formatEquipmentCost(item) }}
-                          </div>
-                          <v-chip v-if="item.handedness" size="x-small" color="info" class="mr-1">
-                            {{ formatHandedness(item.handedness) }}
-                          </v-chip>
-                          <v-chip v-if="item.isSpecial" size="x-small" color="purple" class="mr-1">
-                            Special
-                          </v-chip>
-                          <v-chip v-if="item.explorationOnly" size="x-small" color="error" class="mr-1">
-                            Exploration Only
-                          </v-chip>
-                        </div>
-                      </div>
-                      <v-btn
-                        icon="mdi-delete"
-                        size="small"
-                        variant="text"
-                        color="error"
-                        @click.stop="removeEquipment(item)"
-                      ></v-btn>
-                    </v-card-text>
-                  </v-card>
-                  <v-card class="equipment-slot" @click="openEquipmentSelection('Other')">
-                    <v-card-text class="text-center pa-4">
-                      <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
-                    </v-card-text>
-                  </v-card>
-                </div>
+              <div class="d-flex align-center mb-1">
+                <h4>Other Equipment</h4>
               </div>
+              <EquipmentCategoryBlock
+                title=""
+                icon="mdi-toolbox"
+                :equipment="getEquipmentOfType('Other')"
+                :isEquipmentLocked="props.troop.isEquipmentLocked || false"
+                :isDefaultEquipmentRemovable="props.troop.isDefaultEquipmentRemovable || false"
+                :defaultEquipment="props.troop.defaultEquipment"
+                :validationResult="validationResult"
+                :formatEquipmentCost="formatEquipmentCost"
+                :isLoading="loadingEquipment"
+                @add="openEquipmentSelection('Other')"
+                @edit="editEquipment"
+                @remove="removeEquipment"
+              />
             </v-col>
           </v-row>
         </div>
@@ -376,17 +303,18 @@ import { useUnitStore } from '../stores/unitStore'
 import LoadingIndicator from './LoadingIndicator.vue'
 import EquipmentSelectionDialog from './EquipmentSelectionDialog.vue'
 import EquipmentDetailDialog from './EquipmentDetailDialog.vue'
-import { HandednessType } from '../models/equipment'
-import { validateEquipment, type ValidationResult } from '../utils/equipmentValidator'
+import { EquipmentCategory, HandednessType } from '../models/equipment'
+import { validateEquipment, type ValidationResult, WarningType } from '../utils/equipmentValidator'
 import { useFactionStore } from '../stores/factionStore'
-import { 
-  getEquipmentCost, 
-  formatEquipmentCost as formatEquipmentCostUtil, 
-  getTroopCost 
+import {
+  getEquipmentCost,
+  formatEquipmentCost as formatEquipmentCostUtil,
+  getTroopCost
 } from '../utils/equipmentUtils'
 import type { WarbandVariant } from '../models/warbandVariant'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import { useArmyStore } from '../stores/army'
+import EquipmentCategoryBlock from './EquipmentCategoryBlock.vue'
 
 // Props
 const props = defineProps<{
@@ -401,6 +329,7 @@ const emit = defineEmits(['save', 'close'])
 // State
 const form = ref()
 const saving = ref(false)
+const loadingEquipment = ref(false)
 const availableEquipment = ref<Equipment[]>([])
 const equipmentStore = useEquipmentStore()
 const unitStore = useUnitStore()
@@ -423,14 +352,76 @@ const isEditing = computed(() => !!props.unit)
 
 // Add a new computed property to get faction
 const faction = computed(() => {
-  return props.troop?.factionId 
+  // Log to debug faction ID lookup
+  console.log('Troop factionId in faction computed property:', props.troop?.factionId);
+  console.log('Troop factionName:', props.troop?.factionName);
+  console.log('Available factions:', factionStore.factions.map(f => ({ id: f.id, name: f.name })));
+
+  // First try to find by faction name, which is more reliable
+  if (props.troop?.factionName) {
+    const factionByName = factionStore.factions.find(f =>
+      f.name.toLowerCase() === props.troop.factionName.toLowerCase()
+    );
+
+    if (factionByName) {
+      console.log('Found faction by name match:', factionByName.name, factionByName.id);
+      return factionByName;
+    }
+  }
+
+  // If the factionId is a firestore ID (not matching tc-fc- pattern), we need to find it directly
+  if (props.troop?.factionId && !props.troop.factionId.startsWith('tc-fc-')) {
+    const foundFaction = factionStore.factions.find(f => f.id === props.troop.factionId);
+    console.log('Found faction by direct ID match:', foundFaction?.name || 'none');
+    return foundFaction || null;
+  }
+
+  // Otherwise try to match by seed ID pattern (tc-fc-*)
+  if (props.troop?.factionId) {
+    // First try exact match
+    const exactMatch = factionStore.factions.find(f => f.id === props.troop.factionId);
+    if (exactMatch) {
+      console.log('Found faction by exact match:', exactMatch.name);
+      return exactMatch;
+    }
+
+    // Try to map the seed ID to a faction name
+    let expectedFactionName = null;
+
+    if (props.troop.factionId === 'tc-fc-hl' || props.troop.factionId === 'tc-fc-heretic-legion') {
+      expectedFactionName = 'Heretic Legion';
+    } else if (props.troop.factionId === 'tc-fc-is' || props.troop.factionId === 'tc-fc-iron-sultanate') {
+      expectedFactionName = 'Iron Sultanate';
+    } else if (props.troop.factionId === 'tc-fc-na' || props.troop.factionId === 'tc-fc-new-antioch') {
+      expectedFactionName = 'Principality of New Antioch';
+    } else if (props.troop.factionId === 'tc-fc-mer' || props.troop.factionId === 'tc-fc-mercenary') {
+      expectedFactionName = 'Mercenary';
+    }
+
+    if (expectedFactionName) {
+      const nameMatch = factionStore.factions.find(f => f.name === expectedFactionName);
+      if (nameMatch) {
+        console.log('Found faction by expected name match:', nameMatch.name);
+        return nameMatch;
+      }
+    }
+  }
+
+  // Fallback to the old logic
+  const fallbackFaction = props.troop?.factionId
     ? factionStore.factions.find(f => f.id === props.troop.factionId.toString())
-    : null
+    : null;
+
+  console.log('Fallback faction result:', fallbackFaction?.name || 'none');
+  return fallbackFaction;
 })
 
 // Add a new computed property that handles the type checking properly
 const currentFaction = computed(() => {
-  return faction.value || null
+  if (!faction.value) {
+    console.warn('No faction found for troop:', props.troop?.name, 'with factionId:', props.troop?.factionId);
+  }
+  return faction.value || null;
 })
 
 // Create reactive unit data
@@ -466,10 +457,7 @@ const equipmentCost = computed(() => {
       { type: CurrencyType.GLORY_POINTS, amount: 0 },
     ],
   }
-  
-  // Get the variant name from the troop
-  const variantName = getVariantName(props.troop)
-  
+
   return unitData.currentEquipment.reduce(
     (total, equipment) => {
       // Skip cost calculation for default equipment items by name
@@ -483,7 +471,7 @@ const equipmentCost = computed(() => {
 
       // Get the equipment cost using faction rules
       const cost = getEquipmentCost(equipment, faction.value!, currentWarbandVariant.value)
-      
+
       if (cost) {
         return {
           currencies: [
@@ -537,6 +525,92 @@ const totalCost = computed(() => {
   }
 })
 
+// Add computed properties to track hands used
+const meleeHandsUsed = computed(() => {
+  // Check for special cases: bayonet lugs and shield combos
+  const hasBayonetLugItem = unitData.currentEquipment.some(e => e.equipmentIndicator?.hasBayonetLug === true);
+  const hasShieldComboItem = unitData.currentEquipment.some(e => e.equipmentIndicator?.shieldCombo === true);
+
+  // Calculate melee weapons hands
+  const meleeHandsCount = unitData.currentEquipment.reduce((total, item) => {
+    if (item.category === EquipmentCategory.MELEE_WEAPON) {
+      // Skip counting bayonets if there's an item with bayonet lug
+      if (item.name.toLowerCase().includes('bayonet') && hasBayonetLugItem) {
+        return total;
+      }
+
+      if (item.handedness === HandednessType.ONE_HANDED) {
+        return total + 1;
+      } else if (item.handedness === HandednessType.TWO_HANDED) {
+        return total + 2;
+      }
+    }
+    return total;
+  }, 0);
+
+  // Add shield hands if they count (no shield combo item)
+  const shieldHandsCount = unitData.currentEquipment.reduce((total, item) => {
+    if (item.category === EquipmentCategory.SHIELD && !hasShieldComboItem) {
+      if (item.handedness === HandednessType.ONE_HAND_REQUIRED) {
+        return total + 1;
+      }
+    }
+    return total;
+  }, 0);
+
+  return meleeHandsCount + shieldHandsCount;
+});
+
+const rangedHandsUsed = computed(() => {
+  // Check for special cases: shield combos
+  const hasShieldComboItem = unitData.currentEquipment.some(e => e.equipmentIndicator?.shieldCombo === true);
+
+  // Calculate ranged weapons hands
+  const rangedHandsCount = unitData.currentEquipment.reduce((total, item) => {
+    if (item.category === EquipmentCategory.RANGED_WEAPON) {
+      if (item.handedness === HandednessType.ONE_HANDED) {
+        return total + 1;
+      } else if (item.handedness === HandednessType.TWO_HANDED) {
+        return total + 2;
+      }
+    }
+    return total;
+  }, 0);
+
+  // Add shield hands if they count (no shield combo item)
+  const shieldHandsCount = unitData.currentEquipment.reduce((total, item) => {
+    if (item.category === EquipmentCategory.SHIELD && !hasShieldComboItem) {
+      if (item.handedness === HandednessType.ONE_HAND_REQUIRED) {
+        return total + 1;
+      }
+    }
+    return total;
+  }, 0);
+
+  return rangedHandsCount + shieldHandsCount;
+});
+
+// Computed property to get special equipment combo warnings
+const specialEquipmentCombos = computed(() => {
+  if (!validationResult.value) return []
+  return validationResult.value.warnings.filter(warning =>
+    warning.type === WarningType.SPECIAL_EQUIPMENT_COMBO
+  )
+})
+
+// Check if we have any special equipment combo warnings to display
+const hasSpecialEquipmentCombos = computed(() =>
+  specialEquipmentCombos.value.length > 0
+)
+
+// Computed property to get regular warnings (not special combos)
+const regularWarnings = computed(() => {
+  if (!validationResult.value) return []
+  return validationResult.value.warnings.filter(warning =>
+    warning.type !== WarningType.SPECIAL_EQUIPMENT_COMBO
+  )
+})
+
 // Methods
 function addEquipment(equipment: Equipment) {
   if (!unitData.currentEquipment.some((item) => item.id === equipment.id)) {
@@ -559,7 +633,7 @@ function handleEquipmentSelection(items: Equipment[]) {
 
   // Add the selected items
   unitData.currentEquipment.push(...items)
-  
+
   // Run validation
   validateCurrentEquipment()
 }
@@ -567,7 +641,7 @@ function handleEquipmentSelection(items: Equipment[]) {
 async function saveUnit() {
   // Validate one more time
   validateCurrentEquipment()
-  
+
   // If there are errors, ask for confirmation before saving
   if (validationResult.value && validationResult.value.errors.length > 0) {
     const confirmSave = confirm('There are equipment validation errors. Do you want to save anyway?')
@@ -641,23 +715,30 @@ async function saveUnit() {
 
 // Load equipment and default equipment on mount
 onMounted(async () => {
+  console.log('UnitForm mounted, loading factions and equipment')
+  loadingEquipment.value = true
+
   try {
+    // Load factions first to ensure we have the latest data
+    await factionStore.syncWithFirestore()
+
+    // Then fetch equipment
     await equipmentStore.fetchEquipment()
 
     // Set default name based on troop type if new unit
     if (!isEditing.value && props.troop) {
-      unitData.name = `${props.troop.name} #${uuidv4().substring(0, 4)}`
+      unitData.name = props.troop.name
     }
 
     // Load associated army and warband variant if available
     if (props.armyId) {
       // Get army data
       const army = await armyStore.loadArmy(props.armyId)
-      
+
       // Load warband variant if the army has one
       if (army && army.warbandVariantId) {
         await warbandVariantStore.fetchWarbandVariants()
-        
+
         const variant = warbandVariantStore.warbandVariants.find(v => v.id === army.warbandVariantId)
         if (variant) {
           currentWarbandVariant.value = variant
@@ -668,21 +749,38 @@ onMounted(async () => {
     // Now that everything's loaded, get available equipment
     await loadAvailableEquipment()
 
+    // Add default equipment if this is a new unit
+    if (!isEditing.value && props.troop?.defaultEquipment && Array.isArray(props.troop.defaultEquipment)) {
+      const defaultEquipment = props.troop.defaultEquipment.map(equipmentId => {
+        const equipment = equipmentStore.equipment.find(e => e.id === equipmentId)
+        return equipment
+      }).filter(Boolean) as Equipment[]
+
+      if (defaultEquipment.length > 0) {
+        unitData.currentEquipment.push(...defaultEquipment)
+        // Run validation after adding default equipment
+        validateCurrentEquipment()
+      }
+    }
+
     // Run validation
     validateCurrentEquipment()
   } catch (err) {
     console.error('Error initializing unit form:', err)
     error.value = 'Failed to load equipment data'
+  } finally {
+    loadingEquipment.value = false
   }
 })
 
 // Load available equipment for this troop
 async function loadAvailableEquipment() {
-  // Ensure equipment is loaded first
-  if (equipmentStore.equipment.length === 0) {
-    console.log('Initializing equipment store in loadAvailableEquipment')
-    await equipmentStore.fetchEquipment()
-  }
+  // Always force a refresh of equipment data to avoid caching issues
+  console.log('Initializing equipment store in loadAvailableEquipment')
+  await equipmentStore.fetchEquipment()
+
+  // Make sure we have the latest faction data
+  await factionStore.syncWithFirestore()
 
   console.log('Equipment store items:', equipmentStore.equipment.length)
 
@@ -694,24 +792,30 @@ async function loadAvailableEquipment() {
       return
     }
 
+    console.log('Troop ID:', props.troop.id)
+    console.log('Troop keywords:', props.troop.keywords || [])
+
     // Get equipment available for the troop based on faction rules
     let troopEquipment = equipmentStore.getEquipmentForTroop(
       props.troop.id,
       props.troop.keywords || []
     )
-    
+
+    console.log('Available equipment before filtering:', troopEquipment.map(e => e.name))
+
     // Filter by warband variant if applicable
     if (currentWarbandVariant.value) {
       // Check if there are warband-specific overrides
       const variantOverrides = currentWarbandVariant.value.troopSpecificOverrides?.[props.troop.id]
-      if (variantOverrides?.allowedEquipmentTypes) {
-        // Filter by allowed equipment types in the variant
-        troopEquipment = troopEquipment.filter(item => 
-          variantOverrides.allowedEquipmentTypes?.includes(item.type))
+      if (variantOverrides?.equipment) {
+        // Filter by allowed equipment in the variant
+        troopEquipment = troopEquipment.filter(item =>
+          variantOverrides.equipment?.includes(item.id))
       }
     }
-    
+
     availableEquipment.value = troopEquipment
+    console.log('Final available equipment:', availableEquipment.value.map(e => e.name))
   } catch (err) {
     console.error('Error loading available equipment:', err)
     availableEquipment.value = []
@@ -722,13 +826,23 @@ async function loadAvailableEquipment() {
 watch(() => props.troop, loadAvailableEquipment)
 
 function getEquipmentOfType(type: string) {
-  return unitData.currentEquipment.filter((item) => item.type === type)
+  return unitData.currentEquipment.filter((item) => {
+    if (type === 'Other') {
+      return item.category === EquipmentCategory.EQUIPMENT
+    }
+    if (type === 'Armour') {
+      return item.category === EquipmentCategory.ARMOUR ||
+             item.category === EquipmentCategory.HEADGEAR ||
+             item.category === EquipmentCategory.SHIELD
+    }
+    return item.category === type
+  })
 }
 
 // Replace formatEquipmentCost function
 function formatEquipmentCost(equipment: Equipment | undefined) {
   if (!equipment || !faction.value) return 'FREE'
-  
+
   // Format the equipment cost using the utility function
   return formatEquipmentCostUtil(
     equipment,
@@ -765,42 +879,11 @@ function editEquipment(item: Equipment) {
 const factionStore = useFactionStore()
 const validationResult = ref<ValidationResult | null>(null)
 
-// Add this function to format handedness for display
-function formatHandedness(handedness: HandednessType): string {
-  switch (handedness) {
-    case HandednessType.ONE_HANDED:
-      return '1-Hand'
-    case HandednessType.TWO_HANDED:
-      return '2-Hand'
-    case HandednessType.NO_HANDS:
-      return 'No Hands'
-    case HandednessType.ONE_HAND_REQUIRED:
-      return 'Requires Hand'
-    default:
-      return ''
-  }
-}
-
-// Add these functions to check for warnings and errors on specific items
-function hasWarning(item: Equipment): boolean {
-  if (!validationResult.value) return false
-  return validationResult.value.warnings.some(w => 
-    w.details?.includes(item.name) || w.message.includes(item.name)
-  )
-}
-
-function hasError(item: Equipment): boolean {
-  if (!validationResult.value) return false
-  return validationResult.value.errors.some(e => 
-    e.details?.includes(item.name) || e.message.includes(item.name)
-  )
-}
-
 // Add a function to validate the current equipment
 function validateCurrentEquipment() {
   // Run the validation - no warbandVariantId passed to avoid errors
   validationResult.value = validateEquipment(
-    unitData.currentEquipment, 
+    unitData.currentEquipment,
     faction.value || null, // Ensure we pass null instead of undefined
     props.troop,
     currentWarbandVariant.value // Pass the whole variant object
@@ -826,6 +909,11 @@ function getVariantName(troop?: Troop): string {
   }
   return 'No Variant'
 }
+
+// Add a watcher to refresh validation when equipment changes
+watch(() => unitData.currentEquipment, () => {
+  validateCurrentEquipment()
+}, { deep: true })
 </script>
 
 <style scoped>

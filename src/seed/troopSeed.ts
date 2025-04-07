@@ -1,4 +1,3 @@
-import { createDucatsCost, createGloryPointsCost } from '../models/cost'
 import type { Troop } from '../models/troop'
 
 /**
@@ -177,8 +176,9 @@ const hereticTroopsSeed: Troop[] = [
     },
     equipmentDescription:
       'You cannot buy additional equipment, weapons or armour for War Wolves. Each War Wolf is encased in a nigh impregnable suit of Tartarus Armour that is reflected in its profile above. Additionally, each War Wolf has a set of Shredding Claws and a vicious Chainsaw Mouth. These pieces of equipment are built into the integrity of its construction and cannot be removed or lost in any way. The weapons are detailed below. The War Wolf may make one attack ACTION with each of these weapons in Melee Combat and may make no other attacks during its Activation (so it can make two attacks per Activation).',
-    defaultEquipment: ['Chainmaw', 'Shredding Claws'],
+    defaultEquipment: ['tc-eq-chainmaw', 'tc-eq-shredding-claws'],
     isDefaultEquipmentRemovable: false,
+    isEquipmentLocked: true,
     abilities: [
       'Tough: War Wolves are huge creatures with unnatural vitality and are subject to the rules for TOUGH creatures.',
       'Loping Dash: A War Wolf may take its Dash ACTION with +2 DICE. The War Wolf ignores movement penalties caused by Difficult Terrain.',
@@ -189,7 +189,7 @@ const hereticTroopsSeed: Troop[] = [
     cardHeroSideImageURI: '/troops/CardHeroSide-WarWolfAssaultBeast.png',
   },
   {
-    id: 'tc-tr-heavy-infantry',
+    id: 'tc-tr-anointed-heavy-infantry',
     name: 'Anointed Heavy Infantry',
     factionId: 'tc-fc-heretic-legion',
     factionName: 'Heretic Legion',
@@ -206,7 +206,7 @@ const hereticTroopsSeed: Troop[] = [
     },
     equipmentDescription:
       'Anointed are always equipped with a suit of Reinforced Armour and Infernal brand mark which are included in the cost. This armour can never be removed. Otherwise they can be equipped with any weapon, armour or equipment from the Heretic Legion Armoury and may purchase a Trench Shield.',
-    defaultEquipment: ['Reinforced Armour', 'Infernal Brand Mark'],
+    defaultEquipment: ['tc-eq-reinforced-armour', 'tc-eq-infernal-brand-mark'],
     isDefaultEquipmentRemovable: false,
     abilities: [
       'Strong: The Heretic Heavy Infantry ignores the effect of the Keyword HEAVY on any weapon they wield.',

@@ -21,6 +21,7 @@ export interface Troop {
   equipmentDescription: string
   defaultEquipment?: string[]
   isDefaultEquipmentRemovable?: boolean
+  isEquipmentLocked?: boolean
   abilities: string[]
   keywords: string[]
   mercenaryFactions?: string[]

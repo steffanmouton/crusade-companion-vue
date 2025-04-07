@@ -1,4 +1,4 @@
-import { createDucatsCost, createGloryPointsCost } from '../models/cost'
+import { createDucatsCost } from '../models/cost'
 import type { Equipment } from '../models/equipment'
 import { HandednessType } from '../models/equipment'
 import { EquipmentCategory } from '../models/equipment'
@@ -204,7 +204,8 @@ const equipmentItems: Equipment[] = [
     keywords: [],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['Ignores additional BLOOD MARKERS caused by the Keyword SHRAPNEL.'],
-    category: EquipmentCategory.HEADGEAR
+    category: EquipmentCategory.HEADGEAR,
+    handedness: HandednessType.NO_HANDS
   },
   {
     id: 'tc-eq-iron-capirote',
@@ -306,6 +307,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'Before the battle begins, a model may use this item to grant a rifle or pistol weapon that they are equipped with the FIRE keyword until the end of the battle. Keywords: FIRE, CONSUMABLE.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-tracer-bullets',
@@ -318,6 +321,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'Before the battle begins, a model may use this item to grant a rifle or pistol weapon that they are equipped with +1D to hit with ranged attacks until the end of the battle. Keywords: CONSUMABLE.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-sniper-scope',
@@ -331,6 +336,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'Negates the penalty for Long Range if the model has not moved during this Activation. Only usable with rifles (i.e. weapons which have the Keyword rifle in their name).',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-shovel',
@@ -344,6 +351,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'A model equipped with a shovel always starts the game in cover if deployed on ground level, even if placed in open terrain. As soon as the model moves, it is no longer in cover. A model that is covered in this way retains the benefit of Cover even if the attacking model has an unobstructed view of it. If a model equipped with a shovel has two hands free, it can use it in Melee Combat as if it were a Trench Club.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-troop-flag',
@@ -372,6 +381,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'Before the battle begins, a model may use this item. If it does, injuries rolled against it suffer -1 DICE until the end of the battle and the model is not affected by FEAR. Keywords: CONSUMABLE.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-unholy-trinket',
@@ -384,6 +395,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'When a model equipped with an Unholy Trinket fails a RISKY ACTION, that model may use this item. If it does, its Activation is not ended. Keyword: CONSUMABLE.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-unholy-relic',
@@ -397,6 +410,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'A model equipped with an Unholy relic radiates a truly malignant aura and causes FEAR.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-blessed-icon',
@@ -410,6 +425,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'When a model equipped with a Blessed Icon fails a RISKY ACTION, that model may use this item. If it does, its Activation is not ended. Can be used once per battle.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-infernal-brand-mark',
@@ -423,6 +440,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'Negates the extra BLOOD MARKER from attacks with the keyword FIRE. Any such attacks suffer -1 DICE penalty to all injury rolls.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-field-shrine',
@@ -436,6 +455,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'Can be placed on the battlefield in your deployment zone. Acts as three models for Morale Tests. It has a base size of 40mm. Can be destroyed if any type of attack hits it.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-hellbound-soul-contract',
@@ -449,6 +470,8 @@ const equipmentItems: Equipment[] = [
     rules: [
       'When this model is taken Out of Action, any model in melee combat with them immediately suffers +1 BLOOD MARKER unless the model ignores damage from sources with the Keyword FIRE.',
     ],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-binoculars',
@@ -460,6 +483,8 @@ const equipmentItems: Equipment[] = [
     keywords: [],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['Any enemy Infiltrator cannot be placed closer than 16" of this model.'],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
   {
     id: 'tc-eq-musical-instrument',
@@ -486,6 +511,8 @@ const equipmentItems: Equipment[] = [
     keywords: [],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['A model with this kit adds +1 DICE to any Climbing ACTION rolls.'],
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.EQUIPMENT
   },
 ]
 
@@ -502,7 +529,8 @@ const uniqueTroopEquipment: Equipment[] = [
     rules: [
       'The War Wolf treats its Chainsaw Mouth as a melee weapon with the Keyword RISKY that grants a +1 DICE bonus to hit (for total of +3D). Additionally, the attack ignores any armour worn by the target and has a +1 DICE bonus to injure. The Chainsaw Mouth does not take any hands to wield.',
     ],
-    handedness: HandednessType.TWO_HANDED
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.MELEE_WEAPON
   },
   {
     id: 'tc-eq-shredding-claws',
@@ -516,7 +544,8 @@ const uniqueTroopEquipment: Equipment[] = [
     rules: [
       'The War Wolf treats its Shredding Claws as a two-handed melee weapon with the Keywords RISKY and CUMBERSOME. The Shredding Claws have a +1 DICE bonus to injure. Because the Shredding Claws are wielded alongside the Chainsaw Mouth, they are treated as an Off-Hand Weapon and suffer penalties accordingly.',
     ],
-    handedness: HandednessType.TWO_HANDED
+    handedness: HandednessType.NO_HANDS,
+    category: EquipmentCategory.MELEE_WEAPON
   },
 ]
 
@@ -555,11 +584,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'The suit counts as Reinforced Armour, a helmet and a gas mask. When an enemy declares a charge, they must charge the model wearing this armour if it is visible, not in cover and within 12" of the wearer. The charging model must be able to reach this model without climbing, leaping or crossing dangerous terrain. If the wearer of the armour is already in melee combat, this power has no effect.',
     ],
-    limit: 1,
-    onlyFor: { warbandVariant: 'Knights of Avarice' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(45)
-    },
     handedness: HandednessType.NO_HANDS,
     category: EquipmentCategory.ARMOUR
   },
@@ -576,11 +600,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Grants +1 DICE for all Morale tests as long as the model with the Flag is not Down or Out of Action. Requires one hand to use as if it was a weapon, both in ranged and melee combat. Any enemy entering melee combat with the model carrying this banner must make a successful ACTION or the model goes Down and cannot get up as long as they are in melee combat with the bearer of the standard.',
     ],
-    limit: 1,
-    onlyFor: { warbandVariant: 'Knights of Avarice' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(25)
-    },
     handedness: HandednessType.NO_HANDS,
     category: EquipmentCategory.STANDARD
   },
@@ -597,11 +616,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'The area within 3" of the altar is Difficult Terrain for all models in the opposing Warband. This affects even models that can Fly. The model carrying the altar may drop it at any point during their Activation. Once placed down, the Golden Calf Altar cannot be picked up again. It has a 25mm base.',
     ],
-    limit: 3,
-    onlyFor: { warbandVariant: 'Knights of Avarice' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(20)
-    },
     handedness: HandednessType.NO_HANDS
   },
 
@@ -619,11 +633,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'In the beginning of the Activation of the model wearing the Crown, it causes one INFECTION MARKER on each enemy model in melee combat with it. Despite its name, this item is not Headgear.',
     ],
-    limit: 1,
-    onlyFor: { warbandVariant: 'Dirge of the Great Hegemon', type: 'ELITE' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(25)
-    },
     handedness: HandednessType.NO_HANDS,
     category: EquipmentCategory.EQUIPMENT
   },
@@ -640,11 +649,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'All ranged attacks against a model carrying the Urn and any other models fully with 3" suffer a -1 DICE penalty against any ranged attack ACTION targeting them. This stacks with any other ranged modifiers such as Long Range. This applies even to weapons that ignore Cover such as Grenade Launchers.',
     ],
-    limit: 1,
-    onlyFor: { warbandVariant: 'Dirge of the Great Hegemon', type: 'ELITE' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(40)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -658,11 +662,6 @@ export const uniqueWarbandVariantEquipment = [
     keywords: ['SHRAPNEL'],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: true },
     rules: [],
-    limit: 0,
-    onlyFor: { warbandVariant: 'Dirge of the Great Hegemon' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(5)
-    },
     handedness: HandednessType.TWO_HANDED,
     category: EquipmentCategory.RANGED_WEAPON
   },
@@ -681,11 +680,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'This modifier applies even against attacks that ignore Armour. Can be combined with a shield, including Holy Icon Shield.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'Procession of the Sacred Affliction' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(30)
-    },
     handedness: HandednessType.ONE_HAND_REQUIRED,
     category: EquipmentCategory.ARMOUR
   },
@@ -702,11 +696,6 @@ export const uniqueWarbandVariantEquipment = [
     keywords: ['CONSUMABLE'],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['The model ignores the first BLOOD MARKER or INFECTION MARKER it suffers in combat.'],
-    limit: 0,
-    onlyFor: { warbandVariant: 'Cavalcade of the Tenth Plague' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(5)
-    },
     handedness: HandednessType.NO_HANDS
   },
 
@@ -724,11 +713,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Hits up to two models within range automatically with an Attack Action as long as they are within 6" of each other and within the Heavy Flamethrower range. Ignores armour. It also has the Keyword FIRE, so it causes an additional +1 BLOOD MARKER on enemies it hits, even if no other damage is caused.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(45)
-    },
     handedness: HandednessType.TWO_HANDED
   },
   {
@@ -742,11 +726,6 @@ export const uniqueWarbandVariantEquipment = [
     keywords: ['HEAVY', 'CRITICAL'],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['Ignores armour. Add +1 DICE when rolling on the Injury Chart.'],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createGloryPointsCost(2)
-    },
     handedness: HandednessType.TWO_HANDED
   },
   {
@@ -762,11 +741,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Specify a point on the battlefield within 36" (must be in line of sight) that you want to target. Next, take a Ranged Attack ACTION. If the roll fails (i.e. you roll 6 or less), the bomb lands 1" away from its intended location, multiplied by the number representing the degree of failure. All models within 3" of the landing spot are hit as the shell explodes – no roll to hit is needed. Add +1 DICE to all injury rolls.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(40)
-    },
     handedness: HandednessType.TWO_HANDED
   },
   {
@@ -782,11 +756,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Autocannons can make three Attack ACTIONS instead of one. They can target separate models with each attack, as long as all targets are within 6" of each other. After taking all three attacks the Activation of the model is over regardless of any remaining ACTIONS the model might have. Add +1 DICE to all injury rolls. They can shoot up to five times instead of three if they take ALL the attacks as RISKY ACTIONS.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(55)
-    },
     handedness: HandednessType.TWO_HANDED
   },
   {
@@ -802,11 +771,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'The Anchorite may make an injury roll against all models within 6" except the Anchorite itself. Note that all models within range, friend or foe, are hit if the weapon is used. No Line of Sight is needed. The attack has the Keyword GAS and Ignores Armour, unless the models are in Cover in which case armour works as normal. The use of the Gas Censer always ends the Activation of this model.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(50)
-    },
     handedness: HandednessType.ONE_HAND_REQUIRED
   },
   {
@@ -820,11 +784,6 @@ export const uniqueWarbandVariantEquipment = [
     keywords: [],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['This upgrade counts as a gas mask.'],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(5)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -840,11 +799,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'The Anchorite can add +2 DICE to its Dash ACTIONS, but it automatically gains one BLOOD MARKER if it succeeds in a Dash ACTION.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(10)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -858,11 +812,6 @@ export const uniqueWarbandVariantEquipment = [
     keywords: [],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['This upgrade increases its Ranged Characteristic to +1 DICE.'],
-    limit: 1,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(10)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -878,11 +827,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'The Anchorite Shrine can always move out of Melee combat with any enemy without the enemy having a chance to attack it. Additionally, it can move out of Melee combat as part of a Standard Move, Charge or Dash.',
     ],
-    limit: 1,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(15)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -898,11 +842,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Once during its Activation, the Anchorite Shrine may make an extra Melee Attack ACTION against a Downed enemy model on a 32mm or smaller base. Resolve the attack as if the Anchorite Shrine was armed with a Trench Club.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(10)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -916,11 +855,6 @@ export const uniqueWarbandVariantEquipment = [
     keywords: [],
     equipmentIndicator: { hasBayonetLug: false, shieldCombo: false },
     rules: ['This Anchorite can be promoted to ELITE during campaigns.'],
-    limit: 1,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(10)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -936,11 +870,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'If the model fighting the Shrine Anchorite in Melee is affected by the Keyword FEAR, one of the ACTIONS it has to take when it is activated must be Retreat from Melee Combat.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'War Pilgrimage of Saint Methodius', specialType: 'Anchorite' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(20)
-    },
     handedness: HandednessType.NO_HANDS
   },
 
@@ -958,11 +887,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Adds +1 to injury rolls (i.e. a roll of 7 on the Injury Chart becomes 8). A model armed with a Golden Khanjar can make two attacks instead of one in melee with one Melee Attack ACTION. This effect also applies to a Golden Khanjar wielded off-hand.',
     ],
-    limit: 2,
-    onlyFor: { warbandVariant: "Fida'i of Alamut", specialType: 'Assassin' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(20)
-    },
     handedness: HandednessType.ONE_HANDED
   },
   {
@@ -978,11 +902,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Ignores Armour. If the Assassin hits a model and causes at least one BLOOD MARKER, the Assassin may instantly place itself into Melee Combat with that model if there is a legal space that the Assassin could occupy within 1" of that model, regardless of the distance to the target or any interposing models/obstacles. The Assassin is considered to have charged that model, although it does not count as a Charge ACTION and therefore the Assassin can take the Move ACTION at a later point on this turn, if it hasn\'t already. Note that if the bow takes the target Out of Action, no BLOOD MARKERS are caused and this movement cannot be made.',
     ],
-    limit: 1,
-    onlyFor: { warbandVariant: "Fida'i of Alamut", specialType: 'Assassin' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(50)
-    },
     handedness: HandednessType.TWO_HANDED
   },
   {
@@ -998,11 +917,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Before the battle begins, a model may use this item to gain the Keyword STRONG until the end of a battle.',
     ],
-    limit: 4,
-    onlyFor: { warbandVariant: "Fida'i of Alamut" },
-    costPerVariant: {
-      'No Variant': createDucatsCost(5)
-    },
     handedness: HandednessType.NO_HANDS
   },
 
@@ -1020,11 +934,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Gives the model consuming the Elixir Keyword TOUGH for the duration of a single battle. It cannot be given to Lions of Jabir, Brazen Bulls or Homunculi.',
     ],
-    limit: 1,
-    onlyFor: { warbandVariant: 'House of Wisdom' },
-    costPerVariant: {
-      'House of Wisdom': createDucatsCost(10)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -1040,11 +949,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Always takes one hand to use in both melee and in ranged combat. Grants -1 to all injury rolls against the model. This bonus stacks with any armour the model wears, unless otherwise indicated. Any attack against this model that has the Keyword FIRE will suffer -1 DICE on injury rolls and will not cause an additional BLOOD MARKER.',
     ],
-    limit: 2,
-    onlyFor: { warbandVariant: 'House of Wisdom' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(20)
-    },
     handedness: HandednessType.ONE_HAND_REQUIRED
   },
 
@@ -1062,11 +966,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Critical Hit: Roll an extra dice for injury tests. Tanks and Vehicle targets that are hit by this weapon suffer -2 to their Armour Saving Throws. After every attack, the using model must pass a Body Test or the Tank-Splitter Sword is damaged and cannot be used for the remainder of the battle. If the model is attacking a vehicle and passes the Body Test with a critical, the targeted vehicle is immediately immobilized and must roll DICE to see if it explodes with a result of 10+!',
     ],
-    limit: 3,
-    onlyFor: { warbandVariant: 'Stoßtruppen of the Free State of Prussia' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(15)
-    },
     handedness: HandednessType.TWO_HANDED
   },
 
@@ -1084,11 +983,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'All injuries are rolled with +1 added to the result (i.e. a roll of 7 on the Injury Chart becomes 8). Models equipped with a Lochaber Axe impose a -1 DICE to hit penalty on any charging enemies in Melee combat. This only applies when a charging model attacks, not in subsequent rounds of Melee.',
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'Kingdom of Alba Assault Detachment' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(15)
-    },
     handedness: HandednessType.TWO_HANDED
   },
 
@@ -1106,11 +1000,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       "The Shotel is specifically designed to overcome enemy shields. It ignores the target's penalty to injury rolls from its shield, if any. The Holy Icon Shield and similar effects still apply.",
     ],
-    limit: 0,
-    onlyFor: { warbandVariant: 'Expeditionary Forces of Abyssinia', specialType: 'Chewa or ELITE' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(5)
-    },
     handedness: HandednessType.ONE_HANDED
   },
   {
@@ -1126,11 +1015,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'This model gains +1 DICE on any ACTION that would remove one or more BLOOD MARKERS or INFECTION MARKERS if successful.',
     ],
-    limit: 4,
-    onlyFor: { warbandVariant: 'Expeditionary Forces of Abyssinia' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(3)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -1146,11 +1030,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       "This model's Melee characteristic is improved by +1 DICE (as only the best warriors are granted the honour of wearing an Anfarro). This model is also immune to FEAR. Note that the Anfarro cannot be worn together with a helmet.",
     ],
-    limit: 6,
-    onlyFor: { warbandVariant: 'Expeditionary Forces of Abyssinia', specialType: 'ELITE or Chewa' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(10)
-    },
     handedness: HandednessType.NO_HANDS
   },
   {
@@ -1166,14 +1045,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Each time an ACTION is taken by any model of your warband that heals one or more BLOOD MARKERS or INFECTION MARKERS, the model carrying the Tabot gains one BLESSING MARKER.',
     ],
-    limit: 1,
-    onlyFor: {
-      warbandVariant: 'Expeditionary Forces of Abyssinia',
-      specialType: 'Abyssinian Holy Warrior',
-    },
-    costPerVariant: {
-      'No Variant': createGloryPointsCost(4)
-    },
     handedness: HandednessType.NO_HANDS
   },
 ]
@@ -1207,10 +1078,10 @@ function ensureValidCostPerVariant(items: any[]) {
       };
       return;
     }
-    
+
     // Check if this is variant-specific equipment
     const isVariantSpecific = item.onlyFor && item.onlyFor.warbandVariant;
-    
+
     // Don't add "No Variant" to variant-specific items
     if (isVariantSpecific) {
       // Make sure the specified variant is in costPerVariant
@@ -1223,12 +1094,12 @@ function ensureValidCostPerVariant(items: any[]) {
           item.costPerVariant[item.onlyFor.warbandVariant] = createDucatsCost(0);
         }
       }
-      
+
       // Remove "No Variant" if it exists for variant-specific items
       if (item.costPerVariant['No Variant']) {
         delete item.costPerVariant['No Variant'];
       }
-    } 
+    }
     // For non-variant-specific items, ensure they have a "No Variant" entry
     else if (!item.costPerVariant['No Variant']) {
       // Use the first cost value as the default

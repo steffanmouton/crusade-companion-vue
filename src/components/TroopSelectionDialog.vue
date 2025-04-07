@@ -49,7 +49,8 @@
               v-for="troop in filteredTroopsByTab"
               :key="troop.id"
               :troop="troop"
-              :is-required="isRequiredUnit(troop)"
+              :is-required="isRequiredUnit()"
+              :warband-variant="currentWarbandVariant"
               @add-troop="selectTroop(troop)"
               @view-details="viewTroopDetails(troop)"
             />
@@ -120,17 +121,17 @@ const factionId = computed(() => {
   return factionStore.factions.find(f => f.name === props.factionName)?.id || '';
 })
 
-// Watch for changes to modelValue prop
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    dialog.value = newValue
-  },
-)
+// Get current warband variant
+const currentWarbandVariant = computed(() => {
+  if (!factionId.value) return null;
+  const faction = factionStore.factions.find(f => f.id === factionId.value);
+  if (!faction?.variants) return null;
+  return faction.variants[0]; // For now, just use the first variant
+})
 
-// Watch for changes to dialog value
-watch(dialog, (newValue) => {
-  emit('update:modelValue', newValue)
+// Watch for changes to modelValue prop
+watch(() => props.modelValue, (newValue) => {
+  dialog.value = newValue
   if (newValue) {
     if (!props.factionName) {
       console.error('No faction name provided')
@@ -139,6 +140,11 @@ watch(dialog, (newValue) => {
     }
     loadTroops()
   }
+})
+
+// Watch for changes to dialog value
+watch(dialog, (newValue) => {
+  emit('update:modelValue', newValue)
 })
 
 // Computed property for filtered troops
@@ -174,19 +180,13 @@ const filteredTroopsByTab = computed(() => {
           )
         : troops.filter(
             // Filter mercenaries based on mercenaryFactions property
-            (troop) => troop.type === 'Mercenary' && 
-              (troop.mercenaryFactions?.includes(props.factionName) || 
+            (troop) => troop.type === 'Mercenary' &&
+              (troop.mercenaryFactions?.includes(props.factionName) ||
                troop.factionId === 'mercenary')
           )
 
   // Sort required units to the top
-  return filtered.sort((a, b) => {
-    const aRequired = isRequiredUnit(a)
-    const bRequired = isRequiredUnit(b)
-    if (aRequired && !bRequired) return -1
-    if (!aRequired && bRequired) return 1
-    return 0
-  })
+  return filtered.sort(() => 0);
 })
 
 // Methods
@@ -232,7 +232,7 @@ function saveUnit(unit: Unit) {
 }
 
 // Function to check if a unit is required - we don't have this concept yet, so return false
-function isRequiredUnit(troop: Troop): boolean {
+function isRequiredUnit(): boolean {
   // For now, no troops are required
   return false;
 }

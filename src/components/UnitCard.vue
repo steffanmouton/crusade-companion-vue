@@ -92,7 +92,7 @@
                     <v-chip
                       v-if="
                         troop?.defaultEquipment?.some(
-                          (name) => name.toLowerCase() === item.name.toLowerCase(),
+                          (name) => `tc-eq-${name.toLowerCase().replace(/\s+/g, '-')}` === item.id
                         )
                       "
                       size="x-small"
