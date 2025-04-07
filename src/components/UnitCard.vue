@@ -99,6 +99,22 @@
           <v-divider></v-divider>
 
           <v-card-text class="pa-3">
+            <!-- Keywords -->
+            <div v-if="troop?.keywords && troop.keywords.length > 0" class="mb-3">
+              <div class="d-flex flex-wrap gap-1">
+                <v-chip
+                  v-for="(keyword, index) in troop.keywords"
+                  :key="index"
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  class="mr-1 mb-1 keyword-chip"
+                >
+                  {{ keyword }}
+                </v-chip>
+              </div>
+            </div>
+
             <!-- Stats table -->
             <TroopStatsTable
               v-if="troop"
@@ -206,6 +222,30 @@
                 <v-list-item-title class="text-body-2 text-grey">No equipment</v-list-item-title>
               </v-list-item>
             </v-list>
+
+            <!-- Abilities list - only show if abilities exist -->
+            <template v-if="troop?.abilities && troop.abilities.length > 0">
+              <h3 class="text-subtitle-2 font-weight-medium mt-3 mb-1">Abilities</h3>
+              <div class="abilities-container">
+                <div v-for="(ability, index) in troop.abilities" :key="index"
+                  class="ability-item clickable-item" @click="showAbilityDetail(ability)">
+                  <div class="ability-header">
+                    <v-icon size="small" class="mr-2">mdi-star</v-icon>
+                    <span class="text-body-2 font-weight-medium" v-if="ability.includes(':')">
+                      {{ ability.split(':')[0] }}
+                    </span>
+                    <span class="text-body-2 font-weight-medium" v-else>{{ ability }}</span>
+                  </div>
+
+                  <!-- Display ability description if ability contains a colon -->
+                  <div v-if="ability.includes(':')" class="mt-1 ml-8">
+                    <div class="ability-description">
+                      {{ ability.split(':').slice(1).join(':').trim() }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </v-card-text>
 
           <v-divider></v-divider>
@@ -241,6 +281,35 @@
       @close="closeEquipmentDetailDialog"
     />
   </v-dialog>
+
+  <!-- Ability Detail Dialog -->
+  <v-dialog v-model="showAbilityDetailDialog" max-width="600">
+    <v-card class="ability-detail-card">
+      <v-card-title class="d-flex justify-space-between pa-4 bg-primary text-white">
+        <span v-if="selectedAbility && selectedAbility.includes(':')">
+          {{ selectedAbility.split(':')[0] }}
+        </span>
+        <span v-else>{{ selectedAbility }}</span>
+        <v-btn icon="mdi-close" variant="text" color="white" @click="closeAbilityDetailDialog"></v-btn>
+      </v-card-title>
+      <v-card-text class="pa-4">
+        <div v-if="selectedAbility && selectedAbility.includes(':')">
+          <div class="ability-detail-content">
+            <v-icon color="primary" class="mr-2 ability-icon">mdi-star</v-icon>
+            <p class="text-body-1">{{ selectedAbility.split(':').slice(1).join(':').trim() }}</p>
+          </div>
+        </div>
+        <div v-else class="ability-detail-content">
+          <v-icon color="primary" class="mr-2 ability-icon">mdi-star</v-icon>
+          <p class="text-body-1">{{ selectedAbility }}</p>
+        </div>
+      </v-card-text>
+      <v-card-actions class="pa-4 pt-0">
+        <v-spacer></v-spacer>
+        <v-btn color="primary" variant="text" @click="closeAbilityDetailDialog">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -275,6 +344,10 @@ const troopsLoading = ref(false)
 // Equipment detail dialog state
 const showEquipmentDetailDialog = ref(false)
 const selectedEquipmentItem = ref<Equipment | null>(null)
+
+// Ability detail dialog state
+const showAbilityDetailDialog = ref(false)
+const selectedAbility = ref<string | null>(null)
 
 // Initialize troops if needed
 onMounted(async () => {
@@ -503,6 +576,18 @@ const sortedEquipment = computed(() => {
     return priorityA - priorityB;
   });
 });
+
+// Function to show ability detail dialog
+function showAbilityDetail(ability: string) {
+  selectedAbility.value = ability
+  showAbilityDetailDialog.value = true
+}
+
+// Function to close ability detail dialog
+function closeAbilityDetailDialog() {
+  showAbilityDetailDialog.value = false
+  selectedAbility.value = null
+}
 </script>
 
 <style scoped>
@@ -571,8 +656,72 @@ const sortedEquipment = computed(() => {
 }
 
 .equipment-list {
-  max-height: 300px; /* Significantly increased height for mobile view */
+  max-height: 300px;
   overflow-y: auto;
+}
+
+.keyword-chip {
+  font-size: 0.75rem;
+  transition: background-color 0.2s ease;
+}
+
+.keyword-chip:hover {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.abilities-container {
+  max-height: 350px; /* Slightly larger on mobile to show more content */
+  overflow-y: auto;
+  padding: 0 !important;
+  margin-bottom: 0.5rem;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ability-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 12px;
+  padding: 4px 4px;
+  border-radius: 4px;
+}
+
+.ability-item:last-child {
+  margin-bottom: 0;
+}
+
+.ability-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.ability-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.ability-description {
+  color: rgba(0, 0, 0, 0.6);
+  white-space: normal;
+  display: block;
+  line-height: 1.5;
+  font-style: italic;
+  font-size: 0.75rem;
+  padding: 8px 8px 8px 8px;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+  margin-top: 2px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  border-left: 3px solid rgba(139, 0, 0, 0.2);
+  word-break: normal;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+  min-height: auto;
+  max-height: none;
 }
 
 .equipment-rules {
@@ -584,15 +733,6 @@ const sortedEquipment = computed(() => {
   background-color: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
   margin-top: 4px;
-}
-
-.clickable-item {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.clickable-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Mobile responsive layout */
@@ -621,5 +761,30 @@ const sortedEquipment = computed(() => {
   .equipment-list {
     max-height: 300px;
   }
+
+  .abilities-container {
+    max-height: 350px; /* Slightly larger on mobile to show more content */
+  }
+}
+
+/* Ability Detail Dialog Styles */
+.ability-detail-card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ability-detail-content {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
+.ability-detail-content .ability-icon {
+  margin-top: 4px;
+}
+
+.ability-detail-content p {
+  margin: 0;
+  line-height: 1.6;
 }
 </style>
