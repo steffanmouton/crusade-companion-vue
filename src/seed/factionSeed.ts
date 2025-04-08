@@ -14,47 +14,90 @@ export const factionSeed: Faction[] = [
     isPlayable: true,
     equipmentRules: {
       costs: {
-        'tc-eq-unarmed': createDucatsCost(0),
-        'tc-eq-knife-dagger': createDucatsCost(1),
-        'tc-eq-sacrificial-knife': createDucatsCost(2),
-        'tc-eq-reinforced-armour': createDucatsCost(5),
-        'tc-eq-trench-club': createDucatsCost(3),
-        'tc-eq-bayonet': createDucatsCost(2),
-        'tc-eq-blasphemous-staff': createGloryPointsCost(2),
-        'tc-eq-pistol-revolver': createDucatsCost(6),
+        // Ranged Weapons
         'tc-eq-bolt-action-rifle': createDucatsCost(10),
-        'tc-eq-trench-shield': createDucatsCost(10),
-        'tc-eq-standard-armour': createDucatsCost(15),
-        'tc-eq-combat-helmet': createDucatsCost(5),
-        'tc-eq-gas-mask': createDucatsCost(5),
-        'tc-eq-incendiary-ammunition': createDucatsCost(15),
-        'tc-eq-sniper-scope': createGloryPointsCost(2),
-        'tc-eq-shovel': createDucatsCost(5),
-        'tc-eq-troop-flag': createGloryPointsCost(1),
-        'tc-eq-unholy-trinket': createDucatsCost(15),
-        'tc-eq-unholy-relic': createDucatsCost(15),
-        'tc-eq-infernal-brand-mark': createDucatsCost(5),
-        'tc-eq-hellbound-soul-contract': createDucatsCost(5),
-        'tc-eq-musical-instrument': createDucatsCost(15),
-        'tc-eq-mountaineer-kit': createDucatsCost(3),
+        'tc-eq-semi-automatic-rifle': createDucatsCost(15),
+        'tc-eq-automatic-rifle': createGloryPointsCost(2),
+        'tc-eq-pistol-revolver': createDucatsCost(6),
+        'tc-eq-silenced-pistol': createDucatsCost(15),
+        'tc-eq-grenades': createDucatsCost(7),
+        'tc-eq-gas-grenades': createDucatsCost(10),
+        'tc-eq-incendiary-grenades': createDucatsCost(15),
+        'tc-eq-submachine-gun': createGloryPointsCost(2),
+        'tc-eq-shotgun': createDucatsCost(10),
+        'tc-eq-automatic-shotgun': createDucatsCost(15),
+        'tc-eq-grenade-launcher': createDucatsCost(30),
+        'tc-eq-machine-gun': createDucatsCost(50),
+        'tc-eq-flamethrower': createDucatsCost(30),
+        'tc-eq-heavy-flamethrower': createDucatsCost(55),
+        'tc-eq-anti-material-rifle': createGloryPointsCost(3),
+
+        // Melee Weapons
+        'tc-eq-knife-dagger': createDucatsCost(1),
+        'tc-eq-bayonet': createDucatsCost(2),
+        'tc-eq-trench-club': createDucatsCost(3),
+        'tc-eq-sword-axe': createDucatsCost(4),
+        'tc-eq-trench-polearm': createDucatsCost(7),
+        'tc-eq-double-handed-blunt-weapon': createDucatsCost(10),
+        'tc-eq-great-sword-axe': createDucatsCost(12),
+        'tc-eq-sacrificial-knife': createDucatsCost(23),
+        'tc-eq-hellblade': createDucatsCost(1),
+        'tc-eq-tartarus-claws': createDucatsCost(15),
+        'tc-eq-blasphemous-staff': createGloryPointsCost(2),
         'tc-eq-chainmaw': createDucatsCost(0),
         'tc-eq-shredding-claws': createDucatsCost(0),
-        'tc-eq-sword-axe': createDucatsCost(5),
+
+        // Armour
+        'tc-eq-standard-armour': createDucatsCost(15),
+        'tc-eq-reinforced-armour': createDucatsCost(40),
+        'tc-eq-trench-shield': createDucatsCost(10),
+
+        // Equipment
+        'tc-eq-combat-helmet': createDucatsCost(5),
+        'tc-eq-gas-mask': createDucatsCost(5),
+        'tc-eq-unholy-trinket': createDucatsCost(15),
+        'tc-eq-unholy-relic': createDucatsCost(15),
+        'tc-eq-incendiary-ammunition': createDucatsCost(15),
+        'tc-eq-shovel': createDucatsCost(5),
+        'tc-eq-infernal-brand-mark': createDucatsCost(5),
+        'tc-eq-troop-flag': createGloryPointsCost(1),
+        'tc-eq-musical-instrument': createDucatsCost(15),
+        'tc-eq-mountaineer-kit': createDucatsCost(3),
+        'tc-eq-hellbound-soul-contract': createDucatsCost(5),
+
       },
       limits: {
+        // Ranged Weapons
+        'tc-eq-automatic-rifle': 2,
+        'tc-eq-grenade-launcher': 2,
+        'tc-eq-machine-gun': 1,
+        'tc-eq-flamethrower': 3,
+        'tc-eq-heavy-flamethrower': 2,
+        'tc-eq-anti-material-rifle': 1,
+
+        // Melee Weapons
         'tc-eq-sacrificial-knife': 2,
+        'tc-eq-hellblade': 2,
+
+        // Equipment
         'tc-eq-incendiary-ammunition': 1,
-        'tc-eq-sniper-scope': 2,
         'tc-eq-troop-flag': 1,
-        'tc-eq-hellbound-soul-contract': 3,
         'tc-eq-musical-instrument': 1,
         'tc-eq-mountaineer-kit': 2,
+        'tc-eq-hellbound-soul-contract': 3,
       },
       troopRestrictions: {
-        'tc-eq-hellbound-soul-contract': {
+        'tc-eq-silenced-pistol': {
           conditions: {
             and: [{
-              troopIds: ['tc-tr-heretic-trooper', 'tc-tr-anointed-heavy-infantry']
+              keywords: ['ELITE']
+            }]
+          }
+        },
+        'tc-eq-hellbound-soul-contract': {
+          conditions: {
+            or: [{
+              troopIds: ['tc-tr-heretic-trooper', 'tc-tr-heretic-legionnaire-melee', 'tc-tr-heretic-legionnaire-ranged', 'tc-tr-anointed-heavy-infantry']
             }]
           }
         },
@@ -62,6 +105,13 @@ export const factionSeed: Faction[] = [
           conditions: {
             and: [{
               keywords: ['ELITE']
+            }]
+          }
+        },
+        'tc-eq-tartarus-claws': {
+          conditions: {
+            and: [{
+              troopIds: ['tc-tr-heretic-death-commando']
             }]
           }
         },
