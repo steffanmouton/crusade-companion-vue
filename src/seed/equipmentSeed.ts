@@ -1,4 +1,3 @@
-import { createDucatsCost } from '../models/cost'
 import type { Equipment } from '../models/equipment'
 import { HandednessType } from '../models/equipment'
 import { EquipmentCategory } from '../models/equipment'
@@ -833,7 +832,6 @@ const equipmentItems: Equipment[] = [
 ]
 
 // HERETIC LEGION And Warband Variants Equipment
-
 const hereticLegionEquipment: Equipment[] = [
   {
     id: 'tc-eq-sacrificial-knife',
@@ -993,7 +991,6 @@ export const knightsOfAvariceEquipment: Equipment[] = [
 ]
 
 // TRENCH PILGRIMS and Warband Variants Equipment
-
 export const trenchPilgrimsEquipment: Equipment[] = [
   {
     id: 'tc-eq-iron-capirote',
@@ -1259,7 +1256,6 @@ export const warPilgrimageOfSaintMethodiusEquipment: Equipment[] = [
 ]
 
 // IRON SULTANATE and Warband Variants Equipment
-
 export const ironSultanateEquipment: Equipment[] = [
   {
     id: 'tc-eq-jezzail',
@@ -1528,7 +1524,6 @@ export const houseOfWisdomEquipment: Equipment[] = [
 ]
 
 // NEW ANTIOCH and Warband Variants Equipment
-
 export const stosstruppenPrussiaEquipment: Equipment[] = [
   {
     id: 'tc-eq-tank-splitter-sword',
@@ -1631,9 +1626,7 @@ export const abyssinianEquipment: Equipment[] = [
   },
 ]
 
-
 // BLACK GRAIL and Warband Variants Equipment
-
 export const blackGrailEquipment: Equipment[] = [
   {
     id: 'tc-eq-infested-rifle',
@@ -1822,7 +1815,6 @@ export const dirgeOfTheGreatHegemonEquipment: Equipment[] = [
 ]
 
 // SEVEN HEADED SERPENT and Warband Variants Equipment
-
 export const sevenHeadedSerpentEquipment: Equipment[] = [
   {
     id: 'tc-eq-arquebus',
@@ -1961,92 +1953,10 @@ export const sevenHeadedSerpentEquipment: Equipment[] = [
   },
 ]
 
-// Create a type guard function to validate equipment objects
-function isValidEquipment(item: any): item is Equipment {
-  return (
-    item &&
-    typeof item === 'object' &&
-    'id' in item &&
-    'name' in item &&
-    'type' in item &&
-    'costPerVariant' in item &&
-    typeof item.costPerVariant === 'object' &&
-    Object.keys(item.costPerVariant).length > 0
-  );
-}
-
-// Function to ensure all equipment items meet the Equipment interface requirements
-function ensureValidEquipment(items: any[]): Equipment[] {
-  return items.filter(isValidEquipment);
-}
-
-// Function to ensure all equipment items have valid costPerVariant entries
-function ensureValidCostPerVariant(items: any[]) {
-  items.forEach(item => {
-    if (!item.costPerVariant) {
-      // If costPerVariant doesn't exist, create it with a default No Variant value
-      item.costPerVariant = {
-        'No Variant': createDucatsCost(0)
-      };
-      return;
-    }
-
-    // Check if this is variant-specific equipment
-    const isVariantSpecific = item.onlyFor && item.onlyFor.warbandVariant;
-
-    // Don't add "No Variant" to variant-specific items
-    if (isVariantSpecific) {
-      // Make sure the specified variant is in costPerVariant
-      if (item.onlyFor.warbandVariant && !item.costPerVariant[item.onlyFor.warbandVariant]) {
-        // If missing, copy an existing cost or create a default
-        const firstVariant = Object.keys(item.costPerVariant)[0];
-        if (firstVariant) {
-          item.costPerVariant[item.onlyFor.warbandVariant] = item.costPerVariant[firstVariant];
-        } else {
-          item.costPerVariant[item.onlyFor.warbandVariant] = createDucatsCost(0);
-        }
-      }
-
-      // Remove "No Variant" if it exists for variant-specific items
-      if (item.costPerVariant['No Variant']) {
-        delete item.costPerVariant['No Variant'];
-      }
-    }
-    // For non-variant-specific items, ensure they have a "No Variant" entry
-    else if (!item.costPerVariant['No Variant']) {
-      // Use the first cost value as the default
-      const firstVariant = Object.keys(item.costPerVariant)[0];
-      if (firstVariant) {
-        item.costPerVariant['No Variant'] = item.costPerVariant[firstVariant];
-      } else {
-        // If no costs exist, set a default of 0 ducats
-        item.costPerVariant['No Variant'] = createDucatsCost(0);
-      }
-    }
-  });
-}
-
-// Apply the cost fixes before creating the final seed data
-ensureValidCostPerVariant(meleeWeapons);
-ensureValidCostPerVariant(rangedWeapons);
-ensureValidCostPerVariant(armorItems);
-ensureValidCostPerVariant(equipmentItems);
-ensureValidCostPerVariant(hereticLegionEquipment);
-ensureValidCostPerVariant(knightsOfAvariceEquipment);
-ensureValidCostPerVariant(trenchPilgrimsEquipment);
-ensureValidCostPerVariant(kindomOfAlbaEquipment);
-ensureValidCostPerVariant(stosstruppenPrussiaEquipment);
-ensureValidCostPerVariant(dirgeOfTheGreatHegemonEquipment);
-ensureValidCostPerVariant(blackGrailEquipment);
-ensureValidCostPerVariant(fidaiOfAlamutEquipment);
-ensureValidCostPerVariant(houseOfWisdomEquipment);
-ensureValidCostPerVariant(abyssinianEquipment);
-
-
 /**
  * Combined equipment data for seeding the Firestore database
  */
-export const equipmentSeed: Equipment[] = ensureValidEquipment([
+export const equipmentSeed: Equipment[] = [
   ...meleeWeapons,
   ...rangedWeapons,
   ...armorItems,
@@ -2054,11 +1964,16 @@ export const equipmentSeed: Equipment[] = ensureValidEquipment([
   ...hereticLegionEquipment,
   ...knightsOfAvariceEquipment,
   ...trenchPilgrimsEquipment,
-  ...kindomOfAlbaEquipment,
-  ...stosstruppenPrussiaEquipment,
-  ...dirgeOfTheGreatHegemonEquipment,
-  ...blackGrailEquipment,
+  ...processionalOfTheSacredAfflictionEquipment,
+  ...cavalcadeOfTheTenthPlagueEquipment,
+  ...warPilgrimageOfSaintMethodiusEquipment,
+  ...ironSultanateEquipment,
   ...fidaiOfAlamutEquipment,
   ...houseOfWisdomEquipment,
+  ...stosstruppenPrussiaEquipment,
+  ...kindomOfAlbaEquipment,
   ...abyssinianEquipment,
-]);
+  ...blackGrailEquipment,
+  ...dirgeOfTheGreatHegemonEquipment,
+  ...sevenHeadedSerpentEquipment,
+];
