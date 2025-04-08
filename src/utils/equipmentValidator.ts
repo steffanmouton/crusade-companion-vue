@@ -513,10 +513,16 @@ function validateEquipmentWithArmyRules(
   })
 
   // Check handedness
-  // ... existing handedness validation code ...
+  validateHandedness(equipment, result)
 
-  // Check special equipment combinations
-  // ... existing special equipment validation code ...
+  // Check equipment category limits
+  validateCategoryLimits(equipment, result)
+
+  // Add information about special equipment combinations
+  addSpecialCombinationInfo(equipment, result)
+
+  // Update isValid - valid if no errors (warnings are still valid)
+  result.isValid = result.errors.length === 0
 
   return result
 }
