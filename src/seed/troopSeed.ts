@@ -3,7 +3,7 @@ import type { Troop } from '../models/troop'
 /**
  * Initial troop data for seeding the Firestore database
  */
-const hereticTroopsSeed: Troop[] = [
+export const hereticTroopsSeed: Troop[] = [
   {
     id: 'tc-tr-heretic-priest',
     name: 'Heretic Priest',

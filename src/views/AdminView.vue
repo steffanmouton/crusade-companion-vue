@@ -49,9 +49,38 @@
                 Database Seeding
               </v-card-title>
               <v-card-text>
+                <v-card variant="outlined" class="mb-4 pa-3">
+                  <div class="d-flex align-center mb-2">
+                    <v-icon icon="mdi-tag-text" color="primary" class="mr-2"></v-icon>
+                    <div class="text-subtitle-1 font-weight-medium">Game Version</div>
+                    <v-spacer></v-spacer>
+                    <v-chip color="primary" size="small">
+                      v{{ selectedVersion }}
+                    </v-chip>
+                  </div>
+                  <p class="text-caption mb-3">
+                    Select which version of the game rules to seed data for.
+                  </p>
+                  <v-select
+                    v-model="selectedVersion"
+                    :items="availableVersions"
+                    label="Game Version"
+                    class="mb-2"
+                  ></v-select>
+                  <v-btn
+                    block
+                    color="success"
+                    variant="flat"
+                    :loading="updatingVersion"
+                    :disabled="updatingVersion"
+                    @click="updateActiveVersion"
+                  >
+                    Set as Active Version
+                  </v-btn>
+                </v-card>
+
                 <p class="text-body-2 mb-4">
-                  Seed your Firestore database with initial game data. These operations will only
-                  add data if the collections are empty.
+                  Seed your Firestore database with initial game data. Data will be stored under the selected version.
                 </p>
 
                 <v-card variant="outlined" class="mb-4 pa-3">
@@ -333,6 +362,7 @@ import { troopSeed } from '../seed/troopSeed'
 import { equipmentSeed } from '../seed/equipmentSeed'
 import { factionSeed } from '../seed/factionSeed'
 import { warbandVariantsSeed } from '../seed/warbandVariantSeed'
+import { GAME_VERSION, GAME_VERSIONS } from '../config/gameVersion'
 
 import {
   collection,
@@ -402,6 +432,11 @@ const counts = ref<CountsState>({
 const logs = ref<{ id?: string; message: string; timestamp: number | null }[]>([])
 const maxDisplayedLogs = 50 // Maximum number of logs to display in the UI
 
+// Version management
+const selectedVersion = ref(GAME_VERSION)
+const availableVersions = GAME_VERSIONS.map(v => v.version)
+const updatingVersion = ref(false)
+
 // Functions
 function goHome() {
   router.push('/dashboard')
@@ -442,35 +477,27 @@ async function loadLogs() {
 }
 
 // Fetch collection counts
-async function refreshCounts() {
-  loading.value = true
+async function updateCounts() {
   try {
     const db = getFirestore()
 
-    // Get troops count
-    const troopsSnapshot = await getDocs(collection(db, 'troops'))
+    // Get counts for the selected version
+    const troopsSnapshot = await getDocs(collection(db, 'versions', selectedVersion.value, 'troops'))
     counts.value.troops = troopsSnapshot.size
 
-    // Get equipment count
-    const equipmentSnapshot = await getDocs(collection(db, 'equipment'))
+    const equipmentSnapshot = await getDocs(collection(db, 'versions', selectedVersion.value, 'equipment'))
     counts.value.equipment = equipmentSnapshot.size
 
-    // Get factions count
-    const factionsSnapshot = await getDocs(collection(db, 'factions'))
+    const factionsSnapshot = await getDocs(collection(db, 'versions', selectedVersion.value, 'factions'))
     counts.value.factions = factionsSnapshot.size
 
-    // Get warband variants count
-    const warbandVariantsSnapshot = await getDocs(collection(db, 'warbandVariants'))
+    const warbandVariantsSnapshot = await getDocs(collection(db, 'versions', selectedVersion.value, 'warbandVariants'))
     counts.value.warbandVariants = warbandVariantsSnapshot.size
 
-    addLog(
-      `Refreshed counts: Troops: ${counts.value.troops}, Equipment: ${counts.value.equipment}, Factions: ${counts.value.factions}, Warband Variants: ${counts.value.warbandVariants}`,
-    )
+    addLog(`Updated collection counts for version ${selectedVersion.value}`)
   } catch (error) {
-    console.error('Error refreshing counts:', error)
-    addLog(`Error refreshing counts: ${error}`)
-  } finally {
-    loading.value = false
+    console.error('Error updating counts:', error)
+    addLog('Failed to update collection counts')
   }
 }
 
@@ -484,15 +511,16 @@ async function seedTroops() {
   seeding.value.troops = true
   try {
     const db = getFirestore()
-    const troopsCollection = collection(db, 'troops')
+    const troopsCollection = collection(db, 'versions', selectedVersion.value, 'troops')
 
     // Add each troop to Firestore
     for (const troop of troopSeed) {
-      // Use setDoc with the custom ID
-      await setDoc(doc(troopsCollection, troop.id), {
+      const docRef = doc(troopsCollection)
+      await setDoc(docRef, {
         ...troop,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        version: selectedVersion.value,
+        createdAt: Timestamp.fromDate(new Date()),
+        updatedAt: Timestamp.fromDate(new Date()),
       })
     }
 
@@ -520,12 +548,12 @@ async function seedEquipment() {
 
     // Add each equipment item to Firestore
     for (const item of equipmentSeed) {
-      // Use the item's id as the document ID
-      const equipmentRef = doc(db, 'equipment', item.id)
+      const equipmentRef = doc(db, 'versions', selectedVersion.value, 'equipment', item.id)
       await setDoc(equipmentRef, {
         ...item,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        version: selectedVersion.value,
+        createdAt: Timestamp.fromDate(new Date()),
+        updatedAt: Timestamp.fromDate(new Date()),
       })
     }
 
@@ -553,11 +581,12 @@ async function seedFactions() {
 
     // Add each faction to Firestore using its predefined ID
     for (const faction of factionSeed) {
-      const factionRef = doc(db, 'factions', faction.id)
+      const factionRef = doc(db, 'versions', selectedVersion.value, 'factions', faction.id)
       await setDoc(factionRef, {
         ...faction,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        version: selectedVersion.value,
+        createdAt: Timestamp.fromDate(new Date()),
+        updatedAt: Timestamp.fromDate(new Date()),
       })
     }
 
@@ -617,7 +646,7 @@ async function addLog(message: string) {
 async function clearTroopsCollection() {
   try {
     const db = getFirestore()
-    const troopsCollection = collection(db, 'troops')
+    const troopsCollection = collection(db, 'versions', selectedVersion.value, 'troops')
     const troopsSnapshot = await getDocs(troopsCollection)
 
     // Use batched writes for better performance
@@ -641,7 +670,7 @@ async function clearTroopsCollection() {
 async function clearEquipmentCollection() {
   try {
     const db = getFirestore()
-    const equipmentCollection = collection(db, 'equipment')
+    const equipmentCollection = collection(db, 'versions', selectedVersion.value, 'equipment')
     const equipmentSnapshot = await getDocs(equipmentCollection)
 
     // Use batched writes for better performance
@@ -665,7 +694,7 @@ async function clearEquipmentCollection() {
 async function clearFactionsCollection() {
   try {
     const db = getFirestore()
-    const factionsCollection = collection(db, 'factions')
+    const factionsCollection = collection(db, 'versions', selectedVersion.value, 'factions')
     const factionsSnapshot = await getDocs(factionsCollection)
 
     // Use batched writes for better performance
@@ -712,7 +741,7 @@ async function reseedTroops() {
     addLog(`Error re-seeding troops: ${error}`)
   } finally {
     seeding.value.troops = false
-    await refreshCounts()
+    await updateCounts()
   }
 }
 
@@ -745,7 +774,7 @@ async function reseedEquipment() {
     addLog(`Error re-seeding equipment: ${error}`)
   } finally {
     seeding.value.equipment = false
-    await refreshCounts()
+    await updateCounts()
   }
 }
 
@@ -778,7 +807,7 @@ async function reseedFactions() {
     addLog(`Error re-seeding factions: ${error}`)
   } finally {
     seeding.value.factions = false
-    await refreshCounts()
+    await updateCounts()
   }
 }
 
@@ -801,7 +830,7 @@ async function reseedAll() {
   await reseedWarbandVariants()
 
   addLog('Completed re-seeding of all game data')
-  await refreshCounts()
+  await updateCounts()
 }
 
 // Seed warband variants
@@ -814,15 +843,16 @@ async function seedWarbandVariants() {
   seeding.value.warbandVariants = true
   try {
     const db = getFirestore()
-    const warbandVariantsCollection = collection(db, 'warbandVariants')
+    const warbandVariantsCollection = collection(db, 'versions', selectedVersion.value, 'warbandVariants')
 
     // Add each warband variant to Firestore
     for (const variant of warbandVariantsSeed) {
-      // Use setDoc with the custom ID
-      await setDoc(doc(warbandVariantsCollection, variant.id), {
+      const variantRef = doc(warbandVariantsCollection)
+      await setDoc(variantRef, {
         ...variant,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        version: selectedVersion.value,
+        createdAt: Timestamp.fromDate(new Date()),
+        updatedAt: Timestamp.fromDate(new Date()),
       })
     }
 
@@ -842,7 +872,7 @@ async function reseedWarbandVariants() {
   seeding.value.warbandVariants = true
   try {
     const db = getFirestore()
-    const warbandVariantsCollection = collection(db, 'warbandVariants')
+    const warbandVariantsCollection = collection(db, 'versions', selectedVersion.value, 'warbandVariants')
 
     // Clear existing data
     const snapshot = await getDocs(warbandVariantsCollection)
@@ -854,11 +884,12 @@ async function reseedWarbandVariants() {
 
     // Add each warband variant to Firestore
     for (const variant of warbandVariantsSeed) {
-      // Use setDoc with the custom ID
-      await setDoc(doc(warbandVariantsCollection, variant.id), {
+      const variantRef = doc(warbandVariantsCollection)
+      await setDoc(variantRef, {
         ...variant,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        version: selectedVersion.value,
+        createdAt: Timestamp.fromDate(new Date()),
+        updatedAt: Timestamp.fromDate(new Date()),
       })
     }
 
@@ -870,6 +901,25 @@ async function reseedWarbandVariants() {
     addLog(`Error re-seeding warband variants: ${error}`)
   } finally {
     seeding.value.warbandVariants = false
+  }
+}
+
+// Update active version
+async function updateActiveVersion() {
+  updatingVersion.value = true
+  try {
+    const db = getFirestore()
+    const configRef = doc(db, 'gameConfig', 'version')
+    await setDoc(configRef, {
+      activeVersion: selectedVersion.value,
+      updatedAt: Timestamp.fromDate(new Date()),
+    })
+    addLog(`Active version updated to ${selectedVersion.value}`)
+  } catch (error) {
+    console.error('Failed to update active version:', error)
+    addLog('Failed to update active version')
+  } finally {
+    updatingVersion.value = false
   }
 }
 
@@ -892,7 +942,7 @@ onMounted(async () => {
       if (isAdminInFirestore) {
         isAdmin.value = true
         await Promise.all([
-          refreshCounts(),
+          updateCounts(),
           loadLogs(), // Load logs when admin panel opens
         ])
       } else {

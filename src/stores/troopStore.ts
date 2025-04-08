@@ -1,29 +1,27 @@
 import { defineStore } from 'pinia'
 import type { Troop } from '../models/troop'
-import {
-  getDocument,
-  addDocument,
-  updateDocument,
-  deleteDocument,
-  getDocuments,
-  getTimestamp,
-} from '../services/firestore'
-import { ref, computed } from 'vue'
-import { collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { getTimestamp } from '../services/firestore'
+import { ref, computed, watch } from 'vue'
+import { collection, doc, setDoc, getDocs, deleteDoc, getDoc, getFirestore } from 'firebase/firestore'
 import { troopSeed } from '../seed/troopSeed'
+import { useVersionStore } from './versionStore'
+
+interface TroopWithVersion extends Troop {
+  version: string;
+}
 
 const COLLECTION_NAME = 'troops'
 
 export const useTroopStore = defineStore('troop', () => {
-  const troops = ref<Troop[]>([])
+  const versionStore = useVersionStore()
+  const troops = ref<TroopWithVersion[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   const initialized = ref(false)
 
   // Computed properties
   const troopsByFaction = computed(() => {
-    const result: Record<string, Troop[]> = {}
+    const result: Record<string, TroopWithVersion[]> = {}
     troops.value.forEach((troop) => {
       const faction = troop.factionName
       if (!result[faction]) {
@@ -34,14 +32,21 @@ export const useTroopStore = defineStore('troop', () => {
     return result
   })
 
+  // Get collection reference for current version
+  function getVersionedCollection() {
+    const db = getFirestore()
+    return collection(db, 'versions', versionStore.selectedVersion, 'troops')
+  }
+
   // Get all troops (admin function)
   async function getAllTroops() {
     loading.value = true
     error.value = null
 
     try {
-      const troopsData = await getDocuments<Troop>(COLLECTION_NAME)
-      troops.value = troopsData
+      const troopsCollection = getVersionedCollection()
+      const snapshot = await getDocs(troopsCollection)
+      troops.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TroopWithVersion))
     } catch (err: any) {
       console.error('Error loading troops:', err)
       error.value = err.message || 'Failed to load troops'
@@ -51,8 +56,13 @@ export const useTroopStore = defineStore('troop', () => {
   }
 
   // Initialize the store by loading troops from Firestore
-  async function initializeTroops() {
+  async function initializeTroops(): Promise<void> {
     if (initialized.value && troops.value.length > 0) {
+      // If we're switching versions, we should reload even if initialized
+      if (troops.value[0]?.version !== versionStore.selectedVersion) {
+        console.log('Version changed, reloading troops')
+        return forceReloadTroops()
+      }
       console.log('Troops already initialized with', troops.value.length, 'troops')
       return
     }
@@ -61,28 +71,20 @@ export const useTroopStore = defineStore('troop', () => {
     error.value = null
 
     try {
-      console.log('Loading troops from Firestore')
-      // Get all troops from Firestore
-      const troopsData = await getDocuments<Troop>(COLLECTION_NAME)
-      console.log('Loaded', troopsData.length, 'troops from Firestore')
-
-      if (troopsData.length === 0) {
-        console.warn('No troops found in Firestore collection')
-      }
-
-      troops.value = troopsData
+      console.log(`Loading troops from Firestore for version ${versionStore.selectedVersion}`)
+      await getAllTroops()
       initialized.value = true
     } catch (err: any) {
       console.error('Error initializing troops:', err)
       error.value = err.message || 'Failed to initialize troops'
-      throw err // Re-throw to allow handling by components
+      throw err
     } finally {
       loading.value = false
     }
   }
 
   // Force reload all troops even if already initialized
-  async function forceReloadTroops() {
+  async function forceReloadTroops(): Promise<void> {
     initialized.value = false
     troops.value = []
     return initializeTroops()
@@ -91,7 +93,10 @@ export const useTroopStore = defineStore('troop', () => {
   // Get a specific troop by ID
   async function getTroop(id: string) {
     try {
-      return await getDocument<Troop>(COLLECTION_NAME, id)
+      const troopDoc = doc(getVersionedCollection(), id)
+      const snapshot = await getDoc(troopDoc)
+      if (!snapshot.exists()) return null
+      return { id: snapshot.id, ...snapshot.data() } as TroopWithVersion
     } catch (err: any) {
       console.error(`Error getting troop ${id}:`, err)
       error.value = err.message || 'Failed to get troop'
@@ -100,7 +105,7 @@ export const useTroopStore = defineStore('troop', () => {
   }
 
   // Add a new troop
-  async function addTroop(troopData: Omit<Troop, 'id' | 'createdAt' | 'updatedAt'>) {
+  async function addTroop(troopData: Omit<Troop, 'id' | 'createdAt' | 'updatedAt' | 'version'>) {
     loading.value = true
     error.value = null
 
@@ -108,12 +113,15 @@ export const useTroopStore = defineStore('troop', () => {
       const timestamp = getTimestamp()
       const newTroop = {
         ...troopData,
+        version: versionStore.selectedVersion,
         ...timestamp,
       }
 
-      const id = await addDocument(COLLECTION_NAME, newTroop)
-      const createdTroop: Troop = {
-        id,
+      const troopRef = doc(getVersionedCollection())
+      await setDoc(troopRef, newTroop)
+
+      const createdTroop: TroopWithVersion = {
+        id: troopRef.id,
         ...newTroop,
       }
 
@@ -136,10 +144,12 @@ export const useTroopStore = defineStore('troop', () => {
     try {
       const data = {
         ...troopData,
+        version: versionStore.selectedVersion,
         updatedAt: Date.now(),
       }
 
-      await updateDocument(COLLECTION_NAME, id, data)
+      const troopRef = doc(getVersionedCollection(), id)
+      await setDoc(troopRef, data, { merge: true })
 
       const index = troops.value.findIndex((t) => t.id === id)
       if (index !== -1) {
@@ -162,7 +172,8 @@ export const useTroopStore = defineStore('troop', () => {
     error.value = null
 
     try {
-      await deleteDocument(COLLECTION_NAME, id)
+      const troopRef = doc(getVersionedCollection(), id)
+      await deleteDoc(troopRef)
       troops.value = troops.value.filter((t) => t.id !== id)
       return true
     } catch (err: any) {
@@ -221,10 +232,19 @@ export const useTroopStore = defineStore('troop', () => {
     }
   }
 
+  // Watch for version changes
+  watch(() => versionStore.selectedVersion, (newVersion, oldVersion) => {
+    if (newVersion !== oldVersion) {
+      console.log(`Version changed from ${oldVersion} to ${newVersion}, reloading troops`)
+      forceReloadTroops()
+    }
+  })
+
   return {
     troops,
     loading,
     error,
+    initialized,
     troopsByFaction,
     getAllTroops,
     initializeTroops,
