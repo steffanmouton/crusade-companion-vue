@@ -5,7 +5,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-knights-of-avarice',
     name: 'Knights of Avarice',
-    factionId: 'Heretic Legion',
+    factionId: 'tc-fc-heretic-legion',
     description:
       'The warbands who follow the Prince of Greed call themselves the Knights of Avarice. Such heretics display their wealth extravagantly and prefer to carry the most expensive and hard-to-acquire weapons, armour and equipment, suffering none to join them who lacks the means to obtain their glittering panoply.',
     specialRules: [
@@ -83,7 +83,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-heretic-naval-raiding-party',
     name: 'Heretic Naval Raiding Party',
-    factionId: 'Heretic Legion',
+    factionId: 'tc-fc-heretic-legion',
     description:
       'The Heretic Fleet operates as a semi-autonomous entity under the command of its High Captain and other admirals. The Heretics have their own marine infantry that often operates in small bands, striking deep behind enemy lines and executing smash and grab missions.',
     specialRules: [
@@ -97,7 +97,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-trench-ghosts',
     name: 'Trench Ghosts',
-    factionId: 'Heretic Legion',
+    factionId: 'tc-fc-heretic-legion',
     description:
       'Sometimes when Heretic troopers die upon a hallowed ground or in presence of an uncorrupted holy relic, they become trapped between planes of existence. Claimed by neither Heaven nor Hell, the Trench Ghosts become Undead – doomed to fight a war without an end, attacking both the Faithful and Heretic alike, hating all life, obeying commands that no living can hear.',
     specialRules: [
@@ -117,7 +117,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-dirge-of-the-great-hegemon',
     name: 'Dirge of the Great Hegemon',
-    factionId: 'Black Grail',
+    factionId: 'tc-fc-black-grail',
     description:
       'In the annals of the Great War two mighty Hegemons of the Black Grail have risen: Yersinia Rex, Emperor of Pestilence, and Febris, the rotting Bride of Beelzebub. Each of them were destroyed, but at an unimaginable cost to the forces of the Great Tyrant YHWH. With the ascension of a Hegemon, the hideous power of the Black Grail is exalted. Beelzebub grows sleek and fat, and like a magnanimous king, bestowing blessings and gifts upon his most favoured children.',
     specialRules: [
@@ -134,7 +134,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-procession-of-the-sacred-affliction',
     name: 'Procession of the Sacred Affliction',
-    factionId: 'Trench Pilgrims',
+    factionId: 'tc-fc-trench-pilgrims',
     description:
       "Trench Pilgrims of the Procession of the Sacred Affliction are known for their zeal in close quarter combat, their armour decorated with icons and shields adorned with the depictions of the Saints, which despite appearances can withstand machine gun bullets. The millstones they carry upon their backs are used to tie about the necks of sinners before drowning them in the mud and blood of No Man's Land.",
     specialRules: [
@@ -150,7 +150,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-cavalcade-of-the-tenth-plague',
     name: 'Cavalcade of the Tenth Plague',
-    factionId: 'Trench Pilgrims',
+    factionId: 'tc-fc-trench-pilgrims',
     description:
       'This Trench Pilgrim Procession traditionally sacrifices lambs before battle, anointing themselves in its blood to ward off the wrath of God. The Pilgrims then draw holy symbols with the blood of the sacrifice upon their bodies, clothing and armour, and then march to battle singing hymns, in certain belief that the blood of the Lamb shields them from any harm.',
     specialRules: [
@@ -165,7 +165,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-war-pilgrimage-of-saint-methodius',
     name: 'War Pilgrimage of Saint Methodius',
-    factionId: 'Trench Pilgrims',
+    factionId: 'tc-fc-trench-pilgrims',
     description:
       "From the Night of Fire and Blood that laid low the Greater Moravian monastery of Velehrad emerged a single monk of the Orthodox Order of St. Methodius. Following the ancient Orthodox creed, the pilgrims of St. Methodius reject many of the teachings and customs of other Pilgrim Processions. They consider the creation of the Communicants as a dangerous heresy and condemn the use of Martyrdom Devices as an affront to God's commandment against suicide.",
     specialRules: [
@@ -182,7 +182,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-fidai-of-alamut',
     name: "Fida'i of Alamut",
-    factionId: 'Iron Sultanate',
+    factionId: 'tc-fc-iron-sultanate',
     description:
       "The pact between the Iron Sultanate and the Assassin fortress of Alamut ensures that the Sultan is served by the exquisitely skilled killers of the Old Man of the Mountain in exchange for independence of the Assassin's domain. In deepest secrecy Rashid al-Din Sinan dispatches his hand-picked disciples on Missions of his own, communicating their orders with no spoken words, signs nor written messages, but talking directly to them in their dreams.",
     specialRules: [
@@ -197,7 +197,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-defenders-of-the-iron-wall',
     name: 'Defenders of the Iron Wall',
-    factionId: 'Iron Sultanate',
+    factionId: 'tc-fc-iron-sultanate',
     description:
       'The Defenders of the Iron Wall are a group of elite warriors who are dedicated to protecting the Iron Sultanate from all threats. They are known for their fierce loyalty to the Sultan and their unwavering commitment to the cause of the faith.',
     specialRules: [
@@ -213,7 +213,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-house-of-wisdom',
     name: 'House of Wisdom',
-    factionId: 'Iron Sultanate',
+    factionId: 'tc-fc-iron-sultanate',
     description:
       'The House of Wisdom is the pre-eminent centre of learning within the Iron Sultanate. Its libraries, workshops, forges, gardens of exotic and wondrous plants, hospitals and observatories are unmatched. In its laboratories guarded by the faithful Kavass, the Jabirean Alchemists dissect and study the War Beasts of Shaitan so their weaknesses can be laid bare and exploited by the Believers.',
     specialRules: [
@@ -228,7 +228,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-papal-states-intervention-force',
     name: 'Papal States Intervention Force',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'The Papal states who all operate under the command of the Supreme Pontiff of Rome rather than the Duke of New Antioch are sometimes dispatched to the front lines to perform a specific duty such as hunting down and eliminating dangerous Heretic leaders or recovering artefacts of great spiritual importance.',
     specialRules: [
@@ -243,7 +243,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-eire-rangers',
     name: 'Eire Rangers',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'Eire is a stronghold of the Church and an ancient centre of learning. Due to the constant and devastating raids of the Heretic Navy, they are bitter enemies of the Infernal forces. The Emerald Isle has endured hunger and ravaged by the Black Grail, as well as a full-fledged invasion aimed at destroying the famed House of Manuscripts where many of the holiest of texts are kept.',
     specialRules: [
@@ -260,7 +260,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-red-brigade',
     name: 'The Red Brigade',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description: 'Red Brigade is made of volunteers who have lost someone close to them in the battles of the Great War. The unit was founded by St. Ernest, the sole survivor of the second battle of Acre; where he lost his brother Wilhelm to the forces of the Heresiarch Berenguer. It is said that when his brother fell in combat Ernest donned the blood-stained helmet of Wilhelm and returned to the fray to kill Heretics until there were no more left to slay. As silence finally fell over the battlefield, Ernest was the sole survivor of either side. Seeing this as an ordained miracle by the Almighty, he gathered the rest of his brother\'s bloodied armour and returned to the Principality of New Antioch. There he began recruiting volunteers for his vendetta. As a gifted orator driven by the anguish of his loss, Ernest soon gathered a following of many bereaved soldiers like himself. Thus the first Red Brigade was formed and Ernst led his unofficial warband into the No Man\'s Land on a hunt for Heretics, through ambush and deep strikes at the vulnerable enemy supply lines. His bloodsoaked warriors soon began to resemble their leader in appearance which earned the unit its name. Their skill and cunning on the battlefield caught the attention of the throne of New Antioch and the Red Brigade was recognised as an official unit in the ducal armed forces.',
     specialRules: [
       'Wear and Tear: The Red Brigade Warband starts every game with 1 BLOOD MARKER for each 200 full ducats of the total Warband cost. Your opponent can distribute these between your troops, but not can only give 1 BLOOD MARKER per model as long as there are troops with no BLOOD MARKERs left. Max BLOOD MARKERs per model is 2.',
@@ -273,9 +273,9 @@ export const warbandVariantsSeed: WarbandVariant[] = [
     ],
   },
   {
-    id: 'tc-wb-stoßtruppen-of-the-free-state-of-prussia',
+    id: 'tc-wb-stosstruppen-of-the-free-state-of-prussia',
     name: 'Stoßtruppen of the Free State of Prussia',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'When the need to take out an enemy strongpoint or assault an especially powerful defensive line of trenches or redoubts arises, the Duke of Antioch often calls upon the famed Stoßtruppen forces of the Free State of Prussia. These elite units often operate in deep forward positions, and quite often they carry secret orders or specific missions from the Princes of the Church or the New Antioch High Command.',
     specialRules: [
@@ -292,7 +292,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-kingdom-of-alba-assault-detachment',
     name: 'Kingdom of Alba Assault Detachment',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       "Hailing from the Scottish Highlands where the Church is strong, these men (and a few fierce women!) come to New Antioch in search of glory, forgiveness of their sins, as well as dreams of acquiring valuable loot to send back to their island home, but above all to get their hands on some Devil-worshippers! The Heretic submarine fleet harries the shores of the Kingdom constantly, carrying off their young in chains to be sacrificed in the dark altars of the Arch-devils and their hatred towards Hell's forces runs deep.",
     specialRules: [
@@ -310,7 +310,7 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-expeditionary-forces-of-abyssinia',
     name: 'Expeditionary Forces of Abyssinia',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'Most of what was once the ancient realm of Egypt now rests under the Shadow of Hell and the stronghold of the servants of the Prince of Greed, who has long dreamed of plundering the whole continent of its riches. War has honed the soldiers of Ethiopia into masters of mobile warfare and taking the enemy on in loose formation, a style of fighting well-suited to their rugged country where scarce roads restrict the movements of large armies.',
     specialRules: [
