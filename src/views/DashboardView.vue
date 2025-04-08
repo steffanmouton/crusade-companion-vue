@@ -3,12 +3,14 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
+import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import { getFirestore, getDoc, doc } from 'firebase/firestore'
 import { auth } from '../services/firebase'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const armyStore = useArmyStore()
+const warbandVariantStore = useWarbandVariantStore()
 
 // Admin state
 const isAdmin = ref(false)
@@ -64,11 +66,20 @@ const checkAdminStatus = async () => {
 
 // Load armies on component mount
 onMounted(async () => {
-  if (authStore.isAuthenticated) {
+  if (authStore.user) {
     await armyStore.loadArmies()
     await checkAdminStatus()
+
+    // Load warband variants for display
+    await warbandVariantStore.fetchWarbandVariants()
   }
 })
+
+// Function to get the warband variant name for an army
+function getWarbandVariantName(army: any) {
+  if (!army.warbandVariantId) return null
+  return warbandVariantStore.warbandVariants.find(v => v.id === army.warbandVariantId)?.name || null
+}
 </script>
 
 <template>
@@ -198,7 +209,11 @@ onMounted(async () => {
                     </v-list-item-title>
 
                     <v-list-item-subtitle>
-                      {{ army.faction }} | {{ army.currentPoints }}/{{ army.targetPoints }} pts
+                      {{ army.faction }}
+                      <template v-if="getWarbandVariantName(army)">
+                        | <span class="text-primary font-weight-medium">{{ getWarbandVariantName(army) }}</span>
+                      </template>
+                      | {{ army.currentPoints }}/{{ army.targetPoints }} pts
                     </v-list-item-subtitle>
 
                     <template v-slot:append>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
@@ -40,20 +40,39 @@ const submitButtonText = computed(() => (isEditMode.value ? 'Update Army' : 'Cre
 
 // Computed property for available warband variants
 const availableWarbandVariants = computed(() => {
-  return warbandVariantStore.warbandVariants.filter((variant) => variant.factionId ===
-    factionStore.factions.find(f => f.name === faction.value)?.id
+  const factionId = factionStore.factions.find(f => f.name === faction.value)?.id;
+  const variants = warbandVariantStore.warbandVariants.filter((variant) =>
+    variant.factionId === factionId
   );
+  console.log(`Found ${variants.length} warband variants for faction ${faction.value} (ID: ${factionId})`);
+  return variants;
+})
+
+// Watch for faction changes and reset warband variant if needed
+watch(faction, (newFaction) => {
+  const factionId = factionStore.factions.find(f => f.name === newFaction)?.id;
+  const currentVariant = warbandVariantStore.warbandVariants.find(v => v.id === warbandVariantId.value);
+
+  // If the selected variant doesn't belong to the new faction, reset it
+  if (currentVariant && currentVariant.factionId !== factionId) {
+    console.log(`Resetting warband variant because faction changed from ${currentVariant.factionId} to ${factionId}`);
+    warbandVariantId.value = null;
+  }
 })
 
 // Load warband variants and factions on mount
 onMounted(async () => {
   isLoading.value = true
   try {
-    await Promise.all([
-      warbandVariantStore.fetchWarbandVariants(),
-      // Make sure factions are loaded
-      factionStore.factions.length === 0 ? Promise.resolve() : Promise.resolve()
-    ])
+    // Make sure factions are loaded
+    if (factionStore.factions.length === 0) {
+      await factionStore.syncWithFirestore()
+    }
+
+    // Load warband variants
+    await warbandVariantStore.fetchWarbandVariants()
+
+    console.log("Loaded warband variants:", warbandVariantStore.warbandVariants.length)
 
     // Set default faction if none is set
     if (!faction.value && factionStore.playableFactions.length > 0) {
@@ -72,6 +91,9 @@ onMounted(async () => {
           currency.value = army.currency || 0
           description.value = army.description || ''
           warbandVariantId.value = army.warbandVariantId || null
+
+          console.log("Editing army with warband variant:", warbandVariantId.value)
+          console.log("Available warband variants:", availableWarbandVariants.value.map(v => ({ id: v.id, name: v.name })))
         } else {
           errorMessage.value = 'Army not found'
           router.push('/dashboard')
@@ -277,6 +299,7 @@ const deleteArmy = async () => {
             <!-- Army Form -->
             <v-form @submit.prevent="handleSubmit">
               <!-- Name Field -->
+              <h3 class="text-subtitle-1 font-weight-medium mb-2">Basic Information</h3>
               <v-text-field
                 v-model="name"
                 label="Army Name"
@@ -301,9 +324,50 @@ const deleteArmy = async () => {
                 required
               ></v-select>
 
+              <!-- Warband Variant Field -->
+              <v-select
+                v-if="availableWarbandVariants.length > 0"
+                v-model="warbandVariantId"
+                label="Warband Variant (Optional)"
+                :items="[{ id: null, name: 'None' }, ...availableWarbandVariants]"
+                item-title="name"
+                item-value="id"
+                variant="outlined"
+                density="comfortable"
+                class="mb-2 tc-field"
+                bg-color="background"
+                :hint="
+                  warbandVariantId
+                    ? availableWarbandVariants.find((v) => v.id === warbandVariantId)?.description
+                    : 'Select a warband variant to apply special rules to your army'
+                "
+                persistent-hint
+              >
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props" :title="undefined">
+                    <v-list-item-title>{{ item.raw.name }}</v-list-item-title>
+                    <v-list-item-subtitle v-if="item.raw.id">{{ item.raw.description }}</v-list-item-subtitle>
+                  </v-list-item>
+                </template>
+              </v-select>
+
+              <!-- Description Field -->
+              <v-textarea
+                v-model="description"
+                label="Description"
+                variant="outlined"
+                density="comfortable"
+                class="mb-4 tc-field"
+                rows="4"
+                bg-color="background"
+              ></v-textarea>
+
+              <!-- Game Type Settings Section -->
+              <h3 class="text-subtitle-1 font-weight-medium mb-2">Game Type Settings</h3>
+
               <!-- Game Type Presets -->
               <div class="mb-4">
-                <h3 class="text-subtitle-1 font-weight-medium mb-2">Game Type Presets</h3>
+                <p class="text-caption mb-2">Quick Presets:</p>
                 <div class="d-flex ga-2">
                   <v-btn
                     @click="setCampaignPreset"
@@ -345,43 +409,6 @@ const deleteArmy = async () => {
                 class="mb-2 tc-field"
                 bg-color="background"
               ></v-text-field>
-
-              <!-- Warband Variant Field -->
-              <v-select
-                v-if="availableWarbandVariants.length > 0"
-                v-model="warbandVariantId"
-                label="Warband Variant"
-                :items="availableWarbandVariants"
-                item-title="name"
-                item-value="id"
-                variant="outlined"
-                density="comfortable"
-                class="mb-2 tc-field"
-                bg-color="background"
-                :hint="
-                  warbandVariantId
-                    ? availableWarbandVariants.find((v) => v.id === warbandVariantId)?.description
-                    : ''
-                "
-                persistent-hint
-              >
-                <template v-slot:item="{ props, item }">
-                  <v-list-item v-bind="props">
-                    <div class="text-truncate text-caption">{{ item.raw.description }}</div>
-                  </v-list-item>
-                </template>
-              </v-select>
-
-              <!-- Description Field -->
-              <v-textarea
-                v-model="description"
-                label="Description"
-                variant="outlined"
-                density="comfortable"
-                class="mb-4 tc-field"
-                rows="4"
-                bg-color="background"
-              ></v-textarea>
 
               <!-- Submit Button -->
               <v-btn

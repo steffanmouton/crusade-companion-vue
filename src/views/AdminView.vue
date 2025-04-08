@@ -550,15 +550,12 @@ async function seedFactions() {
   seeding.value.factions = true
   try {
     const db = getFirestore()
-    const factionsCollection = collection(db, 'factions')
 
-    // Add each faction to Firestore
+    // Add each faction to Firestore using its predefined ID
     for (const faction of factionSeed) {
-      // Extract all properties except id using destructuring and rest
-      const { id: _factionId, ...factionDataWithoutId } = faction
-      await addDoc(factionsCollection, {
-        originalId: _factionId, // Store the original ID as a field
-        ...factionDataWithoutId,
+      const factionRef = doc(db, 'factions', faction.id)
+      await setDoc(factionRef, {
+        ...faction,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       })

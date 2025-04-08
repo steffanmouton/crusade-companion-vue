@@ -1,13 +1,14 @@
 import type { WarbandVariant } from '@/models/warbandVariant'
+import { createDucatsCost, CurrencyType } from '@/models/cost'
 
 export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-knights-of-avarice',
     name: 'Knights of Avarice',
-    factionId: 'Heretic Legion',
+    factionId: 'tc-fc-heretic-legion',
     description:
       'The warbands who follow the Prince of Greed call themselves the Knights of Avarice. Such heretics display their wealth extravagantly and prefer to carry the most expensive and hard-to-acquire weapons, armour and equipment, suffering none to join them who lacks the means to obtain their glittering panoply.',
-    rules: [
+    specialRules: [
       'Worship Mammon: In a campaign, the patron of the warband will always be Mammon. Instead of the Puppet Master ability, the Heretic Priest of the Knights of Avarice may select the Price of Greed ability if they wish.',
       "Mammon's Chosen: Knights of Avarice allow only the wealthiest and the best-equipped candidates to join their ranks. Your force may have no models that cost less than 80 ducats (including their equipment).",
       'Corrupt Merchants: Many merchants, traders and moneylenders within the Faithful nations are followers of Mammon and secretly supply the Knights of Avarice with their wares.',
@@ -16,14 +17,76 @@ export const warbandVariantsSeed: WarbandVariant[] = [
       'Goetic Warlocks: Goetic Warlocks are creations of Mammon. This warband may include one for the price of 110 ducats.',
       "Debtors to Mammon: Wretched of the warband are not tied by Mammon's Chosen rule.",
     ],
+
+    // Add equipment rules
+    equipmentRules: {
+      costs: {
+        'tc-eq-coinhammer': createDucatsCost(20),
+        'tc-eq-tarnished-armour': createDucatsCost(45),
+        'tc-eq-standard-of-mammon': createDucatsCost(25),
+        'tc-eq-golden-calf-altar': createDucatsCost(20),
+      },
+      limits: {
+        'tc-eq-coinhammer': 2,
+        'tc-eq-tarnished-armour': 1,
+        'tc-eq-standard-of-mammon': 1,
+        'tc-eq-golden-calf-altar': 3,
+      },
+      // Global restrictions for equipment
+      globalRestrictions: {
+        bannedKeywords: ['FIRE', 'SHRAPNEL']
+      }
+    },
+
+    // Add troop rules
+    troopRules: {
+      // Define costs for special cases
+      costs: {
+        'tc-troop-goetic-warlock': {
+          currencies: [
+            { type: CurrencyType.DUCATS, amount: 110 }
+          ]
+        }
+      },
+      // Define restrictions to enforce the "Infernal Rivalry" rule
+      // Note: maxCount: 0 effectively bans the troop, but it will still appear in the UI.
+      // The code will prevent adding it to the army but it won't be hidden from selection.
+      // This enforces the special rule while keeping the troops visible for reference.
+      restrictions: {
+        requirements: [
+          {
+            maxCount: 0,
+            troopIds: ['tc-tr-heretic-death-commando']
+          }
+        ]
+      },
+      limits: {},
+      allowedEquipment: {}
+    },
+
+    // Add army rules overrides
+    armyRulesOverrides: {
+      // Minimum model cost rule - no models less than 80 ducats
+      minModelCost: {
+        cost: 80,
+        exceptions: {
+          keywords: ['WRETCHED']
+        }
+      },
+
+      // Special validations
+      specialValidations: {
+        enforcePatron: 'Mammon'
+      }
+    }
   },
   {
     id: 'tc-wb-heretic-naval-raiding-party',
     name: 'Heretic Naval Raiding Party',
-    factionId: 'Heretic Legion',
+    factionId: 'tc-fc-heretic-legion',
     description:
       'The Heretic Fleet operates as a semi-autonomous entity under the command of its High Captain and other admirals. The Heretics have their own marine infantry that often operates in small bands, striking deep behind enemy lines and executing smash and grab missions.',
-    rules: [
+    specialRules: [
       'Fast as Lightning: All Models have +1 DICE when taking their Dash ACTIONS.',
       'Close Assault Weapons: The warband can buy Submachine Guns for 25 ducats per weapon.',
       'Light Troops: The force may only include 0-1 Annointed and 0-1 Artillery Witch.',
@@ -34,10 +97,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-trench-ghosts',
     name: 'Trench Ghosts',
-    factionId: 'Heretic Legion',
+    factionId: 'tc-fc-heretic-legion',
     description:
       'Sometimes when Heretic troopers die upon a hallowed ground or in presence of an uncorrupted holy relic, they become trapped between planes of existence. Claimed by neither Heaven nor Hell, the Trench Ghosts become Undead – doomed to fight a war without an end, attacking both the Faithful and Heretic alike, hating all life, obeying commands that no living can hear.',
-    rules: [
+    specialRules: [
       'Horror: All models in the Warband cause FEAR.',
       'Semi-corporeal: Any attacks against all models in the Trench Ghost warband roll injuries with -1 DICE – the undead are hard to kill!',
       'Spectral: All models in the warband ignore movement penalties caused by Difficult Terrain, though they cannot move through any objects/terrain. Dangerous terrain affects them as normal.',
@@ -54,10 +117,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-dirge-of-the-great-hegemon',
     name: 'Dirge of the Great Hegemon',
-    factionId: 'Black Grail',
+    factionId: 'tc-fc-black-grail',
     description:
       'In the annals of the Great War two mighty Hegemons of the Black Grail have risen: Yersinia Rex, Emperor of Pestilence, and Febris, the rotting Bride of Beelzebub. Each of them were destroyed, but at an unimaginable cost to the forces of the Great Tyrant YHWH. With the ascension of a Hegemon, the hideous power of the Black Grail is exalted. Beelzebub grows sleek and fat, and like a magnanimous king, bestowing blessings and gifts upon his most favoured children.',
-    rules: [
+    specialRules: [
       'The Executor: The warband must include an Executor (use Plague Knight Stats), who has the Keyword TOUGH and Ranged characteristic of +1 DICE. The Executor costs 80 ducats.',
       'The Lamenters: The warband can have up to two Plague Knights known as the Lamenters.',
       'The Fallen: The warband cannot include a Lord of Tumours or Amalgam, for all were slain a long time ago.',
@@ -71,10 +134,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-procession-of-the-sacred-affliction',
     name: 'Procession of the Sacred Affliction',
-    factionId: 'Trench Pilgrims',
+    factionId: 'tc-fc-trench-pilgrims',
     description:
       "Trench Pilgrims of the Procession of the Sacred Affliction are known for their zeal in close quarter combat, their armour decorated with icons and shields adorned with the depictions of the Saints, which despite appearances can withstand machine gun bullets. The millstones they carry upon their backs are used to tie about the necks of sinners before drowning them in the mud and blood of No Man's Land.",
-    rules: [
+    specialRules: [
       'Face thy Fears: No model in the Procession of the Sacred Affliction can wear Iron Capirotes. Those troops with Capirotes in their base profile will not have them, though their cost remains the same.',
       'Reliquary Armoury: All models of this warband (save for the Anchorite) can buy Holy Icon Shields for 20 ducats, not just ELITE models. In addition, warband models with the ELITE Keyword may acquire Holy Icon Armour.',
       'Punishing Millstones: All models in the Procession of the Sacred Affliction (except Ecclesiastic Prisoners who are not worthy) add extra +1 DICE to injury rolls in melee against models that are Down.',
@@ -87,10 +150,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-cavalcade-of-the-tenth-plague',
     name: 'Cavalcade of the Tenth Plague',
-    factionId: 'Trench Pilgrims',
+    factionId: 'tc-fc-trench-pilgrims',
     description:
       'This Trench Pilgrim Procession traditionally sacrifices lambs before battle, anointing themselves in its blood to ward off the wrath of God. The Pilgrims then draw holy symbols with the blood of the sacrifice upon their bodies, clothing and armour, and then march to battle singing hymns, in certain belief that the blood of the Lamb shields them from any harm.',
-    rules: [
+    specialRules: [
       'Blood Sacrifice: Any model (except Ecclesiastic Prisoners who are not worthy) in the warband can purchase a Sacrificial Lamb.',
       'Heaven Awaits: The Cavalcade rejects the doctrine of the Meta-Christ. Their dead Pilgrims cannot be resurrected as Martyr-Penitents.',
       'The Unclean: The Cavalcade detests using the unclean Ecclesiastic Prisoners and may have only up to two of them.',
@@ -102,10 +165,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-war-pilgrimage-of-saint-methodius',
     name: 'War Pilgrimage of Saint Methodius',
-    factionId: 'Trench Pilgrims',
+    factionId: 'tc-fc-trench-pilgrims',
     description:
       "From the Night of Fire and Blood that laid low the Greater Moravian monastery of Velehrad emerged a single monk of the Orthodox Order of St. Methodius. Following the ancient Orthodox creed, the pilgrims of St. Methodius reject many of the teachings and customs of other Pilgrim Processions. They consider the creation of the Communicants as a dangerous heresy and condemn the use of Martyrdom Devices as an affront to God's commandment against suicide.",
-    rules: [
+    specialRules: [
       'Anchorite Cloister: This warband may buy up to two Anchorite Shrines.',
       'Anchorite Armoury: This warband may alter the weaponry and equipment of their Anchorites. Anchorites of St. Methodius have +0 DICE to their Ranged Characteristic.',
       'Mortal Sin: No Ecclesiastic Prisoner of the warband may be equipped with a Martyrdom Device and no member of the warband can be Broken on the Wheel.',
@@ -119,10 +182,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-fidai-of-alamut',
     name: "Fida'i of Alamut",
-    factionId: 'Iron Sultanate',
+    factionId: 'tc-fc-iron-sultanate',
     description:
       "The pact between the Iron Sultanate and the Assassin fortress of Alamut ensures that the Sultan is served by the exquisitely skilled killers of the Old Man of the Mountain in exchange for independence of the Assassin's domain. In deepest secrecy Rashid al-Din Sinan dispatches his hand-picked disciples on Missions of his own, communicating their orders with no spoken words, signs nor written messages, but talking directly to them in their dreams.",
-    rules: [
+    specialRules: [
       "Flock of Assassins: The Fida'i of Alamut can have up to three Assassins. The warband must include a Master Assassin that counts as one of the three.",
       'Master Assassin: A Master Assassin has the Keyword TOUGH. The Master Assassin costs 95 ducats.',
       'Assassin Acolytes: Up to three Azebs of the warband can have the Keyword INFILTRATOR at the cost of +10 ducats per model.',
@@ -134,10 +197,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-defenders-of-the-iron-wall',
     name: 'Defenders of the Iron Wall',
-    factionId: 'Iron Sultanate',
+    factionId: 'tc-fc-iron-sultanate',
     description:
       'The Defenders of the Iron Wall are a group of elite warriors who are dedicated to protecting the Iron Sultanate from all threats. They are known for their fierce loyalty to the Sultan and their unwavering commitment to the cause of the faith.',
-    rules: [ 
+    specialRules: [
       'Silahdar: The commanders of the Iron Wall units come from amongst the personal bodyguards of the Sultan known as Silahdar. Each Warband must contain one Silahdrar when it is created. They use the Yüzbaşı characteristics, do not have the Mubarizun Ability. Instead they have the Keyword STRONG and can use any Sapper Only choices from the Armoury. They cost 70 ducats.',
       'Far from the Sublime Gate: The Warband may not include any Lions of Jabir, Yüzbaşi or Assassins. They cannot buy the Cloak of Alamut or the Wind Amulet.',
       'Sipahi: Sipahi Automaton Cavalry often serves as infantry in the Iron Wall units to reinforce areas under severe pressure. They use characteristics of Mamluk Faris Mercenary. They cost 110 ducats. You cannot modify their equipment in any way. You can have up to 1 Sipahi. Note that this does not stop you from recruiting a Mamluk as a mercenary as well. Sipahi can be promoted as any other non-ELITE model.',
@@ -150,10 +213,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-house-of-wisdom',
     name: 'House of Wisdom',
-    factionId: 'Iron Sultanate',
+    factionId: 'tc-fc-iron-sultanate',
     description:
       'The House of Wisdom is the pre-eminent centre of learning within the Iron Sultanate. Its libraries, workshops, forges, gardens of exotic and wondrous plants, hospitals and observatories are unmatched. In its laboratories guarded by the faithful Kavass, the Jabirean Alchemists dissect and study the War Beasts of Shaitan so their weaknesses can be laid bare and exploited by the Believers.',
-    rules: [
+    specialRules: [
       'Alchemists: The House of Wisdom warband may have up to two Alchemists and must include at least one. This warband treats Alchemist Armour as if they had a LIMIT of 2.',
       'Pride of Jabir: The warband may include up to three Lions of Jabir.',
       'Private Venture: The warband may not include any Azebs, Janissaries, Yüzbaşi or Assassins.',
@@ -165,10 +228,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-papal-states-intervention-force',
     name: 'Papal States Intervention Force',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'The Papal states who all operate under the command of the Supreme Pontiff of Rome rather than the Duke of New Antioch are sometimes dispatched to the front lines to perform a specific duty such as hunting down and eliminating dangerous Heretic leaders or recovering artefacts of great spiritual importance.',
-    rules: [
+    specialRules: [
       'Specialist Force: A Papal States Intervention Force is recruited with 500 ducats and 11 Glory Points when creating a warband for a campaign. When recruiting a warband for a one-off battle, we recommend using 700 ducats and 15 Glory Points.',
       'Swiss Guard: Up to four non-ELITE troopers and the Lieutenant can be upgraded into Swiss Guards at the cost of 5 ducats each. They are immune to FEAR.',
       'Supreme Blessing: One model in the warband may carry the crucifix given by the Supreme Pontiff. This model can take further ACTIONS if it fails in an attempted RISKY ACTION. Note that the action fails, but you are allowed to try any other ACTIONS on your profile without losing the Activation. If the crucifix is lost, a new one can be acquired at the cost of 3 Glory Points.',
@@ -180,10 +243,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-eire-rangers',
     name: 'Eire Rangers',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'Eire is a stronghold of the Church and an ancient centre of learning. Due to the constant and devastating raids of the Heretic Navy, they are bitter enemies of the Infernal forces. The Emerald Isle has endured hunger and ravaged by the Black Grail, as well as a full-fledged invasion aimed at destroying the famed House of Manuscripts where many of the holiest of texts are kept.',
-    rules: [
+    specialRules: [
       'Fianna: Any Shocktroopers in an Eire Warband can be made a member of Fianna, the famed warrior-hunters. They cost +10 ducats each and have the Keywords SKIRMISHER and INFILTRATOR.',
       'Carnyx: Your army can purchase a special Carnyx instead of a generic musical instrument. This horn is identical to a musical instrument (including equipment restrictions and LIMIT), except it can be carried by an ELITE model and the model carrying it causes FEAR.',
       'Hit-and-run tactics: If a model of this warband uses the Retreat ACTION to move away from Combat, enemies have a -1 DICE penalty to hit rolls with their free attack.',
@@ -197,9 +260,9 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-red-brigade',
     name: 'The Red Brigade',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description: 'Red Brigade is made of volunteers who have lost someone close to them in the battles of the Great War. The unit was founded by St. Ernest, the sole survivor of the second battle of Acre; where he lost his brother Wilhelm to the forces of the Heresiarch Berenguer. It is said that when his brother fell in combat Ernest donned the blood-stained helmet of Wilhelm and returned to the fray to kill Heretics until there were no more left to slay. As silence finally fell over the battlefield, Ernest was the sole survivor of either side. Seeing this as an ordained miracle by the Almighty, he gathered the rest of his brother\'s bloodied armour and returned to the Principality of New Antioch. There he began recruiting volunteers for his vendetta. As a gifted orator driven by the anguish of his loss, Ernest soon gathered a following of many bereaved soldiers like himself. Thus the first Red Brigade was formed and Ernst led his unofficial warband into the No Man\'s Land on a hunt for Heretics, through ambush and deep strikes at the vulnerable enemy supply lines. His bloodsoaked warriors soon began to resemble their leader in appearance which earned the unit its name. Their skill and cunning on the battlefield caught the attention of the throne of New Antioch and the Red Brigade was recognised as an official unit in the ducal armed forces.',
-    rules: [
+    specialRules: [
       'Wear and Tear: The Red Brigade Warband starts every game with 1 BLOOD MARKER for each 200 full ducats of the total Warband cost. Your opponent can distribute these between your troops, but not can only give 1 BLOOD MARKER per model as long as there are troops with no BLOOD MARKERs left. Max BLOOD MARKERs per model is 2.',
       'No Retreat: No member of this Warband can ever leave melee combat voluntarily, except Mercy Dogs and those who they drag along them (see below).',
       'Glory Hounds: Soldiers of New Antioch love heroic stories and improbable tall tales. Any dog that is part of the Red Brigade earns 2 Glory Points instead of 1 when they perform any Glorious Deed.',
@@ -210,12 +273,12 @@ export const warbandVariantsSeed: WarbandVariant[] = [
     ],
   },
   {
-    id: 'tc-wb-stoßtruppen-of-the-free-state-of-prussia',
+    id: 'tc-wb-stosstruppen-of-the-free-state-of-prussia',
     name: 'Stoßtruppen of the Free State of Prussia',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'When the need to take out an enemy strongpoint or assault an especially powerful defensive line of trenches or redoubts arises, the Duke of Antioch often calls upon the famed Stoßtruppen forces of the Free State of Prussia. These elite units often operate in deep forward positions, and quite often they carry secret orders or specific missions from the Princes of the Church or the New Antioch High Command.',
-    rules: [
+    specialRules: [
       'Expert Fireteams: You may have up to three FIRETEAMS from the New Antioch Fireteams feature.',
       'Masters of the Grenade: Models of the Stoßtruppen Warband add 4" range to all of their GRENADE weapons.',
       'Forward Positions: Up to two Shocktroops can have the Keyword INFILTRATOR at the cost of +10 ducats per model.',
@@ -229,10 +292,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-kingdom-of-alba-assault-detachment',
     name: 'Kingdom of Alba Assault Detachment',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       "Hailing from the Scottish Highlands where the Church is strong, these men (and a few fierce women!) come to New Antioch in search of glory, forgiveness of their sins, as well as dreams of acquiring valuable loot to send back to their island home, but above all to get their hands on some Devil-worshippers! The Heretic submarine fleet harries the shores of the Kingdom constantly, carrying off their young in chains to be sacrificed in the dark altars of the Arch-devils and their hatred towards Hell's forces runs deep.",
-    rules: [
+    specialRules: [
       'Rampant Charge: All models in this warband ignore the penalty for Defended Obstacles.',
       'Melee-focused: Mechanized Heavy Infantry of this warband have +1 DICE in melee instead of Ranged Attacks.',
       'Highland Machine Armour: Models in this warband equipped with machine armour ignore the penalty to charging imposed by the armour.',
@@ -247,10 +310,10 @@ export const warbandVariantsSeed: WarbandVariant[] = [
   {
     id: 'tc-wb-expeditionary-forces-of-abyssinia',
     name: 'Expeditionary Forces of Abyssinia',
-    factionId: 'New Antioch',
+    factionId: 'tc-fc-new-antioch',
     description:
       'Most of what was once the ancient realm of Egypt now rests under the Shadow of Hell and the stronghold of the servants of the Prince of Greed, who has long dreamed of plundering the whole continent of its riches. War has honed the soldiers of Ethiopia into masters of mobile warfare and taking the enemy on in loose formation, a style of fighting well-suited to their rugged country where scarce roads restrict the movements of large armies.',
-    rules: [
+    specialRules: [
       'Chewa: Any shocktroopers or ELITE models in an Abyssinian warband can be made a member of Chewa, the traditional warrior-elite. This costs +5 ducats per model and can be done after the model has been recruited.',
       'Faith of Ethiopia: The sect of the Sniper Priests does not operate in the Solomonic Dynasty, so your warband cannot contain any Sniper Priests.',
       'Flanking Forces: The warband cannot have Trench Moles, but instead you can upgrade up to four Yeomen to Vanguards at the cost of +5 ducats each.',

@@ -49,6 +49,22 @@ export const useWarbandVariantStore = defineStore('warbandVariant', () => {
 
     try {
       const docs = await getDocuments<FirestoreWarbandVariant>(COLLECTION_NAME)
+      console.log(`Loaded ${docs.length} warband variants from Firestore`)
+
+      // Add detailed logging for Knights of Avarice variant
+      const knightsVariant = docs.find(v => v.id === 'tc-wb-knights-of-avarice')
+      if (knightsVariant) {
+        console.log('Found Knights of Avarice variant:', {
+          id: knightsVariant.id,
+          name: knightsVariant.name,
+          factionId: knightsVariant.factionId,
+          equipmentRules: knightsVariant.equipmentRules,
+          troopRules: knightsVariant.troopRules
+        })
+      } else {
+        console.warn('Knights of Avarice variant not found in Firestore!')
+      }
+
       warbandVariants.value = docs
       initialized.value = true
     } catch (err) {

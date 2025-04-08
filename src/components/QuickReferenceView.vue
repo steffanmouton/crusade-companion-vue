@@ -179,7 +179,7 @@
     <div v-if="warbandVariant" class="warband-variant-section">
       <h3>{{ warbandVariant.name }} Rules</h3>
       <ul>
-        <li v-for="(rule, index) in warbandVariant.rules" :key="index">
+        <li v-for="(rule, index) in warbandVariant.specialRules" :key="index">
           {{ rule }}
         </li>
       </ul>
@@ -201,15 +201,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useTroopStore } from '../stores/troopStore'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import TroopStatsTable from './TroopStatsTable.vue'
-import type { Army } from '../types/firebase'
-import type { Unit } from '../models/unit'
 import type { Equipment } from '../models/equipment'
 import { HandednessType, EquipmentCategory } from '../models/equipment'
 import EquipmentDetailView from './EquipmentDetailView.vue'
 
 const props = defineProps<{
-  units: Unit[]
-  army: Army
+  units: any[]
+  army: any
 }>()
 
 const troopStore = useTroopStore()

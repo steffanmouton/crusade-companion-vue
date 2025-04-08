@@ -13,6 +13,7 @@ import type { Troop } from '../models/troop'
 import { useTroopStore } from '../stores/troopStore'
 import { useEquipmentStore } from '../stores/equipmentStore'
 import QuickReferenceView from '../components/QuickReferenceView.vue'
+import { useFactionStore } from '../stores/factionStore'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +22,7 @@ const armyStore = useArmyStore()
 const unitStore = useUnitStore()
 const troopStore = useTroopStore()
 const warbandVariantStore = useWarbandVariantStore()
+const factionStore = useFactionStore()
 
 // Get the army ID from the route params
 const armyId = computed(() => route.params.id as string)
@@ -47,24 +49,16 @@ const units = computed(() => {
     const uiUnit: ModelUnit = {
       id: firestoreUnit.id,
       name: firestoreUnit.name,
-      troopId: '',
+      troopId: firestoreUnit.troopId || '',
       costPoints: firestoreUnit.costPoints,
-      costCurrency: 0,
-      currentEquipment: [],
-      purchasedAbilities: [],
+      costCurrency: firestoreUnit.costCurrency || 0,
+      currentEquipment: (firestoreUnit.currentEquipment || []) as unknown as ModelUnit['currentEquipment'],
+      purchasedAbilities: firestoreUnit.purchasedAbilities || [],
       isMercenary: false,
     }
 
-    // Add any properties that exist in the Firestore unit
-    if ('troopId' in firestoreUnit) uiUnit.troopId = firestoreUnit.troopId as string
-    if ('troopName' in firestoreUnit) (uiUnit as any).troopName = firestoreUnit.troopName
-    if ('costCurrency' in firestoreUnit) uiUnit.costCurrency = firestoreUnit.costCurrency as number
-    if ('currentEquipment' in firestoreUnit)
-      uiUnit.currentEquipment = firestoreUnit.currentEquipment as any[]
-    if ('purchasedAbilities' in firestoreUnit)
-      uiUnit.purchasedAbilities = firestoreUnit.purchasedAbilities as string[]
     // Copy imageUrl if it exists
-    if ('imageUrl' in firestoreUnit && firestoreUnit.imageUrl)
+    if (firestoreUnit.imageUrl)
       uiUnit.imageUrl = firestoreUnit.imageUrl
 
     return uiUnit
@@ -136,10 +130,22 @@ onMounted(async () => {
   // Load warband variants
   await warbandVariantStore.fetchWarbandVariants()
 
+  // Load factions
+  await factionStore.syncWithFirestore()
+  console.log("Loaded factions:", factionStore.factions.length)
+
   if (armyId.value) {
     await armyStore.loadArmy(armyId.value)
     await unitStore.loadUnitsByArmyId(armyId.value)
     hasAttemptedLoad.value = true
+
+    // Add this console log to help diagnose any issues
+    console.log("Current army:", armyStore.currentArmy?.name,
+                "Faction:", armyStore.currentArmy?.faction,
+                "ArmyRules:", armyStore.currentArmyRules ? "Available" : "Not available")
+
+    // Add detailed logging of the ArmyRules object
+    console.log("ArmyRules object:", JSON.stringify(armyStore.currentArmyRules, null, 2))
   }
 })
 
@@ -236,6 +242,45 @@ function handleDeleteUnit(unitId: string) {
 
 // Computed property for warband variant
 const warbandVariant = computed(() => armyStore.currentWarbandVariant)
+
+// Computed property to check if the warband has special equipment
+const hasWarbandSpecialEquipment = computed(() => {
+  if (!armyStore.currentArmyRules) return false
+
+  // Knights of Avarice special equipment
+  if (warbandVariant.value?.id === 'tc-wb-knights-of-avarice') {
+    return true
+  }
+
+  return false
+})
+
+// Computed property to get warband-specific equipment names
+const warbandSpecialEquipment = computed(() => {
+  if (!armyStore.currentArmyRules) return []
+
+  // Knights of Avarice special equipment
+  if (warbandVariant.value?.id === 'tc-wb-knights-of-avarice') {
+    return [
+      'Coin Hammer',
+      'Tarnished Armour',
+      'Standard of Mammon',
+      'Golden Calf Altar'
+    ]
+  }
+
+  return []
+})
+
+// Add this function to force reseed
+async function forceReseedVariants() {
+  if (confirm('This will reset all warband variants to their initial seed data. Continue?')) {
+    await warbandVariantStore.seedWarbandVariants(true);
+    // Force reload the army after reseeding
+    await armyStore.loadArmy(armyId.value);
+    alert('Warband variants have been reseeded!');
+  }
+}
 </script>
 
 <template>
@@ -299,6 +344,16 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
                   @click="editArmy"
                 >
                   Edit
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  prepend-icon="mdi-refresh"
+                  class="mr-2 tc-btn"
+                  elevation="0"
+                  @click="forceReseedVariants"
+                >
+                  Force Reseed
                 </v-btn>
               </div>
               <!-- Army details -->
@@ -414,7 +469,7 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
                 <div class="rules-list">
                   <h4 class="text-subtitle-1 font-weight-medium mb-2">Special Rules:</h4>
                   <ul class="list-unstyled">
-                    <li v-for="(rule, index) in warbandVariant.rules" :key="index" class="mb-2">
+                    <li v-for="(rule, index) in warbandVariant.specialRules" :key="index" class="mb-2">
                       <v-icon
                         icon="mdi-book-open-variant"
                         color="primary"
@@ -424,6 +479,49 @@ const warbandVariant = computed(() => armyStore.currentWarbandVariant)
                       {{ rule }}
                     </li>
                   </ul>
+                </div>
+
+                <!-- Show army rules information when available -->
+                <div v-if="armyStore.currentArmyRules" class="rules-list mt-4">
+                  <h4 class="text-subtitle-1 font-weight-medium mb-2">Game Restrictions:</h4>
+
+                  <!-- Minimum Model Cost -->
+                  <div v-if="armyStore.currentArmyRules.troops.minModelCost" class="mb-2">
+                    <v-icon icon="mdi-alert" color="warning" size="small" class="mr-2"></v-icon>
+                    <strong>Minimum Model Cost:</strong> {{ armyStore.currentArmyRules.troops.minModelCost.cost }} ducats
+                    <span v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions">
+                      (Except for models with
+                      <span v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions.keywords">
+                        keywords: {{ armyStore.currentArmyRules.troops.minModelCost.exceptions.keywords.join(', ') }}
+                      </span>
+                      <span v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions.troopIds">
+                        troops: {{ armyStore.currentArmyRules.troops.minModelCost.exceptions.troopIds.join(', ') }}
+                      </span>
+                      )
+                    </span>
+                  </div>
+
+                  <!-- Banned Keywords -->
+                  <div v-if="armyStore.currentArmyRules.equipment.globalRestrictions.bannedKeywords.length > 0" class="mb-2">
+                    <v-icon icon="mdi-block-helper" color="error" size="small" class="mr-2"></v-icon>
+                    <strong>Banned Equipment Keywords:</strong>
+                    {{ armyStore.currentArmyRules.equipment.globalRestrictions.bannedKeywords.join(', ') }}
+                  </div>
+
+                  <!-- Special Equipment -->
+                  <div v-if="hasWarbandSpecialEquipment" class="mb-2">
+                    <v-icon icon="mdi-sword" color="success" size="small" class="mr-2"></v-icon>
+                    <strong>Special Equipment Available:</strong>
+                    <div v-for="(equip, index) in warbandSpecialEquipment" :key="index" class="ml-6 mt-1">
+                      {{ equip }}
+                    </div>
+                  </div>
+
+                  <!-- Enforced Patron -->
+                  <div v-if="armyStore.currentArmyRules.specialValidations?.enforcePatron" class="mb-2">
+                    <v-icon icon="mdi-crown" color="primary" size="small" class="mr-2"></v-icon>
+                    <strong>Patron:</strong> {{ armyStore.currentArmyRules.specialValidations.enforcePatron }}
+                  </div>
                 </div>
               </v-card>
             </template>
