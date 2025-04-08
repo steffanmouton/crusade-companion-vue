@@ -10,6 +10,9 @@ import {
 } from '../services/firestore'
 import type { Army } from '../types/firebase'
 import { useWarbandVariantStore } from './warbandVariantStore'
+import { useFactionStore } from './factionStore'
+import { compileArmyRules } from '../services/armyRulesService'
+import type { ArmyRules } from '../models/armyRules'
 
 const COLLECTION_NAME = 'armies'
 
@@ -19,6 +22,8 @@ export const useArmyStore = defineStore('army', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const warbandVariantStore = useWarbandVariantStore()
+  const factionStore = useFactionStore()
+  const currentArmyRules = ref<ArmyRules | null>(null)
 
   // Computed properties
   const hasArmies = computed(() => armies.value.length > 0)
@@ -50,6 +55,7 @@ export const useArmyStore = defineStore('army', () => {
     loading.value = true
     error.value = null
     currentArmy.value = null
+    currentArmyRules.value = null
 
     try {
       const army = await getDocument<Army>(COLLECTION_NAME, id)
@@ -63,6 +69,12 @@ export const useArmyStore = defineStore('army', () => {
       if (army.warbandVariantId) {
         await warbandVariantStore.fetchWarbandVariants()
       }
+
+      // Ensure factions are loaded for rule compilation
+      await factionStore.syncWithFirestore()
+
+      // Compile army rules
+      generateArmyRules()
 
       return army
     } catch (err: any) {
@@ -141,6 +153,11 @@ export const useArmyStore = defineStore('army', () => {
       // Update current army if it's the one being edited
       if (currentArmy.value && currentArmy.value.id === id) {
         currentArmy.value = { ...currentArmy.value, ...data }
+
+        // If warband variant changed, regenerate rules
+        if ('warbandVariantId' in armyData) {
+          generateArmyRules()
+        }
       }
 
       return true
@@ -180,9 +197,84 @@ export const useArmyStore = defineStore('army', () => {
     }
   }
 
+  // Generate/regenerate army rules for the current army
+  function generateArmyRules() {
+    if (!currentArmy.value) {
+      console.log('No current army available')
+      currentArmyRules.value = null
+      return
+    }
+
+    // In the Firebase model, Army.faction is just the faction ID as a string
+    const factionId = currentArmy.value.faction
+    console.log('Looking for faction ID:', factionId)
+    console.log('Available factions:', factionStore.factions.map(f => ({ id: f.id, name: f.name })))
+
+    // Try different approaches to find the faction
+    let faction = factionStore.factions.find(f => f.id === factionId)
+
+    // If not found by exact ID match, try to match by name
+    if (!faction && typeof factionId === 'string') {
+      faction = factionStore.factions.find(f =>
+        f.name.toLowerCase() === factionId.toLowerCase()
+      )
+    }
+
+    // If still not found, check if the factionId might be a full faction object (for backward compatibility)
+    if (!faction && typeof factionId === 'object' && factionId !== null) {
+      const factionObject = factionId as any
+      if (factionObject.id) {
+        faction = factionStore.factions.find(f => f.id === factionObject.id)
+      }
+    }
+
+    if (!faction) {
+      console.error('Could not find faction for army, using first available faction')
+      // As a last resort, use the first available faction to avoid breaking the UI
+      if (factionStore.factions.length > 0) {
+        faction = factionStore.factions[0]
+      } else {
+        currentArmyRules.value = null
+        return
+      }
+    }
+
+    console.log('Using faction:', faction.name, faction.id)
+
+    let variant = undefined
+    if (currentArmy.value.warbandVariantId) {
+      variant = warbandVariantStore.warbandVariants.find(
+        v => v.id === currentArmy.value?.warbandVariantId &&
+             (v.factionId === faction.id || v.factionId === faction.name)
+      )
+      if (variant) {
+        console.log('Using variant:', variant.name, variant.id)
+        console.log('Variant details:', {
+          factionId: variant.factionId,
+          specialRules: variant.specialRules,
+          equipmentRules: variant.equipmentRules,
+          troopRules: variant.troopRules,
+          armyRulesOverrides: variant.armyRulesOverrides
+        })
+      } else {
+        console.warn(`Could not find variant with ID ${currentArmy.value.warbandVariantId} for faction ${faction.id} / ${faction.name}`)
+        console.log('Available variants:', warbandVariantStore.warbandVariants.map(v => ({
+          id: v.id,
+          name: v.name,
+          factionId: v.factionId
+        })))
+      }
+    }
+
+    // Generate the army rules
+    currentArmyRules.value = compileArmyRules(faction, variant)
+    console.log('Generated ArmyRules:', currentArmyRules.value)
+  }
+
   return {
     armies,
     currentArmy,
+    currentArmyRules,
     loading,
     error,
     hasArmies,
@@ -193,5 +285,6 @@ export const useArmyStore = defineStore('army', () => {
     createArmy,
     updateArmy,
     deleteArmy,
+    generateArmyRules,
   }
 })

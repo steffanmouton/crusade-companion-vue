@@ -206,6 +206,7 @@ import {
   isEquipmentAllowedForTroop
 } from '../utils/equipmentUtils'
 import { useFactionStore } from '../stores/factionStore'
+import { useArmyStore } from '../stores/army'
 
 const props = defineProps<{
   modelValue: boolean
@@ -227,6 +228,7 @@ const dialog = computed({
 
 const equipmentStore = useEquipmentStore()
 const factionStore = useFactionStore()
+const armyStore = useArmyStore()
 const showDetailsDialog = ref(false)
 const selectedEquipmentForDetails = ref<Equipment | null>(null)
 const showExplorationOnlyItems = ref(false)
@@ -241,6 +243,9 @@ const equipmentTypes = computed(() => {
   const types = new Set(equipmentStore.equipment.map(item => item.type))
   return Array.from(types)
 })
+
+// Add computed property to get army rules
+const currentArmyRules = computed(() => armyStore.currentArmyRules)
 
 // Filter equipment by type
 const filteredEquipment = computed(() => {
@@ -266,6 +271,63 @@ const filteredEquipment = computed(() => {
     typeFiltered = equipmentStore.equipment.filter(
       (item: Equipment) => item.type === props.filterType
     );
+  }
+
+  // If we have compiled army rules, use them to filter the equipment
+  if (currentArmyRules.value) {
+    console.log('Using compiled army rules to filter equipment');
+
+    // Filter by equipment costs defined in army rules
+    const equipmentWithCosts = Object.keys(currentArmyRules.value.equipment.costs);
+
+    // Filter by equipment that's not banned by global restrictions
+    const bannedEquipment = currentArmyRules.value.equipment.globalRestrictions.bannedEquipmentIds;
+    const bannedKeywords = currentArmyRules.value.equipment.globalRestrictions.bannedKeywords;
+    const bannedCategories = currentArmyRules.value.equipment.globalRestrictions.bannedCategories;
+
+    // Apply all the filters from army rules
+    return typeFiltered.filter(item => {
+      // Check if the equipment has a cost defined
+      if (!equipmentWithCosts.includes(item.id)) {
+        return false;
+      }
+
+      // Check if it's banned by ID
+      if (bannedEquipment.includes(item.id)) {
+        return false;
+      }
+
+      // Check if it has a banned keyword
+      if (item.keywords && bannedKeywords.some(keyword => item.keywords.includes(keyword))) {
+        return false;
+      }
+
+      // Check if it's in a banned category
+      if (bannedCategories.includes(item.category)) {
+        return false;
+      }
+
+      // Check troop restrictions if we have a troop
+      if (props.troop) {
+        const restrictions = currentArmyRules.value?.equipment.troopRestrictions[item.id];
+        if (restrictions) {
+          // Use our utility function to check if it's allowed
+          return isEquipmentAllowedForTroop(
+            item,
+            props.troop,
+            props.faction || null,
+            props.warbandVariant || null
+          );
+        }
+      }
+
+      // Filter out exploration-only items unless checkbox is checked
+      if (item.keywords?.includes('EXPLORATION_ONLY') && !showExplorationOnlyItems.value) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   // If no faction, just return the type-filtered items

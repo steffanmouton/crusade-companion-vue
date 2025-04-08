@@ -90,6 +90,7 @@ import { ref, computed, watch } from 'vue'
 import { useTroopStore } from '../stores/troopStore'
 import { useEquipmentStore } from '../stores/equipmentStore'
 import { useFactionStore } from '../stores/factionStore'
+import { useArmyStore } from '../stores/army'
 import CondensedTroopCard from './CondensedTroopCard.vue'
 import TroopCard from './TroopCard.vue'
 import UnitForm from './UnitForm.vue'
@@ -114,6 +115,7 @@ const selectedTroop = ref<Troop | null>(null)
 const troopStore = useTroopStore()
 const equipmentStore = useEquipmentStore()
 const factionStore = useFactionStore()
+const armyStore = useArmyStore()
 const activeTab = ref('elites')
 
 // Get faction ID from faction name
@@ -128,6 +130,9 @@ const currentWarbandVariant = computed(() => {
   if (!faction?.variants) return null;
   return faction.variants[0]; // For now, just use the first variant
 })
+
+// Add computed property for army rules
+const currentArmyRules = computed(() => armyStore.currentArmyRules)
 
 // Watch for changes to modelValue prop
 watch(() => props.modelValue, (newValue) => {
@@ -171,6 +176,39 @@ const filteredTroops = computed(() => {
 const filteredTroopsByTab = computed(() => {
   const troops = filteredTroops.value
 
+  // If we have army rules, use them to filter troops
+  if (currentArmyRules.value) {
+    console.log('Using ArmyRules to filter troops')
+
+    // Get the available troops from army rules
+    const availableTroopIds = Object.keys(currentArmyRules.value.troops.availability)
+      .filter(id => currentArmyRules.value?.troops.availability[id])
+
+    console.log('Available troop IDs:', availableTroopIds)
+    console.log('Current tab:', activeTab.value)
+
+    // Filter troops based on army rules and tab
+    const filteredByAvailability = troops.filter(troop => {
+      const isAvailable = availableTroopIds.includes(troop.id)
+      if (!isAvailable) {
+        console.log(`Troop ${troop.name} (${troop.id}) not available according to ArmyRules`)
+      }
+      return isAvailable
+    })
+
+    // Now filter by tab type
+    const result = activeTab.value === 'elites'
+      ? filteredByAvailability.filter(troop => troop.type === 'Elite')
+      : activeTab.value === 'troops'
+        ? filteredByAvailability.filter(troop => troop.type === 'Troop')
+        : filteredByAvailability.filter(troop => troop.type === 'Mercenary')
+
+    console.log(`Found ${result.length} troops for tab ${activeTab.value}`)
+    return result
+  }
+
+  // Fallback to original filtering
+  console.log('Falling back to original filtering (no ArmyRules)')
   const filtered =
     activeTab.value === 'elites'
       ? troops.filter((troop) => troop.type === 'Elite' && troop.factionName === props.factionName)
@@ -186,15 +224,36 @@ const filteredTroopsByTab = computed(() => {
           )
 
   // Sort required units to the top
-  return filtered.sort(() => 0);
+  return filtered.sort(() => 0)
 })
 
 // Methods
 async function loadTroops() {
   loading.value = true
   try {
+    // Make sure factions are loaded first
+    await factionStore.syncWithFirestore()
+    console.log("Loaded factions:", factionStore.factions.length)
+
     // Initialize both troops and equipment
-    await Promise.all([troopStore.initializeTroops(), equipmentStore.fetchEquipment()])
+    await Promise.all([
+      troopStore.initializeTroops(),
+      equipmentStore.fetchEquipment()
+    ])
+
+    // If we have an army ID, load that army
+    if (props.armyId) {
+      await armyStore.loadArmy(props.armyId)
+      console.log("Loaded army:", armyStore.currentArmy?.name)
+      console.log("Army rules loaded:", armyStore.currentArmyRules ? "Yes" : "No")
+
+      // If ArmyRules weren't generated, try to generate them
+      if (!armyStore.currentArmyRules) {
+        console.log("Generating army rules...")
+        armyStore.generateArmyRules()
+        console.log("Army rules after generation:", armyStore.currentArmyRules ? "Available" : "Still missing")
+      }
+    }
   } catch (error) {
     console.error('Error loading data:', error)
   } finally {

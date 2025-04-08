@@ -3,28 +3,25 @@ import type { Faction } from '../models/faction'
 import type { WarbandVariant } from '../models/warbandVariant'
 import type { Cost } from '../models/cost'
 import type { Troop } from '../models/troop'
-import { createDucatsCost, CurrencyType } from '../models/cost'
+import { CurrencyType } from '../models/cost'
+import type { ArmyRules } from '../models/armyRules'
 
 /**
  * Gets the cost of equipment for a specific faction and optional variant
  */
 export function getEquipmentCost(
   equipment: Equipment,
-  faction: Faction,
+  faction: Faction | null,
   variant?: WarbandVariant | null
 ): Cost | null {
+  if (!faction) return null;
+
   console.log(`Checking cost for equipment "${equipment.name}" (${equipment.id}) in faction "${faction.name}"`);
 
-  // Check variant complete override first
-  if (variant?.equipmentRulesOverride?.costs?.[equipment.id]) {
-    console.log(`- Found cost in variant override`);
-    return variant.equipmentRulesOverride.costs[equipment.id];
-  }
-
-  // Check variant selective override
-  if (variant?.equipmentOverrides?.costs?.[equipment.id]) {
-    console.log(`- Found cost in variant selective override`);
-    return variant.equipmentOverrides.costs[equipment.id];
+  // Check variant override first
+  if (variant?.equipmentRules?.costs?.[equipment.id]) {
+    console.log(`- Found cost in variant equipment rules`);
+    return variant.equipmentRules.costs[equipment.id];
   }
 
   // Check base faction cost
@@ -45,14 +42,9 @@ export function getEquipmentLimit(
   faction: Faction,
   variant?: WarbandVariant | null
 ): number {
-  // Check variant complete override first
-  if (variant?.equipmentRulesOverride?.limits?.[equipment.id] !== undefined) {
-    return variant.equipmentRulesOverride.limits[equipment.id];
-  }
-
-  // Check variant selective override
-  if (variant?.equipmentOverrides?.limits?.[equipment.id] !== undefined) {
-    return variant.equipmentOverrides.limits[equipment.id];
+  // Check variant override first
+  if (variant?.equipmentRules?.limits?.[equipment.id] !== undefined) {
+    return variant.equipmentRules.limits[equipment.id];
   }
 
   // Check base faction limit
@@ -68,27 +60,27 @@ export function getEquipmentLimit(
  */
 export function isEquipmentGloballyBanned(
   equipment: Equipment,
-  faction: Faction,
+  faction: Faction | null,
   variant?: WarbandVariant | null
 ): boolean {
+  if (!faction) return false;
+
   // Check if equipment is directly banned by ID
-  if (variant?.equipmentRulesOverride?.globalRestrictions?.bannedEquipmentIds?.includes(equipment.id)) {
+  if (variant?.equipmentRules?.globalRestrictions?.bannedEquipmentIds?.includes(equipment.id)) {
     return true;
   }
 
-  if (variant?.equipmentOverrides?.globalRestrictions?.bannedEquipmentIds?.includes(equipment.id) ||
-      faction.equipmentRules?.globalRestrictions?.bannedEquipmentIds?.includes(equipment.id)) {
+  if (faction.equipmentRules?.globalRestrictions?.bannedEquipmentIds?.includes(equipment.id)) {
     return true;
   }
 
   // Check if equipment category is banned
   if (equipment.category) {
-    if (variant?.equipmentRulesOverride?.globalRestrictions?.bannedCategories?.includes(equipment.category)) {
+    if (variant?.equipmentRules?.globalRestrictions?.bannedCategories?.includes(equipment.category)) {
       return true;
     }
 
-    if (variant?.equipmentOverrides?.globalRestrictions?.bannedCategories?.includes(equipment.category) ||
-        faction.equipmentRules?.globalRestrictions?.bannedCategories?.includes(equipment.category)) {
+    if (faction.equipmentRules?.globalRestrictions?.bannedCategories?.includes(equipment.category)) {
       return true;
     }
   }
@@ -96,9 +88,7 @@ export function isEquipmentGloballyBanned(
   // Check if any keywords are banned
   if (equipment.keywords && equipment.keywords.length > 0) {
     // Check variant override rules
-    const variantBannedKeywords = variant?.equipmentRulesOverride?.globalRestrictions?.bannedKeywords ||
-                                 variant?.equipmentOverrides?.globalRestrictions?.bannedKeywords ||
-                                 [];
+    const variantBannedKeywords = variant?.equipmentRules?.globalRestrictions?.bannedKeywords || [];
 
     // Check faction rules
     const factionBannedKeywords = faction.equipmentRules?.globalRestrictions?.bannedKeywords || [];
@@ -120,9 +110,11 @@ export function isEquipmentGloballyBanned(
 export function isEquipmentAllowedForTroop(
   equipment: Equipment,
   troop: Troop,
-  faction: Faction,
+  faction: Faction | null,
   variant?: WarbandVariant | null
 ): boolean {
+  if (!faction) return false;
+
   // First check if it's globally banned
   if (isEquipmentGloballyBanned(equipment, faction, variant)) {
     return false;
@@ -235,14 +227,9 @@ function getEquipmentTroopRestrictions(
   requiredKeywords?: string[];
   bannedKeywords?: string[];
 } | null {
-  // Check variant complete override first
-  if (variant?.equipmentRulesOverride?.troopRestrictions?.[equipmentId]) {
-    return variant.equipmentRulesOverride.troopRestrictions[equipmentId];
-  }
-
-  // Check variant selective override
-  if (variant?.equipmentOverrides?.troopRestrictions?.[equipmentId]) {
-    return variant.equipmentOverrides.troopRestrictions[equipmentId];
+  // Check variant override first
+  if (variant?.equipmentRules?.troopRestrictions?.[equipmentId]) {
+    return variant.equipmentRules.troopRestrictions[equipmentId];
   }
 
   // Check base faction restrictions
@@ -258,10 +245,12 @@ function getEquipmentTroopRestrictions(
  */
 export function formatEquipmentCost(
   equipment: Equipment,
-  faction: Faction,
+  faction: Faction | null,
   formatCostFn: (cost: Cost) => string,
   variant?: WarbandVariant | null
 ): string {
+  if (!faction) return 'Not Available';
+
   const cost = getEquipmentCost(equipment, faction, variant);
 
   if (!cost) {
@@ -321,14 +310,9 @@ function getExternalEquipmentAllowances(
   faction: Faction,
   variant?: WarbandVariant | null
 ) {
-  // Check variant complete override first
-  if (variant?.equipmentRulesOverride?.externalEquipmentAllowances) {
-    return variant.equipmentRulesOverride.externalEquipmentAllowances;
-  }
-
-  // Check variant selective override
-  if (variant?.equipmentOverrides?.externalEquipmentAllowances) {
-    return variant.equipmentOverrides.externalEquipmentAllowances;
+  // Check variant override first
+  if (variant?.equipmentRules?.externalEquipmentAllowances) {
+    return variant.equipmentRules.externalEquipmentAllowances;
   }
 
   // Check base faction allowances
@@ -344,17 +328,14 @@ function getExternalEquipmentAllowances(
  */
 export function getTroopCost(
   troopId: string,
-  faction: Faction,
+  faction: Faction | null,
   variant?: WarbandVariant | null
 ): Cost | null {
-  // Check variant troop-specific overrides
-  if (variant?.troopSpecificOverrides?.[troopId]?.pointCost !== undefined) {
-    return createDucatsCost(variant.troopSpecificOverrides[troopId].pointCost as number);
-  }
+  if (!faction) return null;
 
-  // Check variant troop overrides
-  if (variant?.troopOverrides?.costs?.[troopId]) {
-    return variant.troopOverrides.costs[troopId];
+  // Check variant troop costs override
+  if (variant?.troopRules?.costs?.[troopId]) {
+    return variant.troopRules.costs[troopId];
   }
 
   // Check for mercenary costs if applicable
@@ -381,11 +362,9 @@ export function isTroopAvailable(
 ): boolean {
   // For regular troops, check if they belong to this faction
   if (troop.factionId === faction.id) {
-    // Check variant availability override
-    if (variant?.troopOverrides?.availability?.[troop.id] !== undefined) {
-      return variant.troopOverrides.availability[troop.id];
-    }
-    return true; // Troops belonging to the faction are available by default
+    // We now determine availability based on whether the troop has a cost defined
+    const hasCost = getTroopCost(troop.id, faction, variant) !== null;
+    return hasCost;
   }
 
   // For mercenaries, check if this faction can hire them
@@ -395,15 +374,11 @@ export function isTroopAvailable(
       return false;
     }
 
-    // Then check if the faction has rules for hiring this mercenary
-    const canHire = !!faction.equipmentRules.mercenaryRules?.costs?.[troop.id];
+    // Then check if the faction or variant has rules for hiring this mercenary
+    const factionHasRules = !!faction.equipmentRules.mercenaryRules?.costs?.[troop.id];
+    const variantHasRules = !!variant?.equipmentRules?.mercenaryRules?.costs?.[troop.id];
 
-    // Check variant override if available
-    if (variant?.troopOverrides?.availability?.[troop.id] !== undefined) {
-      return variant.troopOverrides.availability[troop.id] && canHire;
-    }
-
-    return canHire;
+    return factionHasRules || variantHasRules;
   }
 
   return false; // Troops from other factions (non-mercenary) are not available
@@ -438,14 +413,9 @@ export function getTroopLimit(
   faction: Faction,
   variant?: WarbandVariant | null
 ): number {
-  // Check variant troop-specific overrides
-  if (variant?.troopSpecificOverrides?.[troopId]?.limit !== undefined) {
-    return variant.troopSpecificOverrides[troopId].limit as number;
-  }
-
-  // Check variant selective override
-  if (variant?.troopOverrides?.limits?.[troopId] !== undefined) {
-    return variant.troopOverrides.limits[troopId];
+  // Check variant troop limits override
+  if (variant?.troopRules?.limits?.[troopId] !== undefined) {
+    return variant.troopRules.limits[troopId];
   }
 
   // Check faction base limits
@@ -470,72 +440,77 @@ export function meetsTroopRequirements(
   faction: Faction,
   variant?: WarbandVariant | null
 ): { meets: boolean; reason?: string } {
-  // Check variant-specific restrictions first if they exist
-  if (variant?.troopOverrides) {
-    // Variant may override availability - check if any troop is unavailable
-    for (const [troopId, count] of Object.entries(troopComposition)) {
-      if (count > 0 && variant.troopOverrides.availability?.[troopId] === false) {
-        return {
-          meets: false,
-          reason: `Troop ${troopId} is not available in this warband variant`
-        };
-      }
-    }
+  const requirements = [];
+
+  // Get faction requirements
+  if (faction.troopRules?.restrictions?.requirements) {
+    requirements.push(...faction.troopRules.restrictions.requirements);
   }
 
-  if (!faction.troopRules?.restrictions) {
+  // Add variant requirements if they exist
+  if (variant?.troopRules?.restrictions?.requirements) {
+    requirements.push(...variant.troopRules.restrictions.requirements);
+  }
+
+  if (requirements.length === 0) {
     return { meets: true };
   }
 
   // Check minimum/maximum requirements
-  if (faction.troopRules.restrictions.requirements) {
-    for (const req of faction.troopRules.restrictions.requirements) {
-      // Calculate how many troops in the composition match this requirement
-      let matchCount = 0;
+  for (const req of requirements) {
+    // Calculate how many troops in the composition match this requirement
+    let matchCount = 0;
 
-      // Check specific troop IDs
-      if (req.troopIds) {
-        for (const troopId of req.troopIds) {
-          matchCount += troopComposition[troopId] || 0;
-        }
+    // Check specific troop IDs
+    if (req.troopIds) {
+      for (const troopId of req.troopIds) {
+        matchCount += troopComposition[troopId] || 0;
       }
+    }
 
-      // Check keywords
-      if (req.keywords) {
-        const troopsWithKeywords = troops.filter(troop =>
-          req.keywords?.every(keyword => troop.keywords.includes(keyword))
-        );
-        for (const troop of troopsWithKeywords) {
-          matchCount += troopComposition[troop.id] || 0;
-        }
+    // Check keywords
+    if (req.keywords) {
+      const troopsWithKeywords = troops.filter(troop =>
+        req.keywords?.every(keyword => troop.keywords.includes(keyword))
+      );
+      for (const troop of troopsWithKeywords) {
+        matchCount += troopComposition[troop.id] || 0;
       }
+    }
 
-      // Check minimum requirement
-      if (req.minCount !== undefined && matchCount < req.minCount) {
-        const description = req.troopIds ?
-          `troops (${req.troopIds.join(', ')})` :
-          `troops with keywords [${req.keywords?.join(', ')}]`;
-        return {
-          meets: false,
-          reason: `Need at least ${req.minCount} ${description}, only have ${matchCount}`
-        };
-      }
+    // Check minimum requirement
+    if (req.minCount !== undefined && matchCount < req.minCount) {
+      const description = req.troopIds ?
+        `troops (${req.troopIds.join(', ')})` :
+        `troops with keywords [${req.keywords?.join(', ')}]`;
+      return {
+        meets: false,
+        reason: `Need at least ${req.minCount} ${description}, only have ${matchCount}`
+      };
+    }
 
-      // Check maximum requirement
-      if (req.maxCount !== undefined && matchCount > req.maxCount) {
-        const description = req.troopIds ?
-          `troops (${req.troopIds.join(', ')})` :
-          `troops with keywords [${req.keywords?.join(', ')}]`;
-        return {
-          meets: false,
-          reason: `Can have at most ${req.maxCount} ${description}, have ${matchCount}`
-        };
-      }
+    // Check maximum requirement
+    if (req.maxCount !== undefined && matchCount > req.maxCount) {
+      const description = req.troopIds ?
+        `troops (${req.troopIds.join(', ')})` :
+        `troops with keywords [${req.keywords?.join(', ')}]`;
+      return {
+        meets: false,
+        reason: `Can have at most ${req.maxCount} ${description}, have ${matchCount}`
+      };
     }
   }
 
+  // Get max keyword counts from faction
+  let maxKeywordCounts = { ...faction.troopRules?.restrictions?.maxKeywordCounts };
+
+  // Override with variant max keyword counts if they exist
+  if (variant?.troopRules?.restrictions?.maxKeywordCounts) {
+    maxKeywordCounts = { ...maxKeywordCounts, ...variant.troopRules.restrictions.maxKeywordCounts };
+  }
+
   // Check keyword-based maximums
-  if (faction.troopRules.restrictions.maxKeywordCounts) {
+  if (Object.keys(maxKeywordCounts).length > 0) {
     const keywordCounts: Record<string, number> = {};
 
     // Count troops with each keyword
@@ -549,7 +524,7 @@ export function meetsTroopRequirements(
     }
 
     // Check against maximum allowed
-    for (const [keyword, maxCount] of Object.entries(faction.troopRules.restrictions.maxKeywordCounts)) {
+    for (const [keyword, maxCount] of Object.entries(maxKeywordCounts)) {
       const currentCount = keywordCounts[keyword] || 0;
       if (currentCount > maxCount) {
         return {
@@ -617,4 +592,134 @@ export function calculateWarbandCost(
   }
 
   return { ducats: totalDucats, gloryPoints: totalGloryPoints };
+}
+
+// Add a function to get equipment cost from ArmyRules
+export function getEquipmentCostFromArmyRules(
+  equipmentId: string,
+  armyRules: ArmyRules | null
+): Cost | null {
+  if (!armyRules) return null
+  return armyRules.equipment.costs[equipmentId] || null
+}
+
+// Add a function to get troop cost from ArmyRules
+export function getTroopCostFromArmyRules(
+  troopId: string,
+  armyRules: ArmyRules | null
+): Cost | null {
+  if (!armyRules) return null
+  return armyRules.troops.costs[troopId] || null
+}
+
+// Add a function to get equipment limit from ArmyRules
+export function getEquipmentLimitFromArmyRules(
+  equipmentId: string,
+  armyRules: ArmyRules | null
+): number | null {
+  if (!armyRules) return null
+  return armyRules.equipment.limits[equipmentId] ?? null
+}
+
+// Add a function to get troop limit from ArmyRules
+export function getTroopLimitFromArmyRules(
+  troopId: string,
+  armyRules: ArmyRules | null
+): number | null {
+  if (!armyRules) return null
+  return armyRules.troops.limits[troopId] ?? null
+}
+
+// Add a function to check if a troop is available in ArmyRules
+export function isTroopAvailableInArmyRules(
+  troopId: string,
+  armyRules: ArmyRules | null
+): boolean {
+  if (!armyRules) return false
+  return armyRules.troops.availability[troopId] || false
+}
+
+// Add a function to check if equipment has troop restrictions in ArmyRules
+export function hasEquipmentTroopRestrictionsInArmyRules(
+  equipmentId: string,
+  armyRules: ArmyRules | null
+): boolean {
+  if (!armyRules) return false
+  return !!armyRules.equipment.troopRestrictions[equipmentId]
+}
+
+// Add a function to check if equipment is allowed for a troop in ArmyRules
+export function isEquipmentAllowedForTroopInArmyRules(
+  equipmentId: string,
+  troopId: string,
+  troopKeywords: string[],
+  armyRules: ArmyRules | null
+): boolean {
+  if (!armyRules) return false
+
+  // Check if the equipment exists and is available
+  if (!armyRules.equipment.costs[equipmentId]) return false
+
+  // Check global restrictions
+  const globalRestrictions = armyRules.equipment.globalRestrictions
+  if (globalRestrictions.bannedEquipmentIds.includes(equipmentId)) return false
+
+  // Check troop-specific restrictions
+  const troopRestrictions = armyRules.equipment.troopRestrictions[equipmentId]
+  if (!troopRestrictions) return true // No restrictions means allowed for all troops
+
+  // Check conditions
+  const conditions = troopRestrictions.conditions
+  if (!conditions) return true // No conditions means allowed
+
+  // Check 'or' conditions (any match allows)
+  if (conditions.or && conditions.or.length > 0) {
+    const orMatches = conditions.or.some(condition => {
+      // Check troopIds
+      if (condition.troopIds && condition.troopIds.includes(troopId)) {
+        return true
+      }
+
+      // Check keywords
+      if (condition.keywords && condition.keywords.every(keyword => troopKeywords.includes(keyword))) {
+        return true
+      }
+
+      // Check banned keywords
+      if (condition.bannedKeywords && !condition.bannedKeywords.some(keyword => troopKeywords.includes(keyword))) {
+        return true
+      }
+
+      return false
+    })
+
+    if (orMatches) return true
+  }
+
+  // Check 'and' conditions (all must match)
+  if (conditions.and && conditions.and.length > 0) {
+    const andMatches = conditions.and.every(condition => {
+      // Check troopIds
+      if (condition.troopIds && !condition.troopIds.includes(troopId)) {
+        return false
+      }
+
+      // Check keywords
+      if (condition.keywords && !condition.keywords.every(keyword => troopKeywords.includes(keyword))) {
+        return false
+      }
+
+      // Check banned keywords
+      if (condition.bannedKeywords && condition.bannedKeywords.some(keyword => troopKeywords.includes(keyword))) {
+        return false
+      }
+
+      return true
+    })
+
+    if (andMatches) return true
+  }
+
+  // If we get here and there are conditions, but none matched, it's not allowed
+  return false
 }

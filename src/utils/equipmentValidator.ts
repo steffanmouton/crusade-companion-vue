@@ -4,6 +4,7 @@ import type { Faction } from '../models/faction'
 import type { Troop } from '../models/troop'
 import type { WarbandVariant } from '../models/warbandVariant'
 import { getEquipmentLimit, isEquipmentAllowedForTroop, isEquipmentGloballyBanned } from './equipmentUtils'
+import type { ArmyRules } from '../models/armyRules'
 
 export interface ValidationResult {
   isValid: boolean
@@ -45,7 +46,8 @@ export function validateEquipment(
   equipment: Equipment[],
   faction: Faction | null,
   troop: Troop | null,
-  warbandVariant?: WarbandVariant | null
+  warbandVariant: WarbandVariant | null,
+  armyRules: ArmyRules | null = null
 ): ValidationResult {
   const result: ValidationResult = {
     isValid: true,
@@ -56,6 +58,11 @@ export function validateEquipment(
   // If no faction or troop, we can't do much validation
   if (!faction || !troop) {
     return result
+  }
+
+  // If we have armyRules available, use that for validation
+  if (armyRules) {
+    return validateEquipmentWithArmyRules(equipment, troop, armyRules)
   }
 
   // Check handedness rules
@@ -384,4 +391,171 @@ function addSpecialCombinationInfo(equipment: Equipment[], result: ValidationRes
       details: `${shields[0].name} is combined with ${itemsWithShieldCombo.map(e => e.name).join(', ')} and doesn't require additional hands (0 hands used).`,
     });
   }
+}
+
+// Add a new function to validate equipment with ArmyRules
+function validateEquipmentWithArmyRules(
+  equipment: Equipment[],
+  troop: Troop | null,
+  armyRules: ArmyRules
+): ValidationResult {
+  // Initialize result
+  const result: ValidationResult = {
+    isValid: true,
+    warnings: [],
+    errors: []
+  }
+
+  if (!troop) {
+    return result
+  }
+
+  // Check available troop
+  if (!armyRules.troops.availability[troop.id]) {
+    result.errors.push({
+      type: ErrorType.TROOP_RESTRICTION_VIOLATION,
+      message: 'This troop is not available in this warband variant'
+    })
+    result.isValid = false
+  }
+
+  // Create a map to count quantities of each item
+  const itemCounts: Record<string, number> = {}
+  equipment.forEach(item => {
+    itemCounts[item.id] = (itemCounts[item.id] || 0) + 1
+  })
+
+  // Check equipment limits from army rules
+  for (const itemId in itemCounts) {
+    const count = itemCounts[itemId]
+    const limit = armyRules.equipment.limits[itemId]
+
+    if (limit !== undefined && count > limit) {
+      result.errors.push({
+        type: ErrorType.EQUIPMENT_CATEGORY_LIMIT,
+        message: `You can only have ${limit} of ${equipment.find(e => e.id === itemId)?.name || itemId}`
+      })
+      result.isValid = false
+    }
+  }
+
+  // Check global equipment restrictions
+  equipment.forEach(item => {
+    // Check if item is banned by ID
+    if (armyRules.equipment.globalRestrictions.bannedEquipmentIds.includes(item.id)) {
+      result.errors.push({
+        type: ErrorType.EQUIPMENT_BANNED,
+        message: `${item.name} is not allowed in this warband variant`
+      })
+      result.isValid = false
+    }
+
+    // Check if item is banned by category
+    if (armyRules.equipment.globalRestrictions.bannedCategories.includes(item.category)) {
+      result.errors.push({
+        type: ErrorType.EQUIPMENT_BANNED,
+        message: `Equipment of type ${item.category} is not allowed in this warband variant`
+      })
+      result.isValid = false
+    }
+
+    // Check if item is banned by keyword
+    if (item.keywords) {
+      const bannedKeywords = armyRules.equipment.globalRestrictions.bannedKeywords
+      const bannedItemKeywords = bannedKeywords.filter(keyword =>
+        item.keywords.includes(keyword)
+      )
+
+      if (bannedItemKeywords.length > 0) {
+        result.errors.push({
+          type: ErrorType.EQUIPMENT_BANNED,
+          message: `Equipment with keywords [${bannedItemKeywords.join(', ')}] is not allowed in this warband variant`
+        })
+        result.isValid = false
+      }
+    }
+
+    // Check troop restrictions
+    const troopRestrictions = armyRules.equipment.troopRestrictions[item.id]
+    if (troopRestrictions && troopRestrictions.conditions) {
+      const conditions = troopRestrictions.conditions
+      let meetsConditions = false
+
+      // Check OR conditions
+      if (conditions.or) {
+        for (const condition of conditions.or) {
+          if (checkTroopMeetsCondition(troop, condition)) {
+            meetsConditions = true
+            break
+          }
+        }
+      }
+
+      // Check AND conditions
+      if (conditions.and && !meetsConditions) {
+        meetsConditions = true
+        for (const condition of conditions.and) {
+          if (!checkTroopMeetsCondition(troop, condition)) {
+            meetsConditions = false
+            break
+          }
+        }
+      }
+
+      if (!meetsConditions) {
+        result.errors.push({
+          type: ErrorType.TROOP_RESTRICTION_VIOLATION,
+          message: `${item.name} is not allowed for this troop type`
+        })
+        result.isValid = false
+      }
+    }
+  })
+
+  // Check handedness
+  // ... existing handedness validation code ...
+
+  // Check special equipment combinations
+  // ... existing special equipment validation code ...
+
+  return result
+}
+
+// Helper function to check if a troop meets a condition
+function checkTroopMeetsCondition(
+  troop: Troop | null,
+  condition: { troopIds?: string[], keywords?: string[], bannedKeywords?: string[] }
+): boolean {
+  if (!troop) return false
+
+  // Check troop IDs
+  if (condition.troopIds && condition.troopIds.length > 0) {
+    if (!condition.troopIds.includes(troop.id)) {
+      return false
+    }
+  }
+
+  // Check keywords
+  if (condition.keywords && condition.keywords.length > 0) {
+    if (!troop.keywords) return false
+
+    for (const keyword of condition.keywords) {
+      if (!troop.keywords.includes(keyword)) {
+        return false
+      }
+    }
+  }
+
+  // Check banned keywords
+  if (condition.bannedKeywords && condition.bannedKeywords.length > 0) {
+    if (!troop.keywords) return true // If troop has no keywords, it can't have banned ones
+
+    for (const keyword of condition.bannedKeywords) {
+      if (troop.keywords.includes(keyword)) {
+        return false
+      }
+    }
+  }
+
+  return true
 }

@@ -319,7 +319,8 @@ import { useFactionStore } from '../stores/factionStore'
 import {
   getEquipmentCost,
   formatEquipmentCost as formatEquipmentCostUtil,
-  getTroopCost
+  getTroopCost,
+  isEquipmentAllowedForTroop
 } from '../utils/equipmentUtils'
 import type { WarbandVariant } from '../models/warbandVariant'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
@@ -614,6 +615,9 @@ const regularWarnings = computed(() => {
   )
 })
 
+// Add this computed property to get the current army rules
+const currentArmyRules = computed(() => armyStore.currentArmyRules)
+
 // Methods
 function addEquipment(equipment: Equipment) {
   if (!unitData.currentEquipment.some((item) => item.id === equipment.id)) {
@@ -802,26 +806,65 @@ async function loadAvailableEquipment() {
     console.log('Troop ID:', props.troop.id)
     console.log('Troop keywords:', props.troop.keywords || [])
 
-    // Get equipment available for the troop based on faction rules
-    let troopEquipment = equipmentStore.getEquipmentForTroop(
-      props.troop.id,
-      props.troop.keywords || []
-    )
+    // If we have compiled army rules, use them to filter equipment
+    if (currentArmyRules.value) {
+      // Get all equipment IDs that have costs defined in army rules
+      const availableEquipmentIds = Object.keys(currentArmyRules.value.equipment.costs)
 
-    console.log('Available equipment before filtering:', troopEquipment.map(e => e.name))
-
-    // Filter by warband variant if applicable
-    if (currentWarbandVariant.value) {
-      // Check if there are warband-specific overrides
-      const variantOverrides = currentWarbandVariant.value.troopSpecificOverrides?.[props.troop.id]
-      if (variantOverrides?.equipment) {
-        // Filter by allowed equipment in the variant
-        troopEquipment = troopEquipment.filter(item =>
-          variantOverrides.equipment?.includes(item.id))
+      // Get the availability for this troop
+      const isTroopAvailable = currentArmyRules.value.troops.availability[props.troop.id]
+      if (!isTroopAvailable) {
+        console.warn(`Troop ${props.troop.id} is not available in army rules`)
       }
+
+      // Filter equipment by availability and check troop restrictions
+      const troopEquipment = equipmentStore.equipment.filter(equipment => {
+        // First check if this equipment is available in the army rules
+        if (!availableEquipmentIds.includes(equipment.id)) {
+          return false
+        }
+
+        // Then check if there are troop restrictions for this equipment
+        const restrictions = currentArmyRules.value?.equipment.troopRestrictions[equipment.id]
+        if (restrictions) {
+          // Check if the troop meets the conditions
+          return isEquipmentAllowedForTroop(
+            equipment,
+            props.troop,
+            faction.value || null,
+            currentWarbandVariant.value
+          )
+        }
+
+        // If no restrictions, the equipment is allowed
+        return true
+      })
+
+      availableEquipment.value = troopEquipment
+    } else {
+      // Fallback to using the old method if army rules aren't available
+      // Get equipment available for the troop based on faction rules
+      let troopEquipment = equipmentStore.getEquipmentForTroop(
+        props.troop.id,
+        props.troop.keywords || []
+      )
+
+      console.log('Available equipment before filtering:', troopEquipment.map(e => e.name))
+
+      // Filter by warband variant if applicable
+      if (currentWarbandVariant.value) {
+        // Check if there are warband-specific overrides
+        const variantOverrides = currentWarbandVariant.value.troopSpecificOverrides?.[props.troop.id]
+        if (variantOverrides?.equipment) {
+          // Filter by allowed equipment in the variant
+          troopEquipment = troopEquipment.filter(item =>
+            variantOverrides.equipment?.includes(item.id))
+        }
+      }
+
+      availableEquipment.value = troopEquipment
     }
 
-    availableEquipment.value = troopEquipment
     console.log('Final available equipment:', availableEquipment.value.map(e => e.name))
   } catch (err) {
     console.error('Error loading available equipment:', err)
@@ -846,14 +889,22 @@ function getEquipmentOfType(type: string) {
   })
 }
 
-// Replace formatEquipmentCost function
+// Update formatEquipmentCost function to use ArmyRules
 function formatEquipmentCost(equipment: Equipment | undefined) {
-  if (!equipment || !faction.value) return 'FREE'
+  if (!equipment) return 'FREE'
 
-  // Format the equipment cost using the utility function
+  // If we have compiled army rules, use the equipment costs from there
+  if (currentArmyRules.value && equipment.id) {
+    const equipmentCost = currentArmyRules.value.equipment.costs[equipment.id]
+    if (equipmentCost) {
+      return formatCost(equipmentCost)
+    }
+  }
+
+  // Fallback to the old way if rules aren't available
   return formatEquipmentCostUtil(
     equipment,
-    faction.value,
+    faction.value || null,
     formatCost,
     currentWarbandVariant.value
   )
@@ -888,12 +939,13 @@ const validationResult = ref<ValidationResult | null>(null)
 
 // Add a function to validate the current equipment
 function validateCurrentEquipment() {
-  // Run the validation - no warbandVariantId passed to avoid errors
+  // Pass armyRules to the validator if available
   validationResult.value = validateEquipment(
     unitData.currentEquipment,
     faction.value || null, // Ensure we pass null instead of undefined
     props.troop,
-    currentWarbandVariant.value // Pass the whole variant object
+    currentWarbandVariant.value, // Pass the whole variant object
+    currentArmyRules.value // Pass the army rules
   )
 }
 

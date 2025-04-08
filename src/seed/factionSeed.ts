@@ -14,7 +14,7 @@ export const factionSeed: Faction[] = [
     isPlayable: true,
     equipmentRules: {
       costs: {
-        'tc-eq-unarmed': createDucatsCost(1),
+        'tc-eq-unarmed': createDucatsCost(0),
         'tc-eq-knife-dagger': createDucatsCost(1),
         'tc-eq-sacrificial-knife': createDucatsCost(2),
         'tc-eq-reinforced-armour': createDucatsCost(5),

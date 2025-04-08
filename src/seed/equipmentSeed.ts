@@ -564,10 +564,6 @@ export const uniqueWarbandVariantEquipment = [
     rules: [
       'Roll all injuries with +1 DICE. When you inflict a BLOOD MARKER in melee with this weapon, the model wielding the hammer gains one BLESSING MARKER.',
     ],
-    onlyFor: { warbandVariant: 'Knights of Avarice' },
-    costPerVariant: {
-      'No Variant': createDucatsCost(20)
-    },
     handedness: HandednessType.TWO_HANDED,
     category: EquipmentCategory.MELEE_WEAPON
   },

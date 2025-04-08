@@ -76,8 +76,9 @@
 import type { Troop } from '../models/troop'
 import { formatCost } from '../models/cost'
 import { useFactionStore } from '../stores/factionStore'
-import { getTroopCost } from '../utils/equipmentUtils'
+import { getTroopCost, getTroopCostFromArmyRules } from '../utils/equipmentUtils'
 import { computed } from 'vue'
+import { useArmyStore } from '../stores/army'
 
 const props = defineProps<{
   troop: Troop
@@ -89,23 +90,47 @@ defineEmits(['add-troop', 'view-details'])
 
 // Get the faction store
 const factionStore = useFactionStore()
+const armyStore = useArmyStore()
 
-// Get the faction for this troop
+// First try to get the cost from ArmyRules
+const troopCostFromRules = computed(() => {
+  // If we have ArmyRules in the store, use it
+  if (armyStore.currentArmyRules) {
+    console.log(`Checking cost for troop ${props.troop.name} (${props.troop.id}) in ArmyRules`)
+    const cost = getTroopCostFromArmyRules(props.troop.id, armyStore.currentArmyRules)
+    if (cost) {
+      console.log(`Found cost in ArmyRules: ${JSON.stringify(cost)}`)
+      return cost
+    }
+    console.log(`No cost found in ArmyRules for troop ${props.troop.id}`)
+  } else {
+    console.log(`No ArmyRules available for troop ${props.troop.id}`)
+  }
+  return null
+})
+
+// Get the faction for this troop (fallback approach)
 const faction = computed(() => {
   return props.troop?.factionId
     ? factionStore.factions.find(f => f.id === props.troop.factionId)
     : null
 })
 
-// Get the cost for this troop
-const troopCost = computed(() => {
+// Get the cost using the original method as fallback
+const troopCostFallback = computed(() => {
   if (!faction.value) return null
   return getTroopCost(props.troop.id, faction.value, props.warbandVariant)
 })
 
-// Format the troop cost for display
+// Format the troop cost for display, preferring the ArmyRules cost if available
 const formattedCost = computed(() => {
-  return troopCost.value ? formatCost(troopCost.value) : 'FREE'
+  // First try the cost from ArmyRules
+  if (troopCostFromRules.value) {
+    return formatCost(troopCostFromRules.value)
+  }
+
+  // Then fallback to the traditional cost
+  return troopCostFallback.value ? formatCost(troopCostFallback.value) : 'FREE'
 })
 </script>
 
