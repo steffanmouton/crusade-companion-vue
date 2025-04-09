@@ -8,6 +8,7 @@ const authStore = useAuthStore()
 
 // Form state
 const isLogin = ref(true)
+const isForgotPassword = ref(false)
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -18,8 +19,14 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 // Computed properties
-const formTitle = computed(() => (isLogin.value ? 'Sign In' : 'Create Account'))
-const submitButtonText = computed(() => (isLogin.value ? 'Sign In' : 'Register'))
+const formTitle = computed(() => {
+  if (isForgotPassword.value) return 'Reset Password'
+  return isLogin.value ? 'Sign In' : 'Create Account'
+})
+const submitButtonText = computed(() => {
+  if (isForgotPassword.value) return 'Send Reset Link'
+  return isLogin.value ? 'Sign In' : 'Register'
+})
 const toggleModeText = computed(() =>
   isLogin.value ? "Don't have an account? Register" : 'Already have an account? Sign In',
 )
@@ -27,6 +34,14 @@ const toggleModeText = computed(() =>
 // Toggle between login and register modes
 const toggleMode = () => {
   isLogin.value = !isLogin.value
+  isForgotPassword.value = false
+  errorMessage.value = ''
+  successMessage.value = ''
+}
+
+// Toggle forgot password mode
+const toggleForgotPassword = () => {
+  isForgotPassword.value = !isForgotPassword.value
   errorMessage.value = ''
   successMessage.value = ''
 }
@@ -40,17 +55,17 @@ const validateForm = (): boolean => {
     return false
   }
 
-  if (!password.value) {
+  if (!isForgotPassword.value && !password.value) {
     errorMessage.value = 'Password is required'
     return false
   }
 
-  if (!isLogin.value && password.value !== confirmPassword.value) {
+  if (!isLogin.value && !isForgotPassword.value && password.value !== confirmPassword.value) {
     errorMessage.value = 'Passwords do not match'
     return false
   }
 
-  if (!isLogin.value && password.value.length < 6) {
+  if (!isLogin.value && !isForgotPassword.value && password.value.length < 6) {
     errorMessage.value = 'Password must be at least 6 characters'
     return false
   }
@@ -67,7 +82,14 @@ const handleSubmit = async () => {
   successMessage.value = ''
 
   try {
-    if (isLogin.value) {
+    if (isForgotPassword.value) {
+      // Handle password reset
+      const { success, error } = await authStore.resetPassword(email.value)
+
+      if (!success) throw error
+
+      successMessage.value = 'Password reset link sent! Check your email.'
+    } else if (isLogin.value) {
       // Handle login using auth store
       const { success, error } = await authStore.signIn(email.value, password.value)
 
@@ -91,6 +113,13 @@ const handleSubmit = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+// Return to login from forgot password
+const backToLogin = () => {
+  isForgotPassword.value = false
+  errorMessage.value = ''
+  successMessage.value = ''
 }
 </script>
 
@@ -142,8 +171,9 @@ const handleSubmit = async () => {
               bg-color="background"
             ></v-text-field>
 
-            <!-- Password Field -->
+            <!-- Password Field (not shown in forgot password mode) -->
             <v-text-field
+              v-if="!isForgotPassword"
               v-model="password"
               label="Password"
               :type="showPassword ? 'text' : 'password'"
@@ -160,7 +190,7 @@ const handleSubmit = async () => {
 
             <!-- Confirm Password Field (Register only) -->
             <v-text-field
-              v-if="!isLogin"
+              v-if="!isLogin && !isForgotPassword"
               v-model="confirmPassword"
               label="Confirm Password"
               :type="showConfirmPassword ? 'text' : 'password'"
@@ -189,8 +219,38 @@ const handleSubmit = async () => {
               {{ submitButtonText }}
             </v-btn>
 
-            <!-- Toggle Mode Link -->
-            <div class="text-center">
+            <!-- Forgot Password Link (only shown in login mode) -->
+            <div v-if="isLogin && !isForgotPassword" class="text-center mb-4">
+              <v-btn
+                variant="text"
+                color="secondary"
+                @click="toggleForgotPassword"
+                :disabled="isLoading"
+                density="comfortable"
+                size="small"
+                class="tc-btn"
+              >
+                Forgot Password?
+              </v-btn>
+            </div>
+
+            <!-- Back to Login Link (only shown in forgot password mode) -->
+            <div v-if="isForgotPassword" class="text-center mb-4">
+              <v-btn
+                variant="text"
+                color="secondary"
+                @click="backToLogin"
+                :disabled="isLoading"
+                density="comfortable"
+                size="small"
+                class="tc-btn"
+              >
+                Back to Login
+              </v-btn>
+            </div>
+
+            <!-- Toggle Mode Link (not shown in forgot password mode) -->
+            <div v-if="!isForgotPassword" class="text-center">
               <v-btn
                 variant="text"
                 color="primary"
