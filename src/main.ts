@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
 import { useArmyStore } from './stores/army'
+import { initializeRulebookVersions } from './services/rulebookVersionService'
 
 // Import Vuetify
 import 'vuetify/styles'
@@ -58,6 +59,9 @@ app.use(vuetify)
 
 // Initialize the app
 const init = async () => {
+  // Initialize rulebook versions
+  await initializeRulebookVersions()
+
   // Initialize auth store
   const authStore = useAuthStore()
   await authStore.initialize()

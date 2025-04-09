@@ -98,6 +98,8 @@ import {
 } from '../../scripts/generateAllArmyRules'
 import { useFactionStore } from '../../stores/factionStore'
 import { useWarbandVariantStore } from '../../stores/warbandVariantStore'
+import { createArmyRulesDocId } from '@/services/armyRulesService'
+import { CURRENT_RULEBOOK_VERSION } from '@/config/appConstants'
 
 const emit = defineEmits(['addLog'])
 const loading = ref(false)
@@ -168,7 +170,7 @@ async function checkArmyRules() {
 
     // Check base faction rules
     for (const faction of factionStore.factions) {
-      const docId = `${faction.id}-base`
+      const docId = createArmyRulesDocId(faction.id, undefined, CURRENT_RULEBOOK_VERSION)
       const docRef = doc(db, 'armyRules', docId)
       const docSnap = await getDoc(docRef)
 
@@ -188,7 +190,7 @@ async function checkArmyRules() {
       )
 
       if (faction) {
-        const docId = `${faction.id}-${variant.id}`
+        const docId = createArmyRulesDocId(faction.id, variant.id, CURRENT_RULEBOOK_VERSION)
         const docRef = doc(db, 'armyRules', docId)
         const docSnap = await getDoc(docRef)
 

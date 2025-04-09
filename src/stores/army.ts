@@ -15,12 +15,13 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { useWarbandVariantStore } from './warbandVariantStore'
 import { useFactionStore } from './factionStore'
-import { compileArmyRules } from '../services/armyRulesService'
+import { compileArmyRules, createArmyRulesDocId } from '../services/armyRulesService'
 import type { ArmyRules } from '../models/armyRules'
 import type { WarbandVariant } from '../models/warbandVariant'
 import type { Army as FirebaseArmy } from '../types/firebase'
 import type { FactionTroopRules } from '../models/faction'
 import { EquipmentCategory } from '../models/equipment'
+import { CURRENT_RULEBOOK_VERSION } from '../config/appConstants'
 
 const COLLECTION_NAME = 'armies'
 
@@ -414,7 +415,7 @@ export const useArmyStore = defineStore('army', () => {
     // Get the army rules from Firebase
     try {
       // First try to get from Firebase armyRules collection
-      const docId = variant ? `${faction.id}-${variant.id}` : `${faction.id}-base`
+      const docId = createArmyRulesDocId(faction.id, variant?.id, CURRENT_RULEBOOK_VERSION)
       console.log(`Looking for army rules with document ID: ${docId}`)
       console.log(`Searching in collection 'armyRules'`)
 
@@ -430,18 +431,18 @@ export const useArmyStore = defineStore('army', () => {
         // Fall back to compilation if Firebase retrieval fails
         console.log(`No pre-compiled rules found for ${docId}, falling back to runtime compilation`)
 
-        // Try a different document ID format in case that's the issue
-        const alternateDocId = `${faction.id}-${variant?.id || 'base'}`
-        if (docId !== alternateDocId) {
-          console.log(`Trying alternate document ID: ${alternateDocId}`)
-          const altDocRef = doc(db, 'armyRules', alternateDocId)
+        // Try looking for a legacy format ID (for backward compatibility)
+        const legacyDocId = variant ? `${faction.id}-${variant.id}` : `${faction.id}-base`
+        if (docId !== legacyDocId) {
+          console.log(`Trying legacy document ID format: ${legacyDocId}`)
+          const altDocRef = doc(db, 'armyRules', legacyDocId)
           const altDocSnap = await getDoc(altDocRef)
 
           if (altDocSnap.exists()) {
             currentArmyRules.value = altDocSnap.data() as ArmyRules
             console.log(
-              'Retrieved pre-compiled ArmyRules from Firebase with alternate ID:',
-              alternateDocId,
+              'Retrieved pre-compiled ArmyRules from Firebase with legacy ID:',
+              legacyDocId,
             )
             return
           }
