@@ -239,6 +239,9 @@
                 </v-btn>
               </v-card-text>
             </v-card>
+
+            <!-- Add Generate Army Rules component -->
+            <GenerateArmyRules @add-log="addLog" />
           </v-col>
 
           <v-col cols="12" md="8">
@@ -333,6 +336,7 @@ import { troopSeed } from '../seed/troopSeed'
 import { equipmentSeed } from '../seed/equipmentSeed'
 import { factionSeed } from '../seed/factionSeed'
 import { warbandVariantsSeed } from '../seed/warbandVariantSeed'
+import GenerateArmyRules from '../components/admin/GenerateArmyRules.vue'
 
 import {
   collection,

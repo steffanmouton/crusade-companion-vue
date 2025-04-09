@@ -36,7 +36,7 @@
         </v-row>
 
         <!-- Debug tools row -->
-        <v-expansion-panels variant="accordion" class="mb-4">
+        <v-expansion-panels v-if="isAdmin" variant="accordion" class="mb-4">
           <v-expansion-panel title="Debug Tools">
             <template v-slot:text>
               <v-row>
@@ -76,11 +76,15 @@
                       <div class="text-subtitle-1">Debug Information</div>
                     </div>
                     <div v-if="props.faction" class="text-caption">
-                      <strong>Faction:</strong> {{ props.faction.name }} ({{ props.faction.id }})<br>
-                      <strong>Equipment Types:</strong> {{ equipmentTypes.join(', ') }}<br>
-                      <strong>Total Equipment Items:</strong> {{ equipmentStore.equipment.length }}<br>
-                      <strong>Filtered Equipment:</strong> {{ filteredEquipment.length }}<br>
-                      <strong>Troop:</strong> {{ props.troop ? `${props.troop.name} (${props.troop.id})` : 'None' }}<br>
+                      <strong>Faction:</strong> {{ props.faction.name }} ({{
+                        props.faction.id
+                      }})<br />
+                      <strong>Equipment Types:</strong> {{ equipmentTypes.join(', ') }}<br />
+                      <strong>Total Equipment Items:</strong> {{ equipmentStore.equipment.length
+                      }}<br />
+                      <strong>Filtered Equipment:</strong> {{ filteredEquipment.length }}<br />
+                      <strong>Troop:</strong>
+                      {{ props.troop ? `${props.troop.name} (${props.troop.id})` : 'None' }}<br />
                     </div>
                   </v-card>
                 </v-col>
@@ -127,8 +131,12 @@
                     </v-chip>
                     <!-- Show handedness more prominently for weapons -->
                     <v-chip
-                      v-if="item.handedness && item.handedness !== HandednessType.NO_HANDS &&
-                            (item.category === EquipmentCategory.MELEE_WEAPON || item.category === EquipmentCategory.RANGED_WEAPON)"
+                      v-if="
+                        item.handedness &&
+                        item.handedness !== HandednessType.NO_HANDS &&
+                        (item.category === EquipmentCategory.MELEE_WEAPON ||
+                          item.category === EquipmentCategory.RANGED_WEAPON)
+                      "
                       size="small"
                       color="info"
                       variant="flat"
@@ -198,15 +206,18 @@ import type { WarbandVariant } from '../models/warbandVariant'
 import type { Faction } from '../models/faction'
 import { formatCost } from '../models/cost'
 import { useEquipmentStore } from '../stores/equipmentStore'
-import EquipmentDetailView from './EquipmentDetailView.vue'
+import { useFactionStore } from '../stores/factionStore'
+import { useArmyStore } from '../stores/army'
 import { HandednessType, EquipmentCategory } from '../models/equipment'
 import {
   getEquipmentCost,
   getEquipmentLimit,
-  isEquipmentAllowedForTroop
+  isEquipmentAllowedForTroop,
 } from '../utils/equipmentUtils'
-import { useFactionStore } from '../stores/factionStore'
-import { useArmyStore } from '../stores/army'
+import EquipmentDetailView from './EquipmentDetailView.vue'
+import { auth } from '../services/firebase'
+import { getFirestore, getDoc, doc } from 'firebase/firestore'
+import { onMounted } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -237,10 +248,11 @@ const refreshing = ref(false)
 // Add these variables for the debug panel
 const reseedingFactions = ref(false)
 const reseedingEquipment = ref(false)
+const isAdmin = ref(false)
 
 // Computed property to get unique equipment types
 const equipmentTypes = computed(() => {
-  const types = new Set(equipmentStore.equipment.map(item => item.type))
+  const types = new Set(equipmentStore.equipment.map((item) => item.type))
   return Array.from(types)
 })
 
@@ -249,152 +261,155 @@ const currentArmyRules = computed(() => armyStore.currentArmyRules)
 
 // Filter equipment by type
 const filteredEquipment = computed(() => {
-  console.log('Filtering equipment by type:', props.filterType);
+  console.log('Filtering equipment by type:', props.filterType)
 
   // First step: filter items by type
-  let typeFiltered: Equipment[];
+  let typeFiltered: Equipment[]
 
   if (props.filterType === 'Other') {
     // For "Other", we want to show all items with category EQUIPMENT
     typeFiltered = equipmentStore.equipment.filter(
-      (item: Equipment) => item.category === EquipmentCategory.EQUIPMENT
-    );
+      (item: Equipment) => item.category === EquipmentCategory.EQUIPMENT,
+    )
   } else if (props.filterType === 'Armour') {
     // For Armour, include ARMOUR, HEADGEAR, and SHIELD categories
     typeFiltered = equipmentStore.equipment.filter(
-      (item: Equipment) => item.category === EquipmentCategory.ARMOUR ||
-                          item.category === EquipmentCategory.HEADGEAR ||
-                          item.category === EquipmentCategory.SHIELD
-    );
+      (item: Equipment) =>
+        item.category === EquipmentCategory.ARMOUR ||
+        item.category === EquipmentCategory.HEADGEAR ||
+        item.category === EquipmentCategory.SHIELD,
+    )
   } else {
     // For other types, filter by the type
     typeFiltered = equipmentStore.equipment.filter(
-      (item: Equipment) => item.type === props.filterType
-    );
+      (item: Equipment) => item.type === props.filterType,
+    )
   }
 
   // If we have compiled army rules, use them to filter the equipment
   if (currentArmyRules.value) {
-    console.log('Using compiled army rules to filter equipment');
+    console.log('Using compiled army rules to filter equipment')
 
     // Filter by equipment costs defined in army rules
-    const equipmentWithCosts = Object.keys(currentArmyRules.value.equipment.costs);
+    const equipmentWithCosts = Object.keys(currentArmyRules.value.equipment.costs)
 
     // Filter by equipment that's not banned by global restrictions
-    const bannedEquipment = currentArmyRules.value.equipment.globalRestrictions.bannedEquipmentIds;
-    const bannedKeywords = currentArmyRules.value.equipment.globalRestrictions.bannedKeywords;
-    const bannedCategories = currentArmyRules.value.equipment.globalRestrictions.bannedCategories;
+    const bannedEquipment = currentArmyRules.value.equipment.globalRestrictions.bannedEquipmentIds
+    const bannedKeywords = currentArmyRules.value.equipment.globalRestrictions.bannedKeywords
+    const bannedCategories = currentArmyRules.value.equipment.globalRestrictions.bannedCategories
 
     // Apply all the filters from army rules
-    return typeFiltered.filter(item => {
+    return typeFiltered.filter((item) => {
       // Check if the equipment has a cost defined
       if (!equipmentWithCosts.includes(item.id)) {
-        return false;
+        return false
       }
 
       // Check if it's banned by ID
       if (bannedEquipment.includes(item.id)) {
-        return false;
+        return false
       }
 
       // Check if it has a banned keyword
-      if (item.keywords && bannedKeywords.some(keyword => item.keywords.includes(keyword))) {
-        return false;
+      if (item.keywords && bannedKeywords.some((keyword) => item.keywords.includes(keyword))) {
+        return false
       }
 
       // Check if it's in a banned category
       if (bannedCategories.includes(item.category)) {
-        return false;
+        return false
       }
 
       // Check troop restrictions if we have a troop
       if (props.troop) {
-        const restrictions = currentArmyRules.value?.equipment.troopRestrictions[item.id];
+        const restrictions = currentArmyRules.value?.equipment.troopRestrictions[item.id]
         if (restrictions) {
           // Use our utility function to check if it's allowed
           return isEquipmentAllowedForTroop(
             item,
             props.troop,
             props.faction || null,
-            props.warbandVariant || null
-          );
+            props.warbandVariant || null,
+          )
         }
       }
 
       // Filter out exploration-only items unless checkbox is checked
       if (item.keywords?.includes('EXPLORATION_ONLY') && !showExplorationOnlyItems.value) {
-        return false;
+        return false
       }
 
-      return true;
-    });
+      return true
+    })
   }
 
   // If no faction, just return the type-filtered items
   if (!props.faction) {
-    return typeFiltered;
+    return typeFiltered
   }
 
   // Temporary solution: If we have a troop but no faction, try to find the faction
   if (props.troop && props.troop.factionId && !props.faction) {
-    const faction = factionStore.factions.find(f => f.id === props.troop.factionId);
+    const faction = factionStore.factions.find((f) => f.id === props.troop.factionId)
     if (faction) {
-      return filterEquipmentWithFaction(typeFiltered, faction);
+      return filterEquipmentWithFaction(typeFiltered, faction)
     }
   }
 
   // Normal case: we have a faction
-  return filterEquipmentWithFaction(typeFiltered, props.faction);
-});
+  return filterEquipmentWithFaction(typeFiltered, props.faction)
+})
 
 // Helper function to filter equipment with a faction
 function filterEquipmentWithFaction(items: Equipment[], faction: Faction) {
-  console.log(`Filtering ${items.length} items with faction ${faction.name}`);
+  console.log(`Filtering ${items.length} items with faction ${faction.name}`)
 
   // Get the list of equipment IDs that have costs defined for this faction
   const equipmentIdsWithCosts = faction.equipmentRules?.costs
     ? Object.keys(faction.equipmentRules.costs)
-    : [];
+    : []
 
-  console.log(`Equipment IDs with costs in faction ${faction.name}:`, equipmentIdsWithCosts);
+  console.log(`Equipment IDs with costs in faction ${faction.name}:`, equipmentIdsWithCosts)
 
   // First filter: equipment must have a cost defined
-  const costFiltered = items.filter(item => {
-    const hasCost = equipmentIdsWithCosts.includes(item.id);
+  const costFiltered = items.filter((item) => {
+    const hasCost = equipmentIdsWithCosts.includes(item.id)
     if (!hasCost) {
-      console.log(`- ${item.name} (${item.id}) has no cost defined in faction ${faction.name}`);
+      console.log(`- ${item.name} (${item.id}) has no cost defined in faction ${faction.name}`)
     }
-    return hasCost;
-  });
+    return hasCost
+  })
 
-  console.log(`After cost filter: ${costFiltered.length} items left`);
+  console.log(`After cost filter: ${costFiltered.length} items left`)
 
   // Filter out exploration-only items unless checkbox is checked
-  const explorationFiltered = costFiltered.filter(item =>
-    !(item.keywords?.includes('EXPLORATION_ONLY') && !showExplorationOnlyItems.value)
-  );
+  const explorationFiltered = costFiltered.filter(
+    (item) => !(item.keywords?.includes('EXPLORATION_ONLY') && !showExplorationOnlyItems.value),
+  )
 
-  console.log(`After exploration filter: ${explorationFiltered.length} items left`);
+  console.log(`After exploration filter: ${explorationFiltered.length} items left`)
 
   // If we don't have a troop, just return the items filtered by cost and exploration
   if (!props.troop) {
-    return explorationFiltered;
+    return explorationFiltered
   }
 
   // Final filter: equipment must be allowed for this troop
-  return explorationFiltered.filter(item => {
-    console.log(`Checking if ${item.name} (${item.id}) is allowed for ${props.troop.name} (${props.troop.id})`);
+  return explorationFiltered.filter((item) => {
+    console.log(
+      `Checking if ${item.name} (${item.id}) is allowed for ${props.troop.name} (${props.troop.id})`,
+    )
 
     // Check troop restrictions specifically for this item
-    const troopRestrictions = faction.equipmentRules?.troopRestrictions?.[item.id];
+    const troopRestrictions = faction.equipmentRules?.troopRestrictions?.[item.id]
     if (troopRestrictions) {
-      console.log(`- This equipment has troop restrictions:`, troopRestrictions);
+      console.log(`- This equipment has troop restrictions:`, troopRestrictions)
     }
 
-    const isAllowed = isEquipmentAllowedForTroop(item, props.troop, faction, props.warbandVariant);
-    console.log(`- Is allowed: ${isAllowed}`);
-    return isAllowed;
-  });
+    const isAllowed = isEquipmentAllowedForTroop(item, props.troop, faction, props.warbandVariant)
+    console.log(`- Is allowed: ${isAllowed}`)
+    return isAllowed
+  })
 }
 
 // Track selected items
@@ -433,7 +448,7 @@ function selectItem(item: Equipment) {
 
 // Format handedness for display
 function formatHandedness(handedness: HandednessType | undefined): string {
-  if (!handedness) return '';
+  if (!handedness) return ''
 
   switch (handedness) {
     case HandednessType.ONE_HANDED:
@@ -488,28 +503,24 @@ function closeDetailsDialog() {
 
 // Format equipment cost using faction and variant info
 function formatEquipmentCostWithVariant(equipment: Equipment): string {
-  if (!props.faction) return 'Not Available';
+  if (!props.faction) return 'Not Available'
 
-  const cost = getEquipmentCost(
-    equipment,
-    props.faction,
-    props.warbandVariant
-  );
+  const cost = getEquipmentCost(equipment, props.faction, props.warbandVariant)
 
-  if (!cost) return 'Not Available';
-  return formatCost(cost);
+  if (!cost) return 'Not Available'
+  return formatCost(cost)
 }
 
 // Get equipment limit from faction rules
 function getLimit(equipment: Equipment): number | null {
-  if (!props.faction) return null;
-  return getEquipmentLimit(equipment, props.faction, props.warbandVariant);
+  if (!props.faction) return null
+  return getEquipmentLimit(equipment, props.faction, props.warbandVariant)
 }
 
 // Check if equipment has a limit
 function hasLimit(equipment: Equipment): boolean {
-  const limit = getLimit(equipment);
-  return limit !== null && limit > 0;
+  const limit = getLimit(equipment)
+  return limit !== null && limit > 0
 }
 
 // Add this function to force refresh equipment data
@@ -560,6 +571,25 @@ async function reseedEquipmentData() {
     reseedingEquipment.value = false
   }
 }
+
+// Function to check if user is admin
+async function checkAdminStatus() {
+  if (!auth.currentUser) return
+
+  try {
+    const db = getFirestore()
+    const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid))
+    isAdmin.value = userDoc.exists() && userDoc.data()?.admin === true
+  } catch (error) {
+    console.error('Error checking admin status:', error)
+    isAdmin.value = false
+  }
+}
+
+// Check admin status when component mounts
+onMounted(async () => {
+  await checkAdminStatus()
+})
 </script>
 
 <style scoped>

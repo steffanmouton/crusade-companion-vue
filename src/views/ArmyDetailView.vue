@@ -35,14 +35,15 @@ const unitsFromStore = computed(() => unitStore.units)
 // Convert units from Firestore format to the format expected by components
 const units = computed(() => {
   // Log the units from store for debugging
-  console.log('Units from store before conversion:',
-    unitsFromStore.value.map(u => ({
+  console.log(
+    'Units from store before conversion:',
+    unitsFromStore.value.map((u) => ({
       id: u.id,
       name: u.name,
       imageUrl: u.imageUrl,
-      hasImageUrl: !!u.imageUrl
-    }))
-  );
+      hasImageUrl: !!u.imageUrl,
+    })),
+  )
 
   const convertedUnits = unitsFromStore.value.map((firestoreUnit) => {
     // First, create an object with optional properties expected by the UI
@@ -52,27 +53,28 @@ const units = computed(() => {
       troopId: firestoreUnit.troopId || '',
       costPoints: firestoreUnit.costPoints,
       costCurrency: firestoreUnit.costCurrency || 0,
-      currentEquipment: (firestoreUnit.currentEquipment || []) as unknown as ModelUnit['currentEquipment'],
+      currentEquipment: (firestoreUnit.currentEquipment ||
+        []) as unknown as ModelUnit['currentEquipment'],
       purchasedAbilities: firestoreUnit.purchasedAbilities || [],
       isMercenary: false,
     }
 
     // Copy imageUrl if it exists
-    if (firestoreUnit.imageUrl)
-      uiUnit.imageUrl = firestoreUnit.imageUrl
+    if (firestoreUnit.imageUrl) uiUnit.imageUrl = firestoreUnit.imageUrl
 
     return uiUnit
   })
 
   // Log converted units to debug
-  console.log('Units after conversion:',
-    convertedUnits.map(u => ({
+  console.log(
+    'Units after conversion:',
+    convertedUnits.map((u) => ({
       id: u.id,
       name: u.name,
       imageUrl: u.imageUrl,
-      hasImageUrl: !!u.imageUrl
-    }))
-  );
+      hasImageUrl: !!u.imageUrl,
+    })),
+  )
 
   return convertedUnits
 })
@@ -132,7 +134,7 @@ onMounted(async () => {
 
   // Load factions
   await factionStore.syncWithFirestore()
-  console.log("Loaded factions:", factionStore.factions.length)
+  console.log('Loaded factions:', factionStore.factions.length)
 
   if (armyId.value) {
     await armyStore.loadArmy(armyId.value)
@@ -140,12 +142,17 @@ onMounted(async () => {
     hasAttemptedLoad.value = true
 
     // Add this console log to help diagnose any issues
-    console.log("Current army:", armyStore.currentArmy?.name,
-                "Faction:", armyStore.currentArmy?.faction,
-                "ArmyRules:", armyStore.currentArmyRules ? "Available" : "Not available")
+    console.log(
+      'Current army:',
+      armyStore.currentArmy?.name,
+      'Faction:',
+      armyStore.currentArmy?.faction,
+      'ArmyRules:',
+      armyStore.currentArmyRules ? 'Available' : 'Not available',
+    )
 
     // Add detailed logging of the ArmyRules object
-    console.log("ArmyRules object:", JSON.stringify(armyStore.currentArmyRules, null, 2))
+    console.log('ArmyRules object:', JSON.stringify(armyStore.currentArmyRules, null, 2))
   }
 })
 
@@ -261,26 +268,11 @@ const warbandSpecialEquipment = computed(() => {
 
   // Knights of Avarice special equipment
   if (warbandVariant.value?.id === 'tc-wb-knights-of-avarice') {
-    return [
-      'Coin Hammer',
-      'Tarnished Armour',
-      'Standard of Mammon',
-      'Golden Calf Altar'
-    ]
+    return ['Coin Hammer', 'Tarnished Armour', 'Standard of Mammon', 'Golden Calf Altar']
   }
 
   return []
 })
-
-// Add this function to force reseed
-async function forceReseedVariants() {
-  if (confirm('This will reset all warband variants to their initial seed data. Continue?')) {
-    await warbandVariantStore.seedWarbandVariants(true);
-    // Force reload the army after reseeding
-    await armyStore.loadArmy(armyId.value);
-    alert('Warband variants have been reseeded!');
-  }
-}
 </script>
 
 <template>
@@ -344,16 +336,6 @@ async function forceReseedVariants() {
                   @click="editArmy"
                 >
                   Edit
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  variant="flat"
-                  prepend-icon="mdi-refresh"
-                  class="mr-2 tc-btn"
-                  elevation="0"
-                  @click="forceReseedVariants"
-                >
-                  Force Reseed
                 </v-btn>
               </div>
               <!-- Army details -->
@@ -469,7 +451,11 @@ async function forceReseedVariants() {
                 <div class="rules-list">
                   <h4 class="text-subtitle-1 font-weight-medium mb-2">Special Rules:</h4>
                   <ul class="list-unstyled">
-                    <li v-for="(rule, index) in warbandVariant.specialRules" :key="index" class="mb-2">
+                    <li
+                      v-for="(rule, index) in warbandVariant.specialRules"
+                      :key="index"
+                      class="mb-2"
+                    >
                       <v-icon
                         icon="mdi-book-open-variant"
                         color="primary"
@@ -488,39 +474,77 @@ async function forceReseedVariants() {
                   <!-- Minimum Model Cost -->
                   <div v-if="armyStore.currentArmyRules.troops.minModelCost" class="mb-2">
                     <v-icon icon="mdi-alert" color="warning" size="small" class="mr-2"></v-icon>
-                    <strong>Minimum Model Cost:</strong> {{ armyStore.currentArmyRules.troops.minModelCost.cost }} ducats
+                    <strong>Minimum Model Cost:</strong>
+                    {{ armyStore.currentArmyRules.troops.minModelCost.cost }} ducats
                     <span v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions">
                       (Except for models with
-                      <span v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions.keywords">
-                        keywords: {{ armyStore.currentArmyRules.troops.minModelCost.exceptions.keywords.join(', ') }}
+                      <span
+                        v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions.keywords"
+                      >
+                        keywords:
+                        {{
+                          armyStore.currentArmyRules.troops.minModelCost.exceptions.keywords.join(
+                            ', ',
+                          )
+                        }}
                       </span>
-                      <span v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions.troopIds">
-                        troops: {{ armyStore.currentArmyRules.troops.minModelCost.exceptions.troopIds.join(', ') }}
+                      <span
+                        v-if="armyStore.currentArmyRules.troops.minModelCost.exceptions.troopIds"
+                      >
+                        troops:
+                        {{
+                          armyStore.currentArmyRules.troops.minModelCost.exceptions.troopIds.join(
+                            ', ',
+                          )
+                        }}
                       </span>
                       )
                     </span>
                   </div>
 
                   <!-- Banned Keywords -->
-                  <div v-if="armyStore.currentArmyRules.equipment.globalRestrictions.bannedKeywords.length > 0" class="mb-2">
-                    <v-icon icon="mdi-block-helper" color="error" size="small" class="mr-2"></v-icon>
+                  <div
+                    v-if="
+                      armyStore.currentArmyRules.equipment.globalRestrictions.bannedKeywords
+                        .length > 0
+                    "
+                    class="mb-2"
+                  >
+                    <v-icon
+                      icon="mdi-block-helper"
+                      color="error"
+                      size="small"
+                      class="mr-2"
+                    ></v-icon>
                     <strong>Banned Equipment Keywords:</strong>
-                    {{ armyStore.currentArmyRules.equipment.globalRestrictions.bannedKeywords.join(', ') }}
+                    {{
+                      armyStore.currentArmyRules.equipment.globalRestrictions.bannedKeywords.join(
+                        ', ',
+                      )
+                    }}
                   </div>
 
                   <!-- Special Equipment -->
                   <div v-if="hasWarbandSpecialEquipment" class="mb-2">
                     <v-icon icon="mdi-sword" color="success" size="small" class="mr-2"></v-icon>
                     <strong>Special Equipment Available:</strong>
-                    <div v-for="(equip, index) in warbandSpecialEquipment" :key="index" class="ml-6 mt-1">
+                    <div
+                      v-for="(equip, index) in warbandSpecialEquipment"
+                      :key="index"
+                      class="ml-6 mt-1"
+                    >
                       {{ equip }}
                     </div>
                   </div>
 
                   <!-- Enforced Patron -->
-                  <div v-if="armyStore.currentArmyRules.specialValidations?.enforcePatron" class="mb-2">
+                  <div
+                    v-if="armyStore.currentArmyRules.specialValidations?.enforcePatron"
+                    class="mb-2"
+                  >
                     <v-icon icon="mdi-crown" color="primary" size="small" class="mr-2"></v-icon>
-                    <strong>Patron:</strong> {{ armyStore.currentArmyRules.specialValidations.enforcePatron }}
+                    <strong>Patron:</strong>
+                    {{ armyStore.currentArmyRules.specialValidations.enforcePatron }}
                   </div>
                 </div>
               </v-card>

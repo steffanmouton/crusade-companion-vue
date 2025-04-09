@@ -48,7 +48,11 @@
         <div class="mb-4">
           <div class="d-flex justify-space-between align-center mb-2">
             <h3 class="text-subtitle-1 font-weight-medium">Equipment</h3>
-            <v-tooltip v-if="props.troop.isEquipmentLocked" text="This troop's equipment cannot be modified" location="top">
+            <v-tooltip
+              v-if="props.troop.isEquipmentLocked"
+              text="This troop's equipment cannot be modified"
+              location="top"
+            >
               <template v-slot:activator="{ props }">
                 <v-icon v-bind="props" color="grey">mdi-lock</v-icon>
               </template>
@@ -56,7 +60,12 @@
           </div>
 
           <!-- Loading indicator for equipment -->
-          <LoadingIndicator v-if="loadingEquipment" text="Loading default equipment..." :size="32" :width="3" />
+          <LoadingIndicator
+            v-if="loadingEquipment"
+            text="Loading default equipment..."
+            :size="32"
+            :width="3"
+          />
 
           <!-- Equipment validation warnings -->
           <v-alert
@@ -73,7 +82,11 @@
                 Special Equipment Combinations:
               </div>
               <ul class="pl-4 mb-2">
-                <li v-for="(combo, index) in specialEquipmentCombos" :key="'combo-'+index" class="text-caption font-weight-medium text-success">
+                <li
+                  v-for="(combo, index) in specialEquipmentCombos"
+                  :key="'combo-' + index"
+                  class="text-caption font-weight-medium text-success"
+                >
                   {{ combo.message }}
                   <div v-if="combo.details" class="text-caption text-grey">
                     {{ combo.details }}
@@ -86,7 +99,11 @@
             <div v-if="regularWarnings.length > 0">
               <div class="text-subtitle-2 mb-1">Equipment Warnings:</div>
               <ul class="pl-4 mb-0">
-                <li v-for="(warning, index) in regularWarnings" :key="'warning-'+index" class="text-caption">
+                <li
+                  v-for="(warning, index) in regularWarnings"
+                  :key="'warning-' + index"
+                  class="text-caption"
+                >
                   {{ warning.message }}
                   <div v-if="warning.details" class="text-caption text-grey">
                     {{ warning.details }}
@@ -106,7 +123,11 @@
           >
             <div class="text-subtitle-2 mb-1">Equipment Errors:</div>
             <ul class="pl-4 mb-0">
-              <li v-for="(error, index) in validationResult.errors" :key="index" class="text-caption">
+              <li
+                v-for="(error, index) in validationResult.errors"
+                :key="index"
+                class="text-caption"
+              >
                 {{ error.message }}
                 <div v-if="error.details" class="text-caption text-grey">
                   {{ error.details }}
@@ -320,7 +341,7 @@ import {
   getEquipmentCost,
   formatEquipmentCost as formatEquipmentCostUtil,
   getTroopCost,
-  isEquipmentAllowedForTroop
+  isEquipmentAllowedForTroop,
 } from '../utils/equipmentUtils'
 import type { WarbandVariant } from '../models/warbandVariant'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
@@ -366,64 +387,78 @@ const isEditing = computed(() => !!props.unit)
 const faction = computed(() => {
   // First try to find by faction name, which is more reliable
   if (props.troop?.factionName) {
-    const factionByName = factionStore.factions.find(f =>
-      f.name.toLowerCase() === props.troop.factionName.toLowerCase()
-    );
+    const factionByName = factionStore.factions.find(
+      (f) => f.name.toLowerCase() === props.troop.factionName.toLowerCase(),
+    )
 
     if (factionByName) {
-      return factionByName;
+      return factionByName
     }
   }
 
   // If the factionId is a firestore ID (not matching tc-fc- pattern), we need to find it directly
   if (props.troop?.factionId && !props.troop.factionId.startsWith('tc-fc-')) {
-    const foundFaction = factionStore.factions.find(f => f.id === props.troop.factionId);
-    return foundFaction || null;
+    const foundFaction = factionStore.factions.find((f) => f.id === props.troop.factionId)
+    return foundFaction || null
   }
 
   // Otherwise try to match by seed ID pattern (tc-fc-*)
   if (props.troop?.factionId) {
     // First try exact match
-    const exactMatch = factionStore.factions.find(f => f.id === props.troop.factionId);
+    const exactMatch = factionStore.factions.find((f) => f.id === props.troop.factionId)
     if (exactMatch) {
-      return exactMatch;
+      return exactMatch
     }
 
     // Try to map the seed ID to a faction name
-    let expectedFactionName = null;
+    let expectedFactionName = null
 
     if (props.troop.factionId === 'tc-fc-hl' || props.troop.factionId === 'tc-fc-heretic-legion') {
-      expectedFactionName = 'Heretic Legion';
-    } else if (props.troop.factionId === 'tc-fc-is' || props.troop.factionId === 'tc-fc-iron-sultanate') {
-      expectedFactionName = 'Iron Sultanate';
-    } else if (props.troop.factionId === 'tc-fc-na' || props.troop.factionId === 'tc-fc-new-antioch') {
-      expectedFactionName = 'Principality of New Antioch';
-    } else if (props.troop.factionId === 'tc-fc-mer' || props.troop.factionId === 'tc-fc-mercenary') {
-      expectedFactionName = 'Mercenary';
+      expectedFactionName = 'Heretic Legion'
+    } else if (
+      props.troop.factionId === 'tc-fc-is' ||
+      props.troop.factionId === 'tc-fc-iron-sultanate'
+    ) {
+      expectedFactionName = 'Iron Sultanate'
+    } else if (
+      props.troop.factionId === 'tc-fc-na' ||
+      props.troop.factionId === 'tc-fc-new-antioch'
+    ) {
+      expectedFactionName = 'Principality of New Antioch'
+    } else if (
+      props.troop.factionId === 'tc-fc-mer' ||
+      props.troop.factionId === 'tc-fc-mercenary'
+    ) {
+      expectedFactionName = 'Mercenary'
     }
 
     if (expectedFactionName) {
-      const nameMatch = factionStore.factions.find(f => f.name === expectedFactionName);
+      const nameMatch = factionStore.factions.find((f) => f.name === expectedFactionName)
       if (nameMatch) {
-        return nameMatch;
+        return nameMatch
       }
     }
   }
 
   // Fallback to the old logic
   const fallbackFaction = props.troop?.factionId
-    ? factionStore.factions.find(f => f.id === props.troop.factionId.toString())
-    : null;
+    ? factionStore.factions.find((f) => f.id === props.troop.factionId.toString())
+    : null
 
-  return fallbackFaction;
+  return fallbackFaction
 })
 
 // Add a new computed property that handles the type checking properly
 const currentFaction = computed(() => {
   if (!faction.value) {
-    console.warn('No faction found for troop:', props.troop?.name, 'with factionId:', props.troop?.factionId);
+    console.warn(
+      'No faction found for troop:',
+      props.troop?.name,
+      'with factionId:',
+      props.troop?.factionId,
+    )
   }
-  return faction.value || null;
+  return faction.value || null
 })
 
 // Create reactive unit data
@@ -455,12 +490,13 @@ const troopCost = computed(() => {
 
 // Update equipment cost calculation to use faction rules
 const equipmentCost = computed(() => {
-  if (!faction.value) return {
-    currencies: [
-      { type: CurrencyType.DUCATS, amount: 0 },
-      { type: CurrencyType.GLORY_POINTS, amount: 0 },
-    ],
-  }
+  if (!faction.value)
+    return {
+      currencies: [
+        { type: CurrencyType.DUCATS, amount: 0 },
+        { type: CurrencyType.GLORY_POINTS, amount: 0 },
+      ],
+    }
 
   return unitData.currentEquipment.reduce(
     (total, equipment) => {
@@ -532,91 +568,99 @@ const totalCost = computed(() => {
 // Add computed properties to track hands used
 const meleeHandsUsed = computed(() => {
   // Check for special cases: bayonet lugs and shield combos
-  const hasBayonetLugItem = unitData.currentEquipment.some(e => e.equipmentIndicator?.hasBayonetLug === true);
-  const hasShieldComboItem = unitData.currentEquipment.some(e => e.equipmentIndicator?.shieldCombo === true);
+  const hasBayonetLugItem = unitData.currentEquipment.some(
+    (e) => e.equipmentIndicator?.hasBayonetLug === true,
+  )
+  const hasShieldComboItem = unitData.currentEquipment.some(
+    (e) => e.equipmentIndicator?.shieldCombo === true,
+  )
 
   // Calculate melee weapons hands
   const meleeHandsCount = unitData.currentEquipment.reduce((total, item) => {
     if (item.category === EquipmentCategory.MELEE_WEAPON) {
       // Skip counting bayonets if there's an item with bayonet lug
       if (item.name.toLowerCase().includes('bayonet') && hasBayonetLugItem) {
-        return total;
+        return total
       }
 
       if (item.handedness === HandednessType.ONE_HANDED) {
-        return total + 1;
+        return total + 1
       } else if (item.handedness === HandednessType.TWO_HANDED) {
-        return total + 2;
+        return total + 2
       }
     }
-    return total;
-  }, 0);
+    return total
+  }, 0)
 
   // Add shield hands if they count (no shield combo item)
   const shieldHandsCount = unitData.currentEquipment.reduce((total, item) => {
     if (item.category === EquipmentCategory.SHIELD && !hasShieldComboItem) {
       if (item.handedness === HandednessType.ONE_HAND_REQUIRED) {
-        return total + 1;
+        return total + 1
       }
     }
-    return total;
-  }, 0);
+    return total
+  }, 0)
 
-  return meleeHandsCount + shieldHandsCount;
-});
+  return meleeHandsCount + shieldHandsCount
+})
 
 const rangedHandsUsed = computed(() => {
   // Check for special cases: shield combos
-  const hasShieldComboItem = unitData.currentEquipment.some(e => e.equipmentIndicator?.shieldCombo === true);
+  const hasShieldComboItem = unitData.currentEquipment.some(
+    (e) => e.equipmentIndicator?.shieldCombo === true,
+  )
 
   // Calculate ranged weapons hands
   const rangedHandsCount = unitData.currentEquipment.reduce((total, item) => {
     if (item.category === EquipmentCategory.RANGED_WEAPON) {
       if (item.handedness === HandednessType.ONE_HANDED) {
-        return total + 1;
+        return total + 1
       } else if (item.handedness === HandednessType.TWO_HANDED) {
-        return total + 2;
+        return total + 2
       }
     }
-    return total;
-  }, 0);
+    return total
+  }, 0)
 
   // Add shield hands if they count (no shield combo item)
   const shieldHandsCount = unitData.currentEquipment.reduce((total, item) => {
     if (item.category === EquipmentCategory.SHIELD && !hasShieldComboItem) {
       if (item.handedness === HandednessType.ONE_HAND_REQUIRED) {
-        return total + 1;
+        return total + 1
       }
     }
-    return total;
-  }, 0);
+    return total
+  }, 0)
 
-  return rangedHandsCount + shieldHandsCount;
-});
+  return rangedHandsCount + shieldHandsCount
+})
 
 // Computed property to get special equipment combo warnings
 const specialEquipmentCombos = computed(() => {
   if (!validationResult.value) return []
-  return validationResult.value.warnings.filter(warning =>
-    warning.type === WarningType.SPECIAL_EQUIPMENT_COMBO
+  return validationResult.value.warnings.filter(
+    (warning) => warning.type === WarningType.SPECIAL_EQUIPMENT_COMBO,
   )
 })
 
 // Check if we have any special equipment combo warnings to display
-const hasSpecialEquipmentCombos = computed(() =>
-  specialEquipmentCombos.value.length > 0
-)
+const hasSpecialEquipmentCombos = computed(() => specialEquipmentCombos.value.length > 0)
 
 // Computed property to get regular warnings (not special combos)
 const regularWarnings = computed(() => {
   if (!validationResult.value) return []
-  return validationResult.value.warnings.filter(warning =>
-    warning.type !== WarningType.SPECIAL_EQUIPMENT_COMBO
+  return validationResult.value.warnings.filter(
+    (warning) => warning.type !== WarningType.SPECIAL_EQUIPMENT_COMBO,
   )
 })
 
 // Add this computed property to get the current army rules
 const currentArmyRules = computed(() => armyStore.currentArmyRules)
+
+// Add this near the top of the script section
+const isDevelopment = import.meta.env.MODE === 'development'
+const isStaging = import.meta.env.MODE === 'staging'
 
 // Methods
 function addEquipment(equipment: Equipment) {
@@ -631,7 +675,7 @@ function handleEquipmentSelection(items: Equipment[]) {
   if (selectedEquipmentForEdit.value) {
     // Remove the old item
     const index = unitData.currentEquipment.findIndex(
-      (item) => item.id === selectedEquipmentForEdit.value?.id
+      (item) => item.id === selectedEquipmentForEdit.value?.id,
     )
     if (index !== -1) {
       unitData.currentEquipment.splice(index, 1)
@@ -651,7 +695,9 @@ async function saveUnit() {
 
   // If there are errors, ask for confirmation before saving
   if (validationResult.value && validationResult.value.errors.length > 0) {
-    const confirmSave = confirm('There are equipment validation errors. Do you want to save anyway?')
+    const confirmSave = confirm(
+      'There are equipment validation errors. Do you want to save anyway?',
+    )
     if (!confirmSave) {
       return
     }
@@ -716,14 +762,17 @@ async function saveUnit() {
 // Load equipment and default equipment on mount
 onMounted(async () => {
   console.log('UnitForm mounted, loading factions and equipment')
+  console.log('Environment:', import.meta.env.MODE)
   loadingEquipment.value = true
 
   try {
     // Load factions first to ensure we have the latest data
     await factionStore.syncWithFirestore()
+    console.log('Factions loaded:', factionStore.factions.length)
 
     // Then fetch equipment
     await equipmentStore.fetchEquipment()
+    console.log('Equipment loaded:', equipmentStore.equipment.length)
 
     // Set default name based on troop type if new unit
     if (!isEditing.value && props.troop) {
@@ -733,6 +782,7 @@ onMounted(async () => {
     // If editing, log the unit's image URL
     if (isEditing.value && props.unit) {
       console.log('Editing unit with image URL:', props.unit.imageUrl)
+      console.log('Editing unit with equipment:', props.unit.currentEquipment?.length || 0)
 
       // Ensure imageUrl is properly set in unitData
       if (props.unit.imageUrl) {
@@ -745,30 +795,43 @@ onMounted(async () => {
     if (props.armyId) {
       // Get army data
       const army = await armyStore.loadArmy(props.armyId)
+      console.log('Army loaded:', army?.id)
 
       // Load warband variant if the army has one
       if (army && army.warbandVariantId) {
         await warbandVariantStore.fetchWarbandVariants()
+        console.log('Warband variants loaded:', warbandVariantStore.warbandVariants.length)
 
-        const variant = warbandVariantStore.warbandVariants.find(v => v.id === army.warbandVariantId)
+        const variant = warbandVariantStore.warbandVariants.find(
+          (v) => v.id === army.warbandVariantId,
+        )
         if (variant) {
           currentWarbandVariant.value = variant
+          console.log('Warband variant set:', variant.id)
         }
       }
     }
 
     // Now that everything's loaded, get available equipment
     await loadAvailableEquipment()
+    console.log('Available equipment loaded:', availableEquipment.value.length)
 
     // Add default equipment if this is a new unit
-    if (!isEditing.value && props.troop?.defaultEquipment && Array.isArray(props.troop.defaultEquipment)) {
-      const defaultEquipment = props.troop.defaultEquipment.map(equipmentId => {
-        const equipment = equipmentStore.equipment.find(e => e.id === equipmentId)
-        return equipment
-      }).filter(Boolean) as Equipment[]
+    if (
+      !isEditing.value &&
+      props.troop?.defaultEquipment &&
+      Array.isArray(props.troop.defaultEquipment)
+    ) {
+      const defaultEquipment = props.troop.defaultEquipment
+        .map((equipmentId) => {
+          const equipment = equipmentStore.equipment.find((e) => e.id === equipmentId)
+          return equipment
+        })
+        .filter(Boolean) as Equipment[]
 
       if (defaultEquipment.length > 0) {
         unitData.currentEquipment.push(...defaultEquipment)
+        console.log('Default equipment added:', defaultEquipment.length)
         // Run validation after adding default equipment
         validateCurrentEquipment()
       }
@@ -776,15 +839,40 @@ onMounted(async () => {
 
     // Run validation
     validateCurrentEquipment()
+    console.log('Initial validation complete')
   } catch (err) {
     console.error('Error initializing unit form:', err)
     error.value = 'Failed to load equipment data'
+    // Add more detailed error information
+    if (err instanceof Error) {
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+      })
+    }
   } finally {
     loadingEquipment.value = false
   }
 })
 
-// Load available equipment for this troop
+// Add this function to check data loading
+function checkDataLoading() {
+  if (!factionStore.factions.length) {
+    console.warn('No factions loaded')
+  }
+  if (!equipmentStore.equipment.length) {
+    console.warn('No equipment loaded')
+  }
+  if (!unitData.currentEquipment) {
+    console.warn('Unit equipment not initialized')
+  }
+  if (!availableEquipment.value.length) {
+    console.warn('No available equipment loaded')
+  }
+}
+
+// Update the loadAvailableEquipment function
 async function loadAvailableEquipment() {
   // Always force a refresh of equipment data to avoid caching issues
   console.log('Initializing equipment store in loadAvailableEquipment')
@@ -794,12 +882,24 @@ async function loadAvailableEquipment() {
   await factionStore.syncWithFirestore()
 
   console.log('Equipment store items:', equipmentStore.equipment.length)
+  console.log('Faction store items:', factionStore.factions.length)
+
+  // Check data loading in development/staging
+  if (isDevelopment || isStaging) {
+    checkDataLoading()
+  }
 
   try {
     // Get the army to find the faction
     const army = await armyStore.loadArmy(props.armyId)
     if (!army) {
       console.error('Could not load army')
+      if (isDevelopment || isStaging) {
+        console.error('Army loading failed:', {
+          armyId: props.armyId,
+          armyStore: armyStore.currentArmy,
+        })
+      }
       return
     }
 
@@ -818,7 +918,7 @@ async function loadAvailableEquipment() {
       }
 
       // Filter equipment by availability and check troop restrictions
-      const troopEquipment = equipmentStore.equipment.filter(equipment => {
+      const troopEquipment = equipmentStore.equipment.filter((equipment) => {
         // First check if this equipment is available in the army rules
         if (!availableEquipmentIds.includes(equipment.id)) {
           return false
@@ -832,7 +932,7 @@ async function loadAvailableEquipment() {
             equipment,
             props.troop,
             faction.value || null,
-            currentWarbandVariant.value
+            currentWarbandVariant.value,
           )
         }
 
@@ -846,26 +946,39 @@ async function loadAvailableEquipment() {
       // Get equipment available for the troop based on faction rules
       let troopEquipment = equipmentStore.getEquipmentForTroop(
         props.troop.id,
-        props.troop.keywords || []
+        props.troop.keywords || [],
       )
 
-      console.log('Available equipment before filtering:', troopEquipment.map(e => e.name))
+      console.log(
+        'Available equipment before filtering:',
+        troopEquipment.map((e) => e.name),
+      )
 
       // Filter by warband variant if applicable
       if (currentWarbandVariant.value) {
         // Check if there are warband-specific overrides
-        const variantOverrides = currentWarbandVariant.value.troopSpecificOverrides?.[props.troop.id]
-        if (variantOverrides?.equipment) {
+        const variantOverrides =
+          currentWarbandVariant.value.equipmentRules?.troopRestrictions?.[props.troop.id]
+        if (variantOverrides?.conditions) {
           // Filter by allowed equipment in the variant
-          troopEquipment = troopEquipment.filter(item =>
-            variantOverrides.equipment?.includes(item.id))
+          troopEquipment = troopEquipment.filter((item) =>
+            isEquipmentAllowedForTroop(
+              item,
+              props.troop,
+              faction.value || null,
+              currentWarbandVariant.value,
+            ),
+          )
         }
       }
 
       availableEquipment.value = troopEquipment
     }
 
-    console.log('Final available equipment:', availableEquipment.value.map(e => e.name))
+    console.log(
+      'Final available equipment:',
+      availableEquipment.value.map((e) => e.name),
+    )
   } catch (err) {
     console.error('Error loading available equipment:', err)
     availableEquipment.value = []
@@ -881,9 +994,11 @@ function getEquipmentOfType(type: string) {
       return item.category === EquipmentCategory.EQUIPMENT
     }
     if (type === 'Armour') {
-      return item.category === EquipmentCategory.ARMOUR ||
-             item.category === EquipmentCategory.HEADGEAR ||
-             item.category === EquipmentCategory.SHIELD
+      return (
+        item.category === EquipmentCategory.ARMOUR ||
+        item.category === EquipmentCategory.HEADGEAR ||
+        item.category === EquipmentCategory.SHIELD
+      )
     }
     return item.category === type
   })
@@ -906,7 +1021,7 @@ function formatEquipmentCost(equipment: Equipment | undefined) {
     equipment,
     faction.value || null,
     formatCost,
-    currentWarbandVariant.value
+    currentWarbandVariant.value,
   )
 }
 
@@ -937,7 +1052,7 @@ function editEquipment(item: Equipment) {
 const factionStore = useFactionStore()
 const validationResult = ref<ValidationResult | null>(null)
 
-// Add a function to validate the current equipment
+// Update the validation function to use troopRules
 function validateCurrentEquipment() {
   // Pass armyRules to the validator if available
   validationResult.value = validateEquipment(
@@ -945,7 +1060,7 @@ function validateCurrentEquipment() {
     faction.value || null, // Ensure we pass null instead of undefined
     props.troop,
     currentWarbandVariant.value, // Pass the whole variant object
-    currentArmyRules.value // Pass the army rules
+    currentArmyRules.value, // Pass the army rules
   )
 }
 
@@ -957,9 +1072,21 @@ onMounted(() => {
 })
 
 // Watch for changes to equipment and revalidate
-watch(() => unitData.currentEquipment.length, () => {
-  validateCurrentEquipment()
-})
+watch(
+  () => unitData.currentEquipment.length,
+  () => {
+    validateCurrentEquipment()
+  },
+)
+
+// Add a watcher to refresh validation when equipment changes
+watch(
+  () => unitData.currentEquipment,
+  () => {
+    validateCurrentEquipment()
+  },
+  { deep: true },
+)
 
 // Add a helper function to get the variant name
 function getVariantName(troop?: Troop): string {
@@ -970,9 +1097,13 @@ function getVariantName(troop?: Troop): string {
 }
 
 // Add a watcher to refresh validation when equipment changes
-watch(() => unitData.currentEquipment, () => {
-  validateCurrentEquipment()
-}, { deep: true })
+watch(
+  () => unitData.currentEquipment,
+  () => {
+    validateCurrentEquipment()
+  },
+  { deep: true },
+)
 </script>
 
 <style scoped>

@@ -7,18 +7,6 @@
 
     <v-card-text>
       <p class="text-body-2">{{ faction.description }}</p>
-
-      <v-chip-group class="mt-2">
-        <v-chip
-          v-for="type in faction.troopTypes"
-          :key="type"
-          size="small"
-          color="primary"
-          variant="outlined"
-        >
-          {{ type }}
-        </v-chip>
-      </v-chip-group>
     </v-card-text>
   </v-card>
 </template>

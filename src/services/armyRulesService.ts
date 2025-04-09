@@ -1,3 +1,4 @@
+import { getFirestore, doc, getDoc } from 'firebase/firestore'
 import type { Faction } from '../models/faction'
 import type { WarbandVariant } from '../models/warbandVariant'
 import type { ArmyRules } from '../models/armyRules'
@@ -13,7 +14,7 @@ function deepClone<T>(obj: T): T {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as unknown as T
+    return obj.map((item) => deepClone(item)) as unknown as T
   }
 
   const clone = {} as Record<string, any>
@@ -28,28 +29,62 @@ function deepClone<T>(obj: T): T {
 }
 
 /**
+ * Gets pre-compiled ArmyRules from Firebase based on faction and optional warband variant
+ * @param faction The base faction
+ * @param variant Optional warband variant
+ * @returns A compiled ArmyRules object
+ */
+export async function getArmyRules(faction: Faction, variant?: WarbandVariant): Promise<ArmyRules> {
+  try {
+    const db = getFirestore()
+    const docId = variant ? `${faction.id}-${variant.id}` : `${faction.id}-base`
+
+    console.log(`Attempting to retrieve pre-compiled army rules for ${docId}`)
+
+    const docRef = doc(db, 'armyRules', docId)
+    const docSnap = await getDoc(docRef)
+
+    if (!docSnap.exists()) {
+      console.warn(`No pre-compiled rules found for ${docId}, falling back to runtime compilation`)
+      return compileArmyRules(faction, variant)
+    }
+
+    console.log(`Successfully retrieved pre-compiled army rules for ${docId}`)
+    return docSnap.data() as ArmyRules
+  } catch (error) {
+    console.error(
+      `Error retrieving army rules: ${error instanceof Error ? error.message : String(error)}`,
+    )
+    console.warn('Falling back to runtime compilation')
+    return compileArmyRules(faction, variant)
+  }
+}
+
+/**
  * Compiles a complete set of ArmyRules from a faction and optional warband variant
+ * This is now only used as a fallback when pre-compiled rules are not found
  * @param faction The base faction
  * @param variant Optional warband variant
  * @returns A compiled ArmyRules object with all rules merged
  */
 export function compileArmyRules(faction: Faction, variant?: WarbandVariant): ArmyRules {
-  console.log(`Compiling army rules for faction ${faction.name} ${faction.id}`);
+  console.log(`Compiling army rules for faction ${faction.name} ${faction.id}`)
+
   if (variant) {
-    console.log(`Including variant ${variant.name} ${variant.id}`);
-    console.log('Variant configuration:', {
+    console.log(`Including variant ${variant.name} ${variant.id}`)
+    console.log(`Variant configuration:`, {
       factionId: variant.factionId,
-      equipmentRules: variant.equipmentRules ? Object.keys(variant.equipmentRules) : 'none',
-      troopRules: variant.troopRules ? Object.keys(variant.troopRules) : 'none',
-      armyRulesOverrides: variant.armyRulesOverrides ? Object.keys(variant.armyRulesOverrides) : 'none'
-    });
+      equipmentRules: variant.equipmentRules || 'none',
+      troopRules: variant.troopRules || 'none',
+      armyRulesOverrides: variant.armyRulesOverrides || 'none',
+    })
   }
 
-  // Start with basic information from faction
+  // Start with a blank ArmyRules object
   const armyRules: ArmyRules = {
     factionId: faction.id,
     factionName: faction.name,
-    specialRules: [...faction.specialRules],
+    specialRules: [...faction.specialRules], // Clone the special rules array
 
     // Initialize equipment rules
     equipment: {
@@ -57,14 +92,18 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
       limits: { ...(faction.equipmentRules.limits || {}) },
       troopRestrictions: deepClone(faction.equipmentRules.troopRestrictions || {}),
       globalRestrictions: {
-        bannedEquipmentIds: [...(faction.equipmentRules.globalRestrictions?.bannedEquipmentIds || [])],
+        bannedEquipmentIds: [
+          ...(faction.equipmentRules.globalRestrictions?.bannedEquipmentIds || []),
+        ],
         bannedKeywords: [...(faction.equipmentRules.globalRestrictions?.bannedKeywords || [])],
         bannedCategories: [...(faction.equipmentRules.globalRestrictions?.bannedCategories || [])],
       },
-      externalEquipmentAllowances: (faction.equipmentRules.externalEquipmentAllowances || []).map(allowance => ({
-        ...deepClone(allowance),
-        limit: allowance.limit ?? 0 // Default to 0 if limit is undefined
-      })),
+      externalEquipmentAllowances: (faction.equipmentRules.externalEquipmentAllowances || []).map(
+        (allowance) => ({
+          ...deepClone(allowance),
+          limit: allowance.limit ?? 0, // Default to 0 if limit is undefined
+        }),
+      ),
     },
 
     // Initialize troop rules
@@ -74,8 +113,8 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
       availability: {}, // Will be populated with troop availability
       restrictions: {
         requirements: deepClone(faction.troopRules?.restrictions?.requirements || []),
-        maxKeywordCounts: { ...(faction.troopRules?.restrictions?.maxKeywordCounts || {}) }
-      }
+        maxKeywordCounts: { ...(faction.troopRules?.restrictions?.maxKeywordCounts || {}) },
+      },
     },
   }
 
@@ -83,7 +122,7 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
   if (faction.equipmentRules.mercenaryRules) {
     armyRules.mercenaries = {
       costs: { ...faction.equipmentRules.mercenaryRules.costs },
-      limits: { ...faction.equipmentRules.mercenaryRules.limits }
+      limits: { ...faction.equipmentRules.mercenaryRules.limits },
     }
   }
 
@@ -98,8 +137,10 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
     for (const requirement of faction.troopRules.restrictions.requirements) {
       if (requirement.maxCount === 0 && requirement.troopIds) {
         for (const troopId of requirement.troopIds) {
-          console.log(`Setting troop ${troopId} to unavailable due to maxCount: 0 restriction in base faction`);
-          armyRules.troops.availability[troopId] = false;
+          console.log(
+            `Setting troop ${troopId} to unavailable due to maxCount: 0 restriction in base faction`,
+          )
+          armyRules.troops.availability[troopId] = false
         }
       }
     }
@@ -128,7 +169,7 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
       if (variant.equipmentRules.troopRestrictions) {
         for (const equipId in variant.equipmentRules.troopRestrictions) {
           armyRules.equipment.troopRestrictions[equipId] = deepClone(
-            variant.equipmentRules.troopRestrictions[equipId]
+            variant.equipmentRules.troopRestrictions[equipId],
           )
         }
       }
@@ -140,33 +181,32 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
         if (globalRestrictions.bannedEquipmentIds) {
           armyRules.equipment.globalRestrictions.bannedEquipmentIds = [
             ...armyRules.equipment.globalRestrictions.bannedEquipmentIds,
-            ...globalRestrictions.bannedEquipmentIds
+            ...globalRestrictions.bannedEquipmentIds,
           ]
         }
 
         if (globalRestrictions.bannedKeywords) {
           armyRules.equipment.globalRestrictions.bannedKeywords = [
             ...armyRules.equipment.globalRestrictions.bannedKeywords,
-            ...globalRestrictions.bannedKeywords
+            ...globalRestrictions.bannedKeywords,
           ]
         }
 
         if (globalRestrictions.bannedCategories) {
           armyRules.equipment.globalRestrictions.bannedCategories = [
             ...armyRules.equipment.globalRestrictions.bannedCategories,
-            ...globalRestrictions.bannedCategories
+            ...globalRestrictions.bannedCategories,
           ]
         }
       }
 
       // Override or add external equipment allowances
       if (variant.equipmentRules.externalEquipmentAllowances) {
-        armyRules.equipment.externalEquipmentAllowances = variant.equipmentRules.externalEquipmentAllowances.map(
-          allowance => ({
+        armyRules.equipment.externalEquipmentAllowances =
+          variant.equipmentRules.externalEquipmentAllowances.map((allowance) => ({
             ...deepClone(allowance),
-            limit: allowance.limit ?? 0 // Default to 0 if limit is undefined
-          })
-        )
+            limit: allowance.limit ?? 0, // Default to 0 if limit is undefined
+          }))
       }
 
       // Apply mercenary rules
@@ -174,7 +214,7 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
         if (!armyRules.mercenaries) {
           armyRules.mercenaries = {
             costs: {},
-            limits: {}
+            limits: {},
           }
         }
 
@@ -208,15 +248,17 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
         if (variant.troopRules.restrictions.requirements) {
           armyRules.troops.restrictions.requirements = [
             ...armyRules.troops.restrictions.requirements,
-            ...deepClone(variant.troopRules.restrictions.requirements)
+            ...deepClone(variant.troopRules.restrictions.requirements),
           ]
 
           // Find any troops with maxCount: 0 and mark them as unavailable
           for (const requirement of variant.troopRules.restrictions.requirements) {
             if (requirement.maxCount === 0 && requirement.troopIds) {
               for (const troopId of requirement.troopIds) {
-                console.log(`Setting troop ${troopId} to unavailable due to maxCount: 0 restriction`);
-                armyRules.troops.availability[troopId] = false;
+                console.log(
+                  `Setting troop ${troopId} to unavailable due to maxCount: 0 restriction`,
+                )
+                armyRules.troops.availability[troopId] = false
               }
             }
           }
@@ -226,7 +268,7 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
         if (variant.troopRules.restrictions.maxKeywordCounts) {
           Object.assign(
             armyRules.troops.restrictions.maxKeywordCounts,
-            variant.troopRules.restrictions.maxKeywordCounts
+            variant.troopRules.restrictions.maxKeywordCounts,
           )
         }
       }
@@ -242,7 +284,7 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
 
           if (!armyRules.troops.troopAbilities[troopId]) {
             armyRules.troops.troopAbilities[troopId] = {
-              additionalAbilities: []
+              additionalAbilities: [],
             }
           }
 
@@ -250,7 +292,7 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
           if (allowedEquipment && allowedEquipment.length > 0) {
             armyRules.troops.troopAbilities[troopId].additionalAbilities = [
               ...(armyRules.troops.troopAbilities[troopId].additionalAbilities || []),
-              `Has special equipment allowances: ${allowedEquipment.join(', ')}`
+              `Has special equipment allowances: ${allowedEquipment.join(', ')}`,
             ]
           }
         }
@@ -259,49 +301,53 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
 
     // Apply army rules overrides if defined
     if (variant.armyRulesOverrides) {
-      console.log(`Applying data-driven rules for ${variant.name}`);
+      console.log(`Applying data-driven rules for ${variant.name}`)
 
       // Add minimum model cost rule if defined
       if (variant.armyRulesOverrides.minModelCost) {
         armyRules.troops.minModelCost = {
           cost: variant.armyRulesOverrides.minModelCost.cost,
-          exceptions: variant.armyRulesOverrides.minModelCost.exceptions || {}
-        };
-        console.log(`Applied minimum model cost: ${variant.armyRulesOverrides.minModelCost.cost} ducats`);
+          exceptions: variant.armyRulesOverrides.minModelCost.exceptions || {},
+        }
+        console.log(
+          `Applied minimum model cost: ${variant.armyRulesOverrides.minModelCost.cost} ducats`,
+        )
       }
 
       // Add maximum model cost rule if defined
       if (variant.armyRulesOverrides.maxModelCost) {
         armyRules.troops.maxModelCost = {
           cost: variant.armyRulesOverrides.maxModelCost.cost,
-          exceptions: variant.armyRulesOverrides.maxModelCost.exceptions || {}
-        };
-        console.log(`Applied maximum model cost: ${variant.armyRulesOverrides.maxModelCost.cost} ducats`);
+          exceptions: variant.armyRulesOverrides.maxModelCost.exceptions || {},
+        }
+        console.log(
+          `Applied maximum model cost: ${variant.armyRulesOverrides.maxModelCost.cost} ducats`,
+        )
       }
 
       // Add special validations if defined
       if (variant.armyRulesOverrides.specialValidations) {
-        armyRules.specialValidations = variant.armyRulesOverrides.specialValidations;
-        console.log('Applied special validations:', armyRules.specialValidations);
+        armyRules.specialValidations = variant.armyRulesOverrides.specialValidations
+        console.log('Applied special validations:', armyRules.specialValidations)
       }
     }
   }
 
   // Log final state of warband-specific items
   if (variant && variant.id === 'tc-wb-knights-of-avarice') {
-    console.log('Final state of Knights of Avarice special equipment:');
+    console.log('Final state of Knights of Avarice special equipment:')
     const specialItems = [
       'tc-eq-coinhammer',
       'tc-eq-tarnished-armour',
       'tc-eq-standard-of-mammon',
-      'tc-eq-golden-calf-altar'
-    ];
+      'tc-eq-golden-calf-altar',
+    ]
 
     for (const itemId of specialItems) {
-      console.log(`  - ${itemId}: ${armyRules.equipment.costs[itemId] ? 'Added' : 'Missing'}`);
+      console.log(`  - ${itemId}: ${armyRules.equipment.costs[itemId] ? 'Added' : 'Missing'}`)
     }
 
-    console.log('Global restrictions:', armyRules.equipment.globalRestrictions);
+    console.log('Global restrictions:', armyRules.equipment.globalRestrictions)
   }
 
   return armyRules
@@ -319,16 +365,16 @@ export function createArmyRules(
   factionId: string,
   warbandVariantId: string | undefined,
   factions: Faction[],
-  variants: WarbandVariant[]
+  variants: WarbandVariant[],
 ): ArmyRules | null {
   // Find the faction
-  const faction = factions.find(f => f.id === factionId)
+  const faction = factions.find((f) => f.id === factionId)
   if (!faction) return null
 
   // Find the variant if specified
   let variant: WarbandVariant | undefined
   if (warbandVariantId) {
-    variant = variants.find(v => v.id === warbandVariantId && v.factionId === factionId)
+    variant = variants.find((v) => v.id === warbandVariantId && v.factionId === factionId)
   }
 
   // Compile the rules

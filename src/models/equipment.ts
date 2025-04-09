@@ -16,6 +16,8 @@ export interface Equipment {
   onlyFor?: {
     warbandVariant?: string
   }
+  isSpecial?: boolean
+  explorationOnly?: boolean
 }
 
 export interface EquipmentIndicator {
@@ -27,7 +29,7 @@ export enum HandednessType {
   ONE_HANDED = 'one-handed',
   TWO_HANDED = 'two-handed',
   NO_HANDS = 'no-hands',
-  ONE_HAND_REQUIRED = 'one-hand-required' // For items like shields, standards, musical instruments
+  ONE_HAND_REQUIRED = 'one-hand-required', // For items like shields, standards, musical instruments
 }
 
 export enum EquipmentCategory {
@@ -39,5 +41,5 @@ export enum EquipmentCategory {
   SHIELD = 'Shield',
   MUSICAL_INSTRUMENT = 'Musical Instrument',
   STANDARD = 'Standard',
-  EQUIPMENT = 'Equipment'
+  EQUIPMENT = 'Equipment',
 }
