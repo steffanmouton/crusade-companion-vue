@@ -6,6 +6,7 @@ import { useArmyStore } from '../stores/army'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import { getFirestore, getDoc, doc } from 'firebase/firestore'
 import { auth } from '../services/firebase'
+import RulebookVersionSelector from '../components/RulebookVersionSelector.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -19,7 +20,7 @@ const checkingAdmin = ref(false)
 // Computed properties based on the auth store
 const user = computed(() => authStore.user)
 const isLoading = computed(() => authStore.loading || armyStore.loading)
-const hasArmies = computed(() => armyStore.hasArmies)
+const hasArmies = computed(() => armyStore.versionMatchingArmies.length > 0)
 
 // Handle logout
 const handleLogout = async () => {
@@ -78,7 +79,9 @@ onMounted(async () => {
 // Function to get the warband variant name for an army
 function getWarbandVariantName(army: any) {
   if (!army.warbandVariantId) return null
-  return warbandVariantStore.warbandVariants.find(v => v.id === army.warbandVariantId)?.name || null
+  return (
+    warbandVariantStore.warbandVariants.find((v) => v.id === army.warbandVariantId)?.name || null
+  )
 }
 </script>
 
@@ -161,6 +164,9 @@ function getWarbandVariantName(army: any) {
                   </v-btn>
                 </div>
 
+                <!-- Rulebook Version Selector -->
+                <RulebookVersionSelector class="mb-4" />
+
                 <hr class="tc-divider" />
 
                 <!-- No armies message -->
@@ -176,7 +182,9 @@ function getWarbandVariantName(army: any) {
                     color="secondary"
                     class="mb-2"
                   ></v-icon>
-                  <p class="text-medium-emphasis mb-2">You don't have any armies yet.</p>
+                  <p class="text-medium-emphasis mb-2">
+                    You don't have any armies for the selected rulebook version.
+                  </p>
                   <v-btn
                     color="primary"
                     prepend-icon="mdi-plus"
@@ -185,14 +193,14 @@ function getWarbandVariantName(army: any) {
                     elevation="0"
                     variant="flat"
                   >
-                    Create Your First Army
+                    Create An Army
                   </v-btn>
                 </v-card>
 
                 <!-- Army list -->
                 <v-list v-else lines="two" class="tc-card pa-0" rounded="lg" elevation="0">
                   <v-list-item
-                    v-for="army in armyStore.armies"
+                    v-for="army in armyStore.versionMatchingArmies"
                     :key="army.id"
                     @click="viewArmy(army.id)"
                     class="tc-btn"
@@ -211,7 +219,10 @@ function getWarbandVariantName(army: any) {
                     <v-list-item-subtitle>
                       {{ army.faction }}
                       <template v-if="getWarbandVariantName(army)">
-                        | <span class="text-primary font-weight-medium">{{ getWarbandVariantName(army) }}</span>
+                        |
+                        <span class="text-primary font-weight-medium">{{
+                          getWarbandVariantName(army)
+                        }}</span>
                       </template>
                       | {{ army.currentPoints }}/{{ army.targetPoints }} pts
                     </v-list-item-subtitle>

@@ -1,7 +1,8 @@
 import { getFirestore, collection, doc, setDoc } from 'firebase/firestore'
-import { compileArmyRules } from '../services/armyRulesService'
+import { compileArmyRules, createArmyRulesDocId } from '../services/armyRulesService'
 import type { Faction } from '../models/faction'
 import type { WarbandVariant } from '../models/warbandVariant'
+import { CURRENT_RULEBOOK_VERSION } from '../config/appConstants'
 
 /**
  * Generates all possible army rule combinations and uploads them to Firebase
@@ -18,7 +19,7 @@ export async function generateAndUploadArmyRules(
   // Generate base faction rules (no variant)
   for (const faction of factions) {
     const baseRules = compileArmyRules(faction)
-    const docId = `${faction.id}-base`
+    const docId = createArmyRulesDocId(faction.id, undefined, CURRENT_RULEBOOK_VERSION)
     await setDoc(doc(armyRulesCollection, docId), {
       ...baseRules,
       id: docId,
@@ -38,7 +39,7 @@ export async function generateAndUploadArmyRules(
     }
 
     const variantRules = compileArmyRules(faction, variant)
-    const docId = `${faction.id}-${variant.id}`
+    const docId = createArmyRulesDocId(faction.id, variant.id, CURRENT_RULEBOOK_VERSION)
     await setDoc(doc(armyRulesCollection, docId), {
       ...variantRules,
       id: docId,

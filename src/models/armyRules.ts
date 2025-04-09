@@ -15,6 +15,7 @@ export interface ArmyRules {
   warbandVariantId?: string
   warbandVariantName?: string
   warbandVariantRules?: string[]
+  rulebookVersion: string // The version of the rulebook these rules are based on
 
   // Equipment rules
   equipment: {
@@ -31,14 +32,14 @@ export interface ArmyRules {
         conditions?: {
           // Any of these conditions must be met
           or?: Array<{
-            troopIds?: string[]      // Troop must be one of these IDs
-            keywords?: string[]      // Troop must have ALL these keywords
+            troopIds?: string[] // Troop must be one of these IDs
+            keywords?: string[] // Troop must have ALL these keywords
             bannedKeywords?: string[] // Troop must NOT have ANY of these keywords
           }>
           // All of these conditions must be met
           and?: Array<{
-            troopIds?: string[]      // Troop must be one of these IDs
-            keywords?: string[]      // Troop must have ALL these keywords
+            troopIds?: string[] // Troop must be one of these IDs
+            keywords?: string[] // Troop must have ALL these keywords
             bannedKeywords?: string[] // Troop must NOT have ANY of these keywords
           }>
         }
@@ -47,8 +48,8 @@ export interface ArmyRules {
 
     // Global equipment restrictions
     globalRestrictions: {
-      bannedEquipmentIds: string[]        // Specific equipment that's banned
-      bannedKeywords: string[]            // Equipment with these keywords is banned
+      bannedEquipmentIds: string[] // Specific equipment that's banned
+      bannedKeywords: string[] // Equipment with these keywords is banned
       bannedCategories: EquipmentCategory[] // Categories that are banned
     }
 
@@ -62,16 +63,17 @@ export interface ArmyRules {
       category: EquipmentCategory
       conditions?: {
         // Same structure as troopRestrictions conditions
-        or?: Array<{ troopIds?: string[], keywords?: string[], bannedKeywords?: string[] }>
-        and?: Array<{ troopIds?: string[], keywords?: string[], bannedKeywords?: string[] }>
+        or?: Array<{ troopIds?: string[]; keywords?: string[]; bannedKeywords?: string[] }>
+        and?: Array<{ troopIds?: string[]; keywords?: string[]; bannedKeywords?: string[] }>
       }
     }[]
 
     // Cross-faction equipment allowances
     externalEquipmentAllowances: {
       factionId: string
-      limit: number  // How many items can be taken from this faction
-      restrictions?: {  // Optional further restrictions
+      limit: number // How many items can be taken from this faction
+      restrictions?: {
+        // Optional further restrictions
         allowedTypes?: string[]
         allowedKeywords?: string[]
         bannedKeywords?: string[]
@@ -100,10 +102,13 @@ export interface ArmyRules {
     limits: Record<string, number>
 
     // Alternative costs for certain troops (e.g., paying ducats instead of glory points)
-    alternativeCosts?: Record<string, {
-      original: Cost
-      alternative: Cost
-    }>
+    alternativeCosts?: Record<
+      string,
+      {
+        original: Cost
+        alternative: Cost
+      }
+    >
 
     // Availability flags for troops (false means the troop is banned)
     availability: Record<string, boolean>
@@ -125,8 +130,8 @@ export interface ArmyRules {
       requirements: Array<{
         minCount?: number
         maxCount?: number
-        troopIds?: string[]      // Applies to these specific troops
-        keywords?: string[]      // OR applies to troops with these keywords
+        troopIds?: string[] // Applies to these specific troops
+        keywords?: string[] // OR applies to troops with these keywords
       }>
 
       // Global keyword-based restrictions
@@ -154,7 +159,7 @@ export interface ArmyRules {
 
   // Rules for hiring mercenaries
   mercenaries?: {
-    costs: { [troopId: string]: Cost }    // Costs to hire each mercenary
+    costs: { [troopId: string]: Cost } // Costs to hire each mercenary
     limits: { [troopId: string]: number } // Limits for each mercenary type
   }
 
@@ -169,4 +174,4 @@ export interface ArmyRules {
  * A simplified version of ArmyRules with just the essential properties for validation.
  * This can be used as a type for functions that only need basic rule information.
  */
-export type ArmyRulesValidation = Pick<ArmyRules, 'equipment' | 'troops' | 'specialValidations'>;
+export type ArmyRulesValidation = Pick<ArmyRules, 'equipment' | 'troops' | 'specialValidations'>

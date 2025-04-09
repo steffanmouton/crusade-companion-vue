@@ -1,7 +1,43 @@
-import { getFirestore, doc, getDoc } from 'firebase/firestore'
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore'
 import type { Faction } from '../models/faction'
 import type { WarbandVariant } from '../models/warbandVariant'
 import type { ArmyRules } from '../models/armyRules'
+import { getActiveRulebookVersion } from './rulebookVersionService'
+import { CURRENT_RULEBOOK_VERSION } from '../config/appConstants'
+
+/**
+ * Creates a document ID for army rules
+ * Format: version-armyrules-faction-variant (or version-armyrules-faction-base for base factions)
+ *
+ * Example: 1.6.3-armyrules-heretic-legion-knights-of-avarice
+ */
+export function createArmyRulesDocId(
+  factionId: string,
+  variantId?: string,
+  version: string = CURRENT_RULEBOOK_VERSION,
+): string {
+  // Remove prefixes from faction ID (e.g., tc-fc-heretic-legion → heretic-legion)
+  const cleanFactionId = factionId.replace(/^tc-fc-/, '')
+
+  // Handle variant ID if present
+  let variantPart = 'base'
+  if (variantId) {
+    // Remove prefixes from variant ID (e.g., tc-wb-knights-of-avarice → knights-of-avarice)
+    variantPart = variantId.replace(/^tc-wb-/, '')
+  }
+
+  // Create the document ID
+  return `${version}-armyrules-${cleanFactionId}-${variantPart}`
+}
 
 /**
  * Creates a deep clone of an object
@@ -32,13 +68,24 @@ function deepClone<T>(obj: T): T {
  * Gets pre-compiled ArmyRules from Firebase based on faction and optional warband variant
  * @param faction The base faction
  * @param variant Optional warband variant
+ * @param version Optional rulebook version ID (defaults to active version)
  * @returns A compiled ArmyRules object
  */
-export async function getArmyRules(faction: Faction, variant?: WarbandVariant): Promise<ArmyRules> {
+export async function getArmyRules(
+  faction: Faction,
+  variant?: WarbandVariant,
+  version?: string,
+): Promise<ArmyRules> {
   try {
     const db = getFirestore()
-    const docId = variant ? `${faction.id}-${variant.id}` : `${faction.id}-base`
 
+    // If no version is specified, use the active rulebook version
+    if (!version) {
+      const activeVersion = await getActiveRulebookVersion()
+      version = activeVersion?.id || CURRENT_RULEBOOK_VERSION // Fallback to current version if no active version
+    }
+
+    const docId = createArmyRulesDocId(faction.id, variant?.id, version)
     console.log(`Attempting to retrieve pre-compiled army rules for ${docId}`)
 
     const docRef = doc(db, 'armyRules', docId)
@@ -46,7 +93,9 @@ export async function getArmyRules(faction: Faction, variant?: WarbandVariant): 
 
     if (!docSnap.exists()) {
       console.warn(`No pre-compiled rules found for ${docId}, falling back to runtime compilation`)
-      return compileArmyRules(faction, variant)
+      const armyRules = compileArmyRules(faction, variant)
+      armyRules.rulebookVersion = version
+      return armyRules
     }
 
     console.log(`Successfully retrieved pre-compiled army rules for ${docId}`)
@@ -56,7 +105,9 @@ export async function getArmyRules(faction: Faction, variant?: WarbandVariant): 
       `Error retrieving army rules: ${error instanceof Error ? error.message : String(error)}`,
     )
     console.warn('Falling back to runtime compilation')
-    return compileArmyRules(faction, variant)
+    const armyRules = compileArmyRules(faction, variant)
+    armyRules.rulebookVersion = version || CURRENT_RULEBOOK_VERSION // Add the version
+    return armyRules
   }
 }
 
@@ -85,6 +136,7 @@ export function compileArmyRules(faction: Faction, variant?: WarbandVariant): Ar
     factionId: faction.id,
     factionName: faction.name,
     specialRules: [...faction.specialRules], // Clone the special rules array
+    rulebookVersion: CURRENT_RULEBOOK_VERSION, // Default version, will be overridden by caller if needed
 
     // Initialize equipment rules
     equipment: {
@@ -379,4 +431,100 @@ export function createArmyRules(
 
   // Compile the rules
   return compileArmyRules(faction, variant)
+}
+
+/**
+ * Saves a set of army rules
+ * @param factionId Faction ID
+ * @param warbandVariantId Optional warband variant ID
+ * @param rulebookVersion The rulebook version ID
+ * @param factions List of available factions
+ * @param variants List of available warband variants
+ */
+export async function saveArmyRules(
+  factionId: string,
+  warbandVariantId: string | undefined,
+  factions: Faction[],
+  variants: WarbandVariant[],
+  rulebookVersion: string = CURRENT_RULEBOOK_VERSION,
+): Promise<void> {
+  const armyRules = createArmyRules(factionId, warbandVariantId, factions, variants)
+
+  if (!armyRules) {
+    console.error('Failed to create army rules for saving')
+    return
+  }
+
+  // Set the rulebook version
+  armyRules.rulebookVersion = rulebookVersion
+
+  try {
+    const db = getFirestore()
+    const docId = createArmyRulesDocId(factionId, warbandVariantId, rulebookVersion)
+
+    await setDoc(doc(db, 'armyRules', docId), armyRules)
+    console.log(`Successfully saved army rules for ${docId}`)
+  } catch (error) {
+    console.error(
+      `Error saving army rules: ${error instanceof Error ? error.message : String(error)}`,
+    )
+    throw error
+  }
+}
+
+/**
+ * Backs up all current army rules with a specific rulebook version
+ * @param rulebookVersion The rulebook version ID to use for the backup
+ * @param factions List of available factions
+ * @param variants List of available warband variants
+ */
+export async function backupArmyRulesWithVersion(
+  rulebookVersion: string,
+  factions: Faction[],
+  variants: WarbandVariant[],
+): Promise<void> {
+  console.log(`Starting army rules backup for rulebook version ${rulebookVersion}`)
+
+  try {
+    for (const faction of factions) {
+      // Save base faction
+      await saveArmyRules(faction.id, undefined, factions, variants, rulebookVersion)
+
+      // Save all variants for this faction
+      const factionVariants = variants.filter((v) => v.factionId === faction.id)
+      for (const variant of factionVariants) {
+        await saveArmyRules(faction.id, variant.id, factions, variants, rulebookVersion)
+      }
+    }
+
+    console.log(`Successfully backed up all army rules with version ${rulebookVersion}`)
+  } catch (error) {
+    console.error(
+      `Error backing up army rules: ${error instanceof Error ? error.message : String(error)}`,
+    )
+    throw error
+  }
+}
+
+/**
+ * Gets all army rules for a specific rulebook version
+ * @param rulebookVersion The rulebook version ID
+ */
+export async function getArmyRulesForVersion(
+  rulebookVersion: string = CURRENT_RULEBOOK_VERSION,
+): Promise<ArmyRules[]> {
+  try {
+    const db = getFirestore()
+    const q = query(collection(db, 'armyRules'), where('rulebookVersion', '==', rulebookVersion))
+
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map((doc) => doc.data() as ArmyRules)
+  } catch (error) {
+    console.error(
+      `Error getting army rules for version ${rulebookVersion}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    )
+    throw error
+  }
 }

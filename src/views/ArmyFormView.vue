@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { useArmyStore } from '../stores/army'
 import { useWarbandVariantStore } from '../stores/warbandVariantStore'
 import { useFactionStore } from '../stores/factionStore'
+import RulebookVersionSelector from '../components/RulebookVersionSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,25 +41,34 @@ const submitButtonText = computed(() => (isEditMode.value ? 'Update Army' : 'Cre
 
 // Computed property for available warband variants
 const availableWarbandVariants = computed(() => {
-  const factionId = factionStore.factions.find(f => f.name === faction.value)?.id;
-  const variants = warbandVariantStore.warbandVariants.filter((variant) =>
-    variant.factionId === factionId
-  );
-  console.log(`Found ${variants.length} warband variants for faction ${faction.value} (ID: ${factionId})`);
-  return variants;
+  const factionId = factionStore.factions.find((f) => f.name === faction.value)?.id
+  const variants = warbandVariantStore.warbandVariants.filter(
+    (variant) => variant.factionId === factionId,
+  )
+  console.log(
+    `Found ${variants.length} warband variants for faction ${faction.value} (ID: ${factionId})`,
+  )
+  return variants
 })
 
 // Watch for faction changes and reset warband variant if needed
 watch(faction, (newFaction) => {
-  const factionId = factionStore.factions.find(f => f.name === newFaction)?.id;
-  const currentVariant = warbandVariantStore.warbandVariants.find(v => v.id === warbandVariantId.value);
+  const factionId = factionStore.factions.find((f) => f.name === newFaction)?.id
+  const currentVariant = warbandVariantStore.warbandVariants.find(
+    (v) => v.id === warbandVariantId.value,
+  )
 
   // If the selected variant doesn't belong to the new faction, reset it
   if (currentVariant && currentVariant.factionId !== factionId) {
-    console.log(`Resetting warband variant because faction changed from ${currentVariant.factionId} to ${factionId}`);
-    warbandVariantId.value = null;
+    console.log(
+      `Resetting warband variant because faction changed from ${currentVariant.factionId} to ${factionId}`,
+    )
+    warbandVariantId.value = null
   }
 })
+
+// Get the selected rulebook version
+const selectedRulebookVersion = computed(() => armyStore.selectedRulebookVersion)
 
 // Load warband variants and factions on mount
 onMounted(async () => {
@@ -72,7 +82,7 @@ onMounted(async () => {
     // Load warband variants
     await warbandVariantStore.fetchWarbandVariants()
 
-    console.log("Loaded warband variants:", warbandVariantStore.warbandVariants.length)
+    console.log('Loaded warband variants:', warbandVariantStore.warbandVariants.length)
 
     // Set default faction if none is set
     if (!faction.value && factionStore.playableFactions.length > 0) {
@@ -92,8 +102,11 @@ onMounted(async () => {
           description.value = army.description || ''
           warbandVariantId.value = army.warbandVariantId || null
 
-          console.log("Editing army with warband variant:", warbandVariantId.value)
-          console.log("Available warband variants:", availableWarbandVariants.value.map(v => ({ id: v.id, name: v.name })))
+          console.log('Editing army with warband variant:', warbandVariantId.value)
+          console.log(
+            'Available warband variants:',
+            availableWarbandVariants.value.map((v) => ({ id: v.id, name: v.name })),
+          )
         } else {
           errorMessage.value = 'Army not found'
           router.push('/dashboard')
@@ -324,6 +337,16 @@ const deleteArmy = async () => {
                 required
               ></v-select>
 
+              <!-- Rulebook Version -->
+              <div class="mb-4">
+                <h3 class="text-subtitle-1 font-weight-medium mb-2">Rulebook Version</h3>
+                <p class="text-body-2 mb-2">
+                  This army will use rules from version
+                  <strong>{{ selectedRulebookVersion }}</strong>
+                </p>
+                <RulebookVersionSelector />
+              </div>
+
               <!-- Warband Variant Field -->
               <v-select
                 v-if="availableWarbandVariants.length > 0"
@@ -346,7 +369,9 @@ const deleteArmy = async () => {
                 <template v-slot:item="{ props, item }">
                   <v-list-item v-bind="props" :title="undefined">
                     <v-list-item-title>{{ item.raw.name }}</v-list-item-title>
-                    <v-list-item-subtitle v-if="item.raw.id">{{ item.raw.description }}</v-list-item-subtitle>
+                    <v-list-item-subtitle v-if="item.raw.id">{{
+                      item.raw.description
+                    }}</v-list-item-subtitle>
                   </v-list-item>
                 </template>
               </v-select>

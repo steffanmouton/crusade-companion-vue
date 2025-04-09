@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
 import { useArmyStore } from './stores/army'
+import { initializeRulebookVersions } from './services/rulebookVersionService'
 
 // Import Vuetify
 import 'vuetify/styles'
@@ -58,6 +59,9 @@ app.use(vuetify)
 
 // Initialize the app
 const init = async () => {
+  // Initialize rulebook versions
+  await initializeRulebookVersions()
+
   // Initialize auth store
   const authStore = useAuthStore()
   await authStore.initialize()
@@ -65,11 +69,13 @@ const init = async () => {
   // Initialize data stores after auth is initialized
   // This ensures we have user information if needed
   if (authStore.isAuthenticated) {
-    // We no longer automatically initialize troops or equipment
-    // That should only happen via the admin panel
-
-    // Just load the user's armies
+    // Load the user's armies
     const armyStore = useArmyStore()
+
+    // Initialize the selected rulebook version
+    await armyStore.initializeSelectedVersion()
+
+    // Load armies
     await armyStore.loadArmies()
   }
 

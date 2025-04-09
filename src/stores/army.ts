@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import {
+  getFirestore,
   collection,
   doc,
   getDoc,
@@ -11,16 +12,17 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { auth } from '../services/firebase'
 import { useWarbandVariantStore } from './warbandVariantStore'
 import { useFactionStore } from './factionStore'
-import { compileArmyRules } from '../services/armyRulesService'
+import { compileArmyRules, createArmyRulesDocId } from '../services/armyRulesService'
 import type { ArmyRules } from '../models/armyRules'
 import type { WarbandVariant } from '../models/warbandVariant'
 import type { Army as FirebaseArmy } from '../types/firebase'
 import type { FactionTroopRules } from '../models/faction'
 import { EquipmentCategory } from '../models/equipment'
+import { CURRENT_RULEBOOK_VERSION } from '../config/appConstants'
+import { getActiveRulebookVersion } from '../services/rulebookVersionService'
 
 const COLLECTION_NAME = 'armies'
 
@@ -33,6 +35,31 @@ export const useArmyStore = defineStore('army', () => {
   const warbandVariantStore = useWarbandVariantStore()
   const factionStore = useFactionStore()
 
+  // Rulebook version selection
+  const selectedRulebookVersion = ref<string>(CURRENT_RULEBOOK_VERSION)
+
+  // Initialize the selected version to the current version
+  const initializeSelectedVersion = async () => {
+    try {
+      const activeVersion = await getActiveRulebookVersion()
+      if (activeVersion) {
+        selectedRulebookVersion.value = activeVersion.id
+      }
+    } catch (error) {
+      console.error('Error getting active rulebook version:', error)
+      // Default to current version
+      selectedRulebookVersion.value = CURRENT_RULEBOOK_VERSION
+    }
+  }
+
+  // Set the selected rulebook version
+  const setSelectedRulebookVersion = (version: string) => {
+    selectedRulebookVersion.value = version
+    // Reset current army and rules when version changes
+    currentArmy.value = null
+    currentArmyRules.value = null
+  }
+
   // Computed properties
   const hasArmies = computed(() => armies.value.length > 0)
   const totalArmies = computed(() => armies.value.length)
@@ -40,6 +67,29 @@ export const useArmyStore = defineStore('army', () => {
     if (!currentArmy.value?.warbandVariantId) return null
     return warbandVariantStore.warbandVariants.find(
       (variant) => variant.id === currentArmy.value?.warbandVariantId,
+    )
+  })
+
+  // Computed property to get armies that match the selected version
+  const versionMatchingArmies = computed(() => {
+    return armies.value.filter(
+      (army) =>
+        army.rulebookVersion === selectedRulebookVersion.value ||
+        // If no version is specified, assume it's the current version
+        (!army.rulebookVersion && selectedRulebookVersion.value === CURRENT_RULEBOOK_VERSION),
+    )
+  })
+
+  // Computed property to check if any armies don't match the version
+  const hasArmiesWithVersionMismatch = computed(() => {
+    return armies.value.some(
+      (army) =>
+        army.rulebookVersion !== selectedRulebookVersion.value &&
+        // If no version, only count as mismatch if not current version
+        !(
+          army.rulebookVersion === undefined &&
+          selectedRulebookVersion.value === CURRENT_RULEBOOK_VERSION
+        ),
     )
   })
 
@@ -52,7 +102,7 @@ export const useArmyStore = defineStore('army', () => {
       const querySnapshot = await getDocs(
         query(
           collection(getFirestore(), COLLECTION_NAME),
-          where('userId', '==', getAuth().currentUser?.uid),
+          where('userId', '==', auth.currentUser?.uid),
         ),
       )
       armies.value = querySnapshot.docs.map((doc) => ({
@@ -112,15 +162,21 @@ export const useArmyStore = defineStore('army', () => {
     error.value = null
 
     try {
+      // Add rulebook version to the army data
+      const armyWithVersion = {
+        ...armyData,
+        rulebookVersion: selectedRulebookVersion.value,
+      }
+
       // Create army with default values
       const newArmy: Omit<FirebaseArmy, 'id'> = {
-        ...armyData,
-        currentPoints: armyData.currentPoints ?? 0,
+        ...armyWithVersion,
+        currentPoints: armyWithVersion.currentPoints ?? 0,
         battles: 0,
         wins: 0,
         losses: 0,
-        userId: getAuth().currentUser?.uid || '',
-        warbandVariantId: armyData.warbandVariantId ?? null,
+        userId: auth.currentUser?.uid || '',
+        warbandVariantId: armyWithVersion.warbandVariantId ?? null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       }
@@ -411,10 +467,14 @@ export const useArmyStore = defineStore('army', () => {
       }
     }
 
+    // When loading army rules, use the selected version if the army doesn't have a version
+    // or use the army's version if it has one
+    const versionToUse = currentArmy.value?.rulebookVersion || selectedRulebookVersion.value
+
     // Get the army rules from Firebase
     try {
       // First try to get from Firebase armyRules collection
-      const docId = variant ? `${faction.id}-${variant.id}` : `${faction.id}-base`
+      const docId = createArmyRulesDocId(faction.id, variant?.id, versionToUse)
       console.log(`Looking for army rules with document ID: ${docId}`)
       console.log(`Searching in collection 'armyRules'`)
 
@@ -430,24 +490,28 @@ export const useArmyStore = defineStore('army', () => {
         // Fall back to compilation if Firebase retrieval fails
         console.log(`No pre-compiled rules found for ${docId}, falling back to runtime compilation`)
 
-        // Try a different document ID format in case that's the issue
-        const alternateDocId = `${faction.id}-${variant?.id || 'base'}`
-        if (docId !== alternateDocId) {
-          console.log(`Trying alternate document ID: ${alternateDocId}`)
-          const altDocRef = doc(db, 'armyRules', alternateDocId)
+        // Try looking for a legacy format ID (for backward compatibility)
+        const legacyDocId = variant ? `${faction.id}-${variant.id}` : `${faction.id}-base`
+        if (docId !== legacyDocId) {
+          console.log(`Trying legacy document ID format: ${legacyDocId}`)
+          const altDocRef = doc(db, 'armyRules', legacyDocId)
           const altDocSnap = await getDoc(altDocRef)
 
           if (altDocSnap.exists()) {
             currentArmyRules.value = altDocSnap.data() as ArmyRules
             console.log(
-              'Retrieved pre-compiled ArmyRules from Firebase with alternate ID:',
-              alternateDocId,
+              'Retrieved pre-compiled ArmyRules from Firebase with legacy ID:',
+              legacyDocId,
             )
             return
           }
         }
 
         currentArmyRules.value = compileArmyRules(faction, variant)
+        // Set the rulebook version
+        if (currentArmyRules.value) {
+          currentArmyRules.value.rulebookVersion = versionToUse
+        }
       }
 
       console.log('Final ArmyRules:', currentArmyRules.value)
@@ -468,11 +532,16 @@ export const useArmyStore = defineStore('army', () => {
     hasArmies,
     totalArmies,
     currentWarbandVariant,
+    selectedRulebookVersion,
+    versionMatchingArmies,
+    hasArmiesWithVersionMismatch,
     loadArmies,
     loadArmy,
     createArmy,
     updateArmy,
     deleteArmy,
     generateArmyRules,
+    initializeSelectedVersion,
+    setSelectedRulebookVersion,
   }
 })
