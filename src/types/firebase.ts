@@ -22,6 +22,7 @@ export interface Army {
   losses: number
   description?: string
   warbandVariantId?: string | null
+  rulebookVersion?: string
   createdAt: number
   updatedAt: number
 }
@@ -86,17 +87,17 @@ export interface WarbandVariant {
   description: string
   rules: string[]
   equipmentRestrictions?: {
-    bannedKeywords?: string[];
-    bannedCategories?: string[];
-    bannedEquipmentIds?: string[];
+    bannedKeywords?: string[]
+    bannedCategories?: string[]
+    bannedEquipmentIds?: string[]
   }
   equipmentOverrides?: {
-    costOverrides?: Record<string, any>;
-    limitOverrides?: Record<string, number>;
+    costOverrides?: Record<string, any>
+    limitOverrides?: Record<string, number>
   }
   troopOverrides?: {
-    costOverrides?: Record<string, any>;
-    availabilityOverrides?: Record<string, boolean>;
+    costOverrides?: Record<string, any>
+    availabilityOverrides?: Record<string, boolean>
   }
   createdAt: number
   updatedAt: number

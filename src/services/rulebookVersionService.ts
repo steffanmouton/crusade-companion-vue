@@ -134,7 +134,7 @@ export async function initializeRulebookVersions(): Promise<void> {
       const id = CURRENT_RULEBOOK_VERSION
       await setDoc(doc(db, COLLECTION, id), {
         id,
-        displayName: `Crusade Companion ${CURRENT_RULEBOOK_VERSION}`,
+        displayName: `Trench Crusade v${CURRENT_RULEBOOK_VERSION}`,
         releaseDate: Date.now(),
         isActive: true,
         ...getTimestamp(),

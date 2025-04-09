@@ -2,6 +2,7 @@ import type { Faction } from './faction'
 import type { Unit } from './unit'
 import type { ArmyRules } from './armyRules'
 import type { WarbandVariant } from './warbandVariant'
+import { CURRENT_RULEBOOK_VERSION } from '../config/appConstants'
 
 export interface Army {
   id: string
@@ -12,6 +13,7 @@ export interface Army {
   currency: number // for Trench Crusade, this is Glory Points
   units: Unit[]
   warbandVariantId?: string // Reference to warband variant instead of embedding
+  rulebookVersion?: string // Version of the rulebook these rules are based on
 
   // Cached compiled rules for this army
   compiledRules?: ArmyRules
@@ -32,7 +34,9 @@ export function getArmyRules(army: Army, variants: WarbandVariant[]): ArmyRules 
   // Find the variant if specified
   let variant: WarbandVariant | undefined
   if (army.warbandVariantId) {
-    variant = variants.find(v => v.id === army.warbandVariantId && v.factionId === army.faction.id)
+    variant = variants.find(
+      (v) => v.id === army.warbandVariantId && v.factionId === army.faction.id,
+    )
   }
 
   // Compile the rules using the armyRulesService function
@@ -45,6 +49,7 @@ export function getArmyRules(army: Army, variants: WarbandVariant[]): ArmyRules 
     warbandVariantId: variant?.id,
     warbandVariantName: variant?.name,
     warbandVariantRules: variant?.specialRules,
+    rulebookVersion: army.rulebookVersion || CURRENT_RULEBOOK_VERSION,
 
     // These need to be filled in by the armyRulesService
     equipment: {
@@ -54,9 +59,9 @@ export function getArmyRules(army: Army, variants: WarbandVariant[]): ArmyRules 
       globalRestrictions: {
         bannedEquipmentIds: [],
         bannedKeywords: [],
-        bannedCategories: []
+        bannedCategories: [],
       },
-      externalEquipmentAllowances: []
+      externalEquipmentAllowances: [],
     },
     troops: {
       costs: {},
@@ -64,8 +69,8 @@ export function getArmyRules(army: Army, variants: WarbandVariant[]): ArmyRules 
       availability: {},
       restrictions: {
         requirements: [],
-        maxKeywordCounts: {}
-      }
-    }
+        maxKeywordCounts: {},
+      },
+    },
   }
 }
