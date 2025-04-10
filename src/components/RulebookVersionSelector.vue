@@ -3,11 +3,12 @@
     <v-select
       v-model="selectedVersion"
       :items="availableVersions"
-      label="Rulebook Version"
+      label="Select Version"
       item-title="displayName"
       item-value="id"
       variant="outlined"
       density="compact"
+      hide-details
       :loading="loading"
       @update:model-value="onVersionChange"
     ></v-select>
@@ -21,8 +22,8 @@
       icon="mdi-alert-circle"
       density="compact"
     >
-      Some of your armies are using different rulebook versions. Only armies matching the selected
-      version will be displayed.
+      Some armies use different versions. Only armies matching the selected version will be
+      displayed.
     </v-alert>
   </div>
 </template>

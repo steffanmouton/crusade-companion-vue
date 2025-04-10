@@ -164,8 +164,11 @@ function getWarbandVariantName(army: any) {
                   </v-btn>
                 </div>
 
-                <!-- Rulebook Version Selector -->
-                <RulebookVersionSelector class="mb-4" />
+                <!-- Rulebook Version Selector with better layout -->
+                <div class="d-flex align-center mb-4">
+                  <div class="mr-4 text-subtitle-2">Game Version:</div>
+                  <RulebookVersionSelector />
+                </div>
 
                 <hr class="tc-divider" />
 

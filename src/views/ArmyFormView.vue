@@ -311,7 +311,18 @@ const deleteArmy = async () => {
 
             <!-- Army Form -->
             <v-form @submit.prevent="handleSubmit">
-              <!-- Name Field -->
+              <!-- Rulebook Version Selector (Moved to top) -->
+              <div class="mb-4">
+                <div class="d-flex align-center mb-2">
+                  <h3 class="text-subtitle-1 font-weight-medium mb-0">Rulebook Version</h3>
+                  <v-chip class="ml-4" size="small" color="primary" variant="flat">{{
+                    selectedRulebookVersion
+                  }}</v-chip>
+                </div>
+                <RulebookVersionSelector />
+              </div>
+
+              <!-- Basic Information -->
               <h3 class="text-subtitle-1 font-weight-medium mb-2">Basic Information</h3>
               <v-text-field
                 v-model="name"
@@ -336,16 +347,6 @@ const deleteArmy = async () => {
                 bg-color="background"
                 required
               ></v-select>
-
-              <!-- Rulebook Version -->
-              <div class="mb-4">
-                <h3 class="text-subtitle-1 font-weight-medium mb-2">Rulebook Version</h3>
-                <p class="text-body-2 mb-2">
-                  This army will use rules from version
-                  <strong>{{ selectedRulebookVersion }}</strong>
-                </p>
-                <RulebookVersionSelector />
-              </div>
 
               <!-- Warband Variant Field -->
               <v-select

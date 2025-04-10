@@ -345,10 +345,13 @@ const warbandSpecialEquipment = computed(() => {
                 <p v-if="warbandVariant" class="text-subtitle-2 mb-1 text-primary">
                   Variant: {{ warbandVariant.name }}
                 </p>
-                <p class="text-body-2 text-medium-emphasis">
+                <div class="text-body-2">
+                  <div class="text-caption text-medium-emphasis mb-1" v-if="army.rulebookVersion">
+                    Trench Crusade v{{ army.rulebookVersion }}
+                  </div>
                   <v-icon icon="mdi-target" size="small" class="mr-1"></v-icon>
                   Current Points: {{ army.currentPoints }}
-                </p>
+                </div>
               </div>
             </div>
 
@@ -579,6 +582,9 @@ const warbandSpecialEquipment = computed(() => {
     <v-footer app class="tc-footer text-center d-flex justify-center">
       <span class="text-caption">
         &copy; {{ new Date().getFullYear() }} Crusade Companion | RocketSheep LLC
+        <template v-if="army && army.rulebookVersion">
+          | <span class="text-info">Trench Crusade v{{ army.rulebookVersion }}</span>
+        </template>
       </span>
     </v-footer>
 
