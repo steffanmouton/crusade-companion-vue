@@ -59,12 +59,12 @@ app.use(vuetify)
 
 // Initialize the app
 const init = async () => {
-  // Initialize rulebook versions
-  await initializeRulebookVersions()
-
   // Initialize auth store
   const authStore = useAuthStore()
   await authStore.initialize()
+
+  // Initialize rulebook versions after auth is initialized
+  await initializeRulebookVersions()
 
   // Initialize data stores after auth is initialized
   // This ensures we have user information if needed

@@ -17,30 +17,58 @@ const COLLECTION = 'rulebookVersions'
 
 /**
  * Gets all rulebook versions, ordered by release date (newest first by default)
+ * Will return a default version if there's an error (like permissions)
  */
 export async function getRulebookVersions(
   newestFirst = true,
   limitCount?: number,
 ): Promise<RulebookVersion[]> {
-  const constraints: QueryConstraint[] = [orderBy('releaseDate', newestFirst ? 'desc' : 'asc')]
+  try {
+    const constraints: QueryConstraint[] = [orderBy('releaseDate', newestFirst ? 'desc' : 'asc')]
 
-  if (limitCount) {
-    constraints.push(firestoreLimit(limitCount))
+    if (limitCount) {
+      constraints.push(firestoreLimit(limitCount))
+    }
+
+    return await getDocuments<RulebookVersion>(COLLECTION, constraints)
+  } catch (error) {
+    console.warn('Error fetching rulebook versions, using fallback:', error)
+    // Return a default version to avoid breaking the app
+    return [
+      {
+        id: CURRENT_RULEBOOK_VERSION,
+        displayName: `Trench Crusade v${CURRENT_RULEBOOK_VERSION}`,
+        releaseDate: Date.now(),
+        isActive: true,
+        notes: 'Default fallback version',
+      },
+    ]
   }
-
-  return getDocuments<RulebookVersion>(COLLECTION, constraints)
 }
 
 /**
  * Gets the currently active rulebook version
+ * Will return the default version if there's an error
  */
 export async function getActiveRulebookVersion(): Promise<RulebookVersion | null> {
-  const versions = await getDocuments<RulebookVersion>(COLLECTION, [
-    where('isActive', '==', true),
-    firestoreLimit(1),
-  ])
+  try {
+    const versions = await getDocuments<RulebookVersion>(COLLECTION, [
+      where('isActive', '==', true),
+      firestoreLimit(1),
+    ])
 
-  return versions.length > 0 ? versions[0] : null
+    return versions.length > 0 ? versions[0] : null
+  } catch (error) {
+    console.warn('Error getting active rulebook version, using default:', error)
+    // Return default version
+    return {
+      id: CURRENT_RULEBOOK_VERSION,
+      displayName: `Trench Crusade v${CURRENT_RULEBOOK_VERSION}`,
+      releaseDate: Date.now(),
+      isActive: true,
+      notes: 'Default fallback version',
+    }
+  }
 }
 
 /**
@@ -124,13 +152,30 @@ export async function setActiveVersion(id: string): Promise<void> {
 
 /**
  * Creates an initial rulebook version if none exists yet
+ * Gracefully handles permission errors by using a client-side fallback
  */
 export async function initializeRulebookVersions(): Promise<void> {
   try {
-    const versions = await getRulebookVersions()
+    // First check if the current version document exists directly
+    // This avoids a potentially expensive query if we just need the current version
+    try {
+      const docRef = doc(db, COLLECTION, CURRENT_RULEBOOK_VERSION)
+      const docSnap = await getDoc(docRef)
 
-    if (versions.length === 0) {
-      // No versions exist yet, create the initial version
+      if (docSnap.exists()) {
+        console.log(`Rulebook version ${CURRENT_RULEBOOK_VERSION} already exists`)
+        return // Version exists, nothing to do
+      }
+    } catch (error) {
+      console.warn(
+        `Error checking for version ${CURRENT_RULEBOOK_VERSION}, assuming it doesn't exist:`,
+        error,
+      )
+      // Continue to try creating the version
+    }
+
+    // Try to create the version
+    try {
       const id = CURRENT_RULEBOOK_VERSION
       await setDoc(doc(db, COLLECTION, id), {
         id,
@@ -140,9 +185,12 @@ export async function initializeRulebookVersions(): Promise<void> {
         ...getTimestamp(),
       })
       console.log(`Initialized rulebook version ${CURRENT_RULEBOOK_VERSION}`)
+    } catch (error) {
+      console.warn('Error creating rulebook version - likely permissions issue:', error)
+      // Just continue with the default version in memory
     }
   } catch (error) {
-    console.error('Error initializing rulebook versions:', error)
-    throw error
+    console.warn('Error initializing rulebook versions, using default version:', error)
+    // Don't throw the error, just continue with default values
   }
 }

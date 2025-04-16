@@ -67,7 +67,7 @@ export interface FactionEquipmentRules {
 
 export interface FactionTroopRules {
   // Base costs for troops in this faction
-  costs: Record<string, Cost>
+  costs?: Record<string, Cost>
 
   // Limits on how many of each troop can be included
   limits?: Record<string, number>
