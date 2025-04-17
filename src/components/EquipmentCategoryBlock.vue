@@ -6,10 +6,7 @@
     </div>
     <div class="equipment-list">
       <!-- Equipment loading state -->
-      <v-card
-        v-if="isLoading"
-        class="equipment-slot equipment-slot-loading mb-2"
-      >
+      <v-card v-if="isLoading" class="equipment-slot equipment-slot-loading mb-2">
         <v-card-text class="d-flex align-center justify-center pa-4">
           <v-progress-circular
             indeterminate
@@ -32,41 +29,70 @@
           'has-warning': hasWarning(item),
           'has-error': hasError(item),
           'non-removable': isDefaultEquipment(item) && !isDefaultEquipmentRemovable,
-          'equipment-locked': isEquipmentLocked
+          'equipment-locked': isEquipmentLocked,
         }"
-        @click="!isEquipmentLocked && (!isDefaultEquipment(item) || isDefaultEquipmentRemovable) ? emit('edit', item) : null"
+        @click="
+          !isEquipmentLocked && (!isDefaultEquipment(item) || isDefaultEquipmentRemovable)
+            ? emit('edit', item)
+            : null
+        "
       >
         <v-card-text class="d-flex align-center justify-space-between pa-4">
           <div>
             <div class="text-subtitle-2">{{ item.name }}</div>
             <div class="d-flex align-center">
               <div class="text-caption text-medium-emphasis mr-2">
-                {{ formatEquipmentCost(item) }}
+                <span v-if="isDefaultEquipment(item)" class="original-cost">{{
+                  formatEquipmentCost(item)
+                }}</span>
+                <span v-if="isDefaultEquipment(item)" class="free-label">FREE</span>
+                <span v-else>{{ formatEquipmentCost(item) }}</span>
               </div>
               <v-chip
-                v-if="item.handedness && item.handedness !== HandednessType.NO_HANDS &&
-                      (item.category === EquipmentCategory.SHIELD && !hasShieldComboEquipped)"
+                v-if="
+                  item.handedness &&
+                  item.handedness !== HandednessType.NO_HANDS &&
+                  item.category === EquipmentCategory.SHIELD &&
+                  !hasShieldComboEquipped
+                "
                 size="x-small"
                 color="info"
-                :class="['mr-1', item.handedness === HandednessType.ONE_HAND_REQUIRED ? 'font-weight-bold' : '']"
+                :class="[
+                  'mr-1',
+                  item.handedness === HandednessType.ONE_HAND_REQUIRED ? 'font-weight-bold' : '',
+                ]"
               >
                 {{ formatHandedness(item.handedness) }}
               </v-chip>
               <v-chip
-                v-else-if="item.handedness && item.handedness !== HandednessType.NO_HANDS &&
-                          item.name.toLowerCase().includes('bayonet') && !hasBayonetLugEquipped"
+                v-else-if="
+                  item.handedness &&
+                  item.handedness !== HandednessType.NO_HANDS &&
+                  item.name.toLowerCase().includes('bayonet') &&
+                  !hasBayonetLugEquipped
+                "
                 size="x-small"
                 color="info"
-                :class="['mr-1', item.handedness === HandednessType.ONE_HANDED ? 'font-weight-bold' : '']"
+                :class="[
+                  'mr-1',
+                  item.handedness === HandednessType.ONE_HANDED ? 'font-weight-bold' : '',
+                ]"
               >
                 {{ formatHandedness(item.handedness) }}
               </v-chip>
               <v-chip
-                v-else-if="item.handedness && item.handedness !== HandednessType.NO_HANDS &&
-                          (item.category === EquipmentCategory.MELEE_WEAPON || item.category === EquipmentCategory.RANGED_WEAPON)"
+                v-else-if="
+                  item.handedness &&
+                  item.handedness !== HandednessType.NO_HANDS &&
+                  (item.category === EquipmentCategory.MELEE_WEAPON ||
+                    item.category === EquipmentCategory.RANGED_WEAPON)
+                "
                 size="x-small"
                 color="info"
-                :class="['mr-1', item.handedness === HandednessType.TWO_HANDED ? 'font-weight-bold' : '']"
+                :class="[
+                  'mr-1',
+                  item.handedness === HandednessType.TWO_HANDED ? 'font-weight-bold' : '',
+                ]"
               >
                 {{ formatHandedness(item.handedness) }}
               </v-chip>
@@ -78,7 +104,11 @@
               >
                 {{ formatHandedness(item.handedness) }}
               </v-chip>
-              <v-tooltip v-if="isDefaultEquipment(item) && !isDefaultEquipmentRemovable" text="This item cannot be removed or modified" location="top">
+              <v-tooltip
+                v-if="isDefaultEquipment(item) && !isDefaultEquipmentRemovable"
+                text="This item cannot be removed or modified"
+                location="top"
+              >
                 <template v-slot:activator="{ props }">
                   <v-icon v-bind="props" size="small" color="grey" class="ml-1">mdi-lock</v-icon>
                 </template>
@@ -89,7 +119,11 @@
             <!-- delete button with tooltip -->
             <v-tooltip
               v-if="isEquipmentLocked || (isDefaultEquipment(item) && !isDefaultEquipmentRemovable)"
-              :text="isEquipmentLocked ? 'This troop\'s equipment cannot be modified' : 'This item cannot be removed or modified'"
+              :text="
+                isEquipmentLocked
+                  ? 'This troop\'s equipment cannot be modified'
+                  : 'This item cannot be removed or modified'
+              "
               location="top"
             >
               <template v-slot:activator="{ props: tooltipProps }">
@@ -120,11 +154,7 @@
           </div>
         </v-card-text>
       </v-card>
-      <v-card
-        v-if="!isEquipmentLocked"
-        class="equipment-slot"
-        @click="emit('add')"
-      >
+      <v-card v-if="!isEquipmentLocked" class="equipment-slot" @click="emit('add')">
         <v-card-text class="text-center pa-4">
           <v-icon size="large" color="grey-lighten-1">mdi-plus</v-icon>
         </v-card-text>
@@ -159,13 +189,13 @@ const emit = defineEmits<{
 
 // Computed property to check if any item has shield combo
 const hasShieldComboEquipped = computed(() => {
-  return props.equipment.some(e => e.equipmentIndicator?.shieldCombo === true);
-});
+  return props.equipment.some((e) => e.equipmentIndicator?.shieldCombo === true)
+})
 
 // Computed property to check if any item has bayonet lug
 const hasBayonetLugEquipped = computed(() => {
-  return props.equipment.some(e => e.equipmentIndicator?.hasBayonetLug === true);
-});
+  return props.equipment.some((e) => e.equipmentIndicator?.hasBayonetLug === true)
+})
 
 function isDefaultEquipment(item: Equipment): boolean {
   if (!props.defaultEquipment) return false
@@ -174,15 +204,15 @@ function isDefaultEquipment(item: Equipment): boolean {
 
 function hasWarning(item: Equipment): boolean {
   if (!props.validationResult) return false
-  return props.validationResult.warnings.some(w =>
-    w.details?.includes(item.name) || w.message.includes(item.name)
+  return props.validationResult.warnings.some(
+    (w) => w.details?.includes(item.name) || w.message.includes(item.name),
   )
 }
 
 function hasError(item: Equipment): boolean {
   if (!props.validationResult) return false
-  return props.validationResult.errors.some(e =>
-    e.details?.includes(item.name) || e.message.includes(item.name)
+  return props.validationResult.errors.some(
+    (e) => e.details?.includes(item.name) || e.message.includes(item.name),
   )
 }
 
@@ -244,5 +274,17 @@ function formatHandedness(handedness: HandednessType): string {
 .equipment-slot-loading {
   background-color: rgba(0, 0, 0, 0.02);
   border: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.original-cost {
+  text-decoration: line-through;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.8em;
+  margin-right: 4px;
+}
+
+.free-label {
+  color: #2e7d32;
+  font-weight: 500;
 }
 </style>

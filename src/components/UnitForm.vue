@@ -500,12 +500,8 @@ const equipmentCost = computed(() => {
 
   return unitData.currentEquipment.reduce(
     (total, equipment) => {
-      // Skip cost calculation for default equipment items by name
-      if (
-        props.troop.defaultEquipment?.some(
-          (name) => name.toLowerCase() === equipment.name.toLowerCase(),
-        )
-      ) {
+      // Skip cost calculation for default equipment items by ID
+      if (props.troop.defaultEquipment?.some((equipmentId) => equipmentId === equipment.id)) {
         return total
       }
 

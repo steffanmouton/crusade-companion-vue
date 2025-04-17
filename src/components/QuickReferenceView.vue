@@ -61,7 +61,12 @@
         <div class="unit-equipment">
           <h4 class="section-title">Equipment</h4>
           <ul class="equipment-list">
-            <li v-for="(item, index) in getSortedEquipment(unit.currentEquipment)" :key="index" class="equipment-item" @click="showEquipmentDetail(item)">
+            <li
+              v-for="(item, index) in getSortedEquipment(unit.currentEquipment)"
+              :key="index"
+              class="equipment-item"
+              @click="showEquipmentDetail(item)"
+            >
               <div class="equipment-name">
                 <v-icon size="small" class="mr-1">{{ getEquipmentIcon(item.type) }}</v-icon>
                 {{ item.name }}
@@ -69,7 +74,7 @@
                 <v-chip
                   v-if="
                     getTroop(unit.troopId)?.defaultEquipment?.some(
-                      (name) => name.toLowerCase() === item.name.toLowerCase(),
+                      (equipmentId) => equipmentId === item.id,
                     )
                   "
                   size="x-small"
@@ -82,7 +87,10 @@
               </div>
 
               <!-- Display handedness, range for weapons -->
-              <div v-if="item.type === 'Melee Weapon' || item.type === 'Ranged Weapon'" class="equipment-details">
+              <div
+                v-if="item.type === 'Melee Weapon' || item.type === 'Ranged Weapon'"
+                class="equipment-details"
+              >
                 <div class="d-flex flex-wrap align-center gap-1 mt-1">
                   <!-- Handedness -->
                   <v-chip
@@ -624,7 +632,7 @@ function closeEquipmentDetailDialog() {
 
 // Format handedness for display
 function formatHandedness(handedness: HandednessType | undefined): string {
-  if (!handedness) return '';
+  if (!handedness) return ''
 
   switch (handedness) {
     case HandednessType.ONE_HANDED:
@@ -643,7 +651,7 @@ function formatHandedness(handedness: HandednessType | undefined): string {
 // Add getSortedEquipment function to the script section to sort equipment in the same order as UnitForm
 function getSortedEquipment(equipment: Equipment[]) {
   // Create a copy of the equipment array to avoid modifying the original
-  const equipmentCopy = [...equipment];
+  const equipmentCopy = [...equipment]
 
   return equipmentCopy.sort((a, b) => {
     // Define category priorities (lower number = higher priority)
@@ -656,16 +664,16 @@ function getSortedEquipment(equipment: Equipment[]) {
       [EquipmentCategory.EQUIPMENT]: 4,
       [EquipmentCategory.GRENADE]: 4,
       [EquipmentCategory.MUSICAL_INSTRUMENT]: 4,
-      [EquipmentCategory.STANDARD]: 4
-    };
+      [EquipmentCategory.STANDARD]: 4,
+    }
 
     // Get priorities or default to lowest priority (5)
-    const priorityA = categoryPriority[a.category] || 5;
-    const priorityB = categoryPriority[b.category] || 5;
+    const priorityA = categoryPriority[a.category] || 5
+    const priorityB = categoryPriority[b.category] || 5
 
     // Sort by priority (ascending)
-    return priorityA - priorityB;
-  });
+    return priorityA - priorityB
+  })
 }
 </script>
 

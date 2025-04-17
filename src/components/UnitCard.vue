@@ -34,7 +34,7 @@
             <img
               v-if="unitImageUrl"
               :src="getValidImageUrl(unitImageUrl)"
-              style="width: 100%; height: 100%; object-fit: contain;"
+              style="width: 100%; height: 100%; object-fit: contain"
               :alt="unit.name + ' (custom image)'"
               onerror="this.style.display='none'"
             />
@@ -143,11 +143,7 @@
                     <v-spacer></v-spacer>
                     <!-- Show DEFAULT badge for default equipment -->
                     <v-chip
-                      v-if="
-                        troop?.defaultEquipment?.some(
-                          (name) => `tc-eq-${name.toLowerCase().replace(/\s+/g, '-')}` === item.id
-                        )
-                      "
+                      v-if="troop?.defaultEquipment?.some((equipmentId) => equipmentId === item.id)"
                       size="x-small"
                       color="success"
                       label
@@ -188,7 +184,10 @@
                   </div>
 
                   <!-- Modifiers -->
-                  <div v-if="item.modifiers && item.modifiers.length > 0" class="text-caption font-italic">
+                  <div
+                    v-if="item.modifiers && item.modifiers.length > 0"
+                    class="text-caption font-italic"
+                  >
                     {{ item.modifiers.join(', ') }}
                   </div>
                 </v-list-item-subtitle>
@@ -227,8 +226,12 @@
             <template v-if="troop?.abilities && troop.abilities.length > 0">
               <h3 class="text-subtitle-2 font-weight-medium mt-3 mb-1">Abilities</h3>
               <div class="abilities-container">
-                <div v-for="(ability, index) in troop.abilities" :key="index"
-                  class="ability-item clickable-item" @click="showAbilityDetail(ability)">
+                <div
+                  v-for="(ability, index) in troop.abilities"
+                  :key="index"
+                  class="ability-item clickable-item"
+                  @click="showAbilityDetail(ability)"
+                >
                   <div class="ability-header">
                     <v-icon size="small" class="mr-2">mdi-star</v-icon>
                     <span class="text-body-2 font-weight-medium" v-if="ability.includes(':')">
@@ -290,7 +293,12 @@
           {{ selectedAbility.split(':')[0] }}
         </span>
         <span v-else>{{ selectedAbility }}</span>
-        <v-btn icon="mdi-close" variant="text" color="white" @click="closeAbilityDetailDialog"></v-btn>
+        <v-btn
+          icon="mdi-close"
+          variant="text"
+          color="white"
+          @click="closeAbilityDetailDialog"
+        ></v-btn>
       </v-card-title>
       <v-card-text class="pa-4">
         <div v-if="selectedAbility && selectedAbility.includes(':')">
@@ -376,9 +384,9 @@ const troopName = computed(() => {
 // Create a computed property for the image URL to ensure we always get the latest value
 const unitImageUrl = computed(() => {
   if (props.unit && props.unit.imageUrl) {
-    return props.unit.imageUrl;
+    return props.unit.imageUrl
   }
-  return null;
+  return null
 })
 
 // Get the image for mobile view (will also be fallback for desktop if side image fails)
@@ -386,15 +394,15 @@ const unitImage = computed(() => {
   // First check if the unit has a custom image
   if (unitImageUrl.value) {
     // Always ensure Firebase Storage URLs have alt=media parameter
-    const validatedUrl = getValidImageUrl(unitImageUrl.value);
-    return validatedUrl;
+    const validatedUrl = getValidImageUrl(unitImageUrl.value)
+    return validatedUrl
   }
 
   // Fall back to troop image
   if (troop.value?.cardHeaderImageURI) {
     // Remove any leading slash and ensure we're using the correct path
     const path = troop.value.cardHeaderImageURI.replace(/^\/+/, '')
-    return getValidImageUrl(path);
+    return getValidImageUrl(path)
   }
 
   // Default placeholder image
@@ -406,14 +414,14 @@ const unitSideImage = computed(() => {
   // First check if the unit has a custom image
   if (unitImageUrl.value) {
     // Always ensure Firebase Storage URLs have alt=media parameter
-    const validatedUrl = getValidImageUrl(unitImageUrl.value);
-    return validatedUrl;
+    const validatedUrl = getValidImageUrl(unitImageUrl.value)
+    return validatedUrl
   }
 
   if (troop.value?.cardHeroSideImageURI) {
     // Remove any leading slash and ensure we're using the correct path
     const path = troop.value.cardHeroSideImageURI.replace(/^\/+/, '')
-    return getValidImageUrl(path);
+    return getValidImageUrl(path)
   } else if (troop.value?.cardHeaderImageURI) {
     // Fall back to header image if no side image
     return unitImage.value
@@ -440,7 +448,7 @@ function getEquipmentIcon(type: string): string {
 
 // Format handedness for display
 function formatHandedness(handedness: HandednessType | undefined): string {
-  if (!handedness) return '';
+  if (!handedness) return ''
 
   switch (handedness) {
     case HandednessType.ONE_HANDED:
@@ -537,7 +545,7 @@ function handleImageError(value: string | undefined) {
       id: props.unit.id,
       name: props.unit.name,
       hasImageUrl: !!props.unit.imageUrl,
-      imageUrl: props.unit.imageUrl
+      imageUrl: props.unit.imageUrl,
     })
 
     // Try to load the placeholder image
@@ -552,7 +560,7 @@ function handleImageError(value: string | undefined) {
 // Sort equipment in the same order as UnitForm: Melee Weapons, Ranged Weapons, Armor/Shield/Headgear, Other
 const sortedEquipment = computed(() => {
   // Create a copy of the equipment array to avoid modifying the original
-  const equipment = [...props.unit.currentEquipment];
+  const equipment = [...props.unit.currentEquipment]
 
   return equipment.sort((a, b) => {
     // Define category priorities (lower number = higher priority)
@@ -565,17 +573,17 @@ const sortedEquipment = computed(() => {
       [EquipmentCategory.EQUIPMENT]: 4,
       [EquipmentCategory.GRENADE]: 4,
       [EquipmentCategory.MUSICAL_INSTRUMENT]: 4,
-      [EquipmentCategory.STANDARD]: 4
-    };
+      [EquipmentCategory.STANDARD]: 4,
+    }
 
     // Get priorities or default to lowest priority (5)
-    const priorityA = categoryPriority[a.category] || 5;
-    const priorityB = categoryPriority[b.category] || 5;
+    const priorityA = categoryPriority[a.category] || 5
+    const priorityB = categoryPriority[b.category] || 5
 
     // Sort by priority (ascending)
-    return priorityA - priorityB;
-  });
-});
+    return priorityA - priorityB
+  })
+})
 
 // Function to show ability detail dialog
 function showAbilityDetail(ability: string) {
