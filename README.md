@@ -1,6 +1,6 @@
 # Crusade Companion
 
-A Vue.js application for managing Warhammer 40k Crusade campaigns.
+A Vue.js application for managing Trench Crusade armies and campaigns.
 
 ## Features
 
